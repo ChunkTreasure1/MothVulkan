@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Application.h"
+#include "Lamp/Log/Log.h"
 
 extern Lamp::Application* Lamp::CreateApplication();
 
@@ -8,10 +9,14 @@ namespace Lamp
 {
 	int Main()
 	{
+		Lamp::Log::Initialize();
+
 		Application* app = Lamp::CreateApplication();
 		app->Run();
 
 		delete app;
+
+		Lamp::Log::Shutdown();
 
 		return 0;
 	}

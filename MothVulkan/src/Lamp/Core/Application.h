@@ -1,6 +1,13 @@
 #pragma once
 
+#include "Lamp/Core/Base.h"
+
+#include <vulkan/vulkan.h>
+
 #include <string>
+#include <vector>
+
+struct GLFWwindow;
 
 namespace Lamp
 {
@@ -17,6 +24,7 @@ namespace Lamp
 		bool enableImGui;
 	};
 
+	class Window;
 	class Application
 	{
 	public:
@@ -24,6 +32,22 @@ namespace Lamp
 		virtual ~Application();
 
 		void Run();
+
+	private:
+		void CreatePipeline();
+
+		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+		bool m_isRunning = true;
+
+		Ref<Window> m_window;
+
+		ApplicationInfo m_applicationInfo;
+
+		//////Pipeline/////
+		VkPipelineLayout m_pipelineLayout;
+		VkPipeline m_pipeline;
+		///////////////////
 	};
 
 	static Application* CreateApplication();

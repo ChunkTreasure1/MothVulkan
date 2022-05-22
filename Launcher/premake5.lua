@@ -5,7 +5,8 @@ project "Launcher"
 	location "."
 	kind "ConsoleApp"
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++latest"
+	debugdir "../AssetData"
 
 	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
@@ -39,12 +40,16 @@ project "Launcher"
 		"../MothVulkan/src/",
 
         "%{IncludeDir.VulkanSDK}",
-        "%{IncludeDir.GLFW}"
+        "%{IncludeDir.GLFW}",
+		"%{IncludeDir.spdlog}"
 	}
 
     links
     {
         "MothVulkan",
+
+		"GLFW",
+
         "%{Library.Vulkan}"
     }
 
@@ -63,6 +68,8 @@ project "Launcher"
 				"%{Library.SPIRV_Cross_Debug}",
 				"%{Library.SPIRV_Cross_GLSL_Debug}",
 				"%{Library.SPIRV_Tools_Debug}",
+
+				"%{Library.VulkanUtils}"
 			}
 
 		filter "configurations:Release"

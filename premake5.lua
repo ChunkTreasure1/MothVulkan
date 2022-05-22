@@ -19,6 +19,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 include "Dependencies.lua"
 
 group "Dependencies"
+include "MothVulkan/vendor/glfw"
 
 
 group "Core"

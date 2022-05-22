@@ -5,7 +5,7 @@ project "MothVulkan"
 	location "."
 	kind "StaticLib"
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++latest"
 
 	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
@@ -29,25 +29,44 @@ project "MothVulkan"
 		"src/**.h",
 		"src/**.cpp",
 		"src/**.hpp",
+
+		"vendor/vma/vma/VulkanMemoryAllocator.h",
+		"vendor/vma/vma/VulkanMemoryAllocator.cpp"
 	}
 
 	includedirs
 	{
 		"src/",
-		"vendor/",
-		"%{IncludeDir.GLFW}"
+
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.vma}",
+		"%{IncludeDir.VulkanSDK}"
 	}
+
+	filter "files:vendor/**.cpp"
+		flags {"NoPCH"}
 
 	filter "system:windows"
 		systemversion "latest"
 
 		filter "configurations:Debug"
-			defines { "LP_DEBUG", "LP_ENABLE_ASSERTS" }
+			defines 
+			{ 
+				"LP_DEBUG", 
+				"LP_ENABLE_ASSERTS",
+				"LP_ENABLE_VALIDATION"
+			}
 			runtime "Debug"
 			symbols "on"
 
 		filter "configurations:Release"
-			defines { "LP_RELEASE", "LP_ENABLE_ASSERTS" }
+			defines 
+			{ 
+				"LP_RELEASE", 
+				"LP_ENABLE_ASSERTS",
+				"LP_ENABLE_VALIDATION" 
+			}
 			runtime "Release"
 			optimize "on"
 

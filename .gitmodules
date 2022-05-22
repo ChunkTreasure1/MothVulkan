@@ -1,0 +1,3 @@
+[submodule "MothVulkan/vendor/glfw"]
+	path = MothVulkan/vendor/glfw
+	url = https://github.com/ChunkTreasure1/glfw
