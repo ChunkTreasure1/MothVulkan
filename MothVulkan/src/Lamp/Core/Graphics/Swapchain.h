@@ -37,15 +37,15 @@ namespace Lamp
 		void CreateCommandPools();
 		void CreateCommandBuffers();
 
-		uint32_t m_imageCount;
-		uint32_t m_currentImage;
+		uint32_t m_imageCount = 0;
+		uint32_t m_currentImage = 0;
 
-		uint32_t m_currentFrame;
+		uint32_t m_currentFrame = 0;
 
 		const uint32_t m_framesInFlight = 2;
 
-		uint32_t m_width;
-		uint32_t m_height;
+		uint32_t m_width = 0;
+		uint32_t m_height = 0;
 
 		std::vector<VkImage> m_images;
 		std::vector<VkImageView> m_imageViews;
@@ -58,7 +58,7 @@ namespace Lamp
 		std::vector<VkCommandPool> m_commandPools;
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
-		VkFormat m_format;
+		VkFormat m_format = VK_FORMAT_UNDEFINED;
 		VkRenderPass m_renderPass = nullptr;
 		VkSwapchainKHR m_swapchain = nullptr;
 		VkSurfaceKHR m_surface = nullptr;

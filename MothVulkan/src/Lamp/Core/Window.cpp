@@ -6,6 +6,7 @@
 
 #include "Lamp/Core/Graphics/Swapchain.h"
 
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
 namespace Lamp
@@ -69,6 +70,7 @@ namespace Lamp
 		{
 			m_graphicsContext = GraphicsContext::Create();
 			m_swapchain = Swapchain::Create(m_window);
+			m_swapchain->Invalidate(m_properties.width, m_properties.height);
 			m_hasBeenInitialized = true;
 		}
 	}

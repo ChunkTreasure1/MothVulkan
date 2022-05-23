@@ -140,7 +140,7 @@ namespace Lamp
 	void Swapchain::CreateSwapchain(uint32_t width, uint32_t height)
 	{
 		const VkSurfaceFormatKHR surfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-		const VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		const VkPresentModeKHR presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsContext::GetPhysicalDevice()->GetHandle(), m_surface, &surfaceCapabilities);
@@ -267,7 +267,7 @@ namespace Lamp
 		createInfo.height = m_height;
 		createInfo.layers = 1;
 
-		m_framebuffers.resize(m_framebuffers.size());
+		m_framebuffers.resize(m_images.size());
 		for (size_t i = 0; i < m_framebuffers.size(); i++)
 		{
 			createInfo.pAttachments = &m_imageViews[i];

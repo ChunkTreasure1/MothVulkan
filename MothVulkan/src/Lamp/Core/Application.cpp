@@ -13,32 +13,6 @@
 
 namespace Lamp
 {
-	static void GLFWErrorCallback(int error, const char* description)
-	{
-		LP_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
-	}
-
-	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
-	{
-		switch (messageSeverity)
-		{
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-				LP_CORE_TRACE("Validation layer: {0}", pCallbackData->pMessage);
-				break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-				LP_CORE_INFO("Validation layer: {0}", pCallbackData->pMessage);
-				break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-				LP_CORE_WARN("Validation layer: {0}", pCallbackData->pMessage);
-				break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-				LP_CORE_ERROR("Validation layer: {0}", pCallbackData->pMessage);
-				break;
-		}
-
-		return VK_FALSE;
-	}
-
 	static bool LoadShaderModule(const std::filesystem::path& path, VkDevice device, VkShaderModule& outShaderModule)
 	{
 		std::ifstream file(path, std::ios::ate | std::ios::binary);
@@ -61,7 +35,7 @@ namespace Lamp
 		info.pCode = buffer.data();
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(device, &info, nullptr, &shaderModule) != VK_SUCCESS)
+		if (vkCreateShaderModule(device, &info, nullptr, &shaderModule) != VK_SUCCESS) [[unlikely]]
 		{
 			return false;
 		}
@@ -82,15 +56,29 @@ namespace Lamp
 
 		m_window = Window::Create(windowProperties);
 
+		int i = 0;
+		int j = 1;
+
+		auto res = i <=> j;
+
+		std::format("Test {}, Test 2 {}", 0, 1);
+		 
+ 		struct test
+		{
+			float t;
+			float v;
+		};
+
+		test t{ .v = 1.f };
+
 		CreatePipeline();
 	}
 
 	Application::~Application()
 	{
 		auto device = GraphicsContext::GetDevice()->GetHandle();
-
-
-
+		vkDestroyPipeline(device, m_pipeline, nullptr);
+		
 		m_window = nullptr;
 	}
 
@@ -143,20 +131,20 @@ namespace Lamp
 		VkShaderModule fragShader;
 		VkShaderModule vertShader;
 
-		if (!LoadShaderModule("shaders/triangle.frag.spv", device, fragShader))
+		if (!LoadShaderModule("shaders/triangle.frag.spv", device, fragShader)) [[unlikely]]
 		{
 			std::cout << "Error when building the triangle fragment shader module" << std::endl;
 		}
-		else
+		else [[likely]]
 		{
 			std::cout << "Triangle fragment shader successfully loaded" << std::endl;
 		}
 
-		if (!LoadShaderModule("shaders/triangle.vert.spv", device, vertShader))
+		if (!LoadShaderModule("shaders/triangle.vert.spv", device, vertShader)) [[unlikely]]
 		{
 			std::cout << "Error when building the triangle vertex shader module" << std::endl;
 		}
-		else
+		else [[likely]]
 		{
 			std::cout << "Triangle vertex shader successfully loaded" << std::endl;
 		}

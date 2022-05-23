@@ -9,6 +9,7 @@ const char* VKResultToString(int32_t result);
 	#define LP_VK_CHECK(x) if (x != VK_SUCCESS) { LP_CORE_ERROR("Vulkan Error: {0}", VKResultToString(x)); LP_DEBUGBREAK(); }
 #else
 	#define LP_DEBUGBREAK();
+	#define LP_VK_CHECK(x) x
 #endif
 
 #ifdef LP_ENABLE_ASSERTS
