@@ -32,6 +32,9 @@ namespace Lamp
 		virtual ~Application();
 
 		void Run();
+		void Shutdown();
+
+		inline static Application& Get() { return *s_instance; }
 
 	private:
 		void CreatePipeline();
@@ -43,6 +46,7 @@ namespace Lamp
 		Ref<Window> m_window;
 
 		ApplicationInfo m_applicationInfo;
+		inline static Application* s_instance;
 
 		//////Pipeline/////
 		VkPipelineLayout m_pipelineLayout;

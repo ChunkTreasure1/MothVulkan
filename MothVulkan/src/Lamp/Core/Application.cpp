@@ -4,9 +4,11 @@
 #include "Lamp/Log/Log.h"
 #include "Lamp/Core/Base.h"
 #include "Lamp/Core/Window.h"
+
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
+#include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -46,6 +48,9 @@ namespace Lamp
 
 	Application::Application(const ApplicationInfo& info)
 	{
+		LP_CORE_ASSERT(!s_instance, "Application already exists!");
+		s_instance = this;
+
 		m_applicationInfo = info;
 
 		WindowProperties windowProperties{};
@@ -56,30 +61,15 @@ namespace Lamp
 
 		m_window = Window::Create(windowProperties);
 
-		int i = 0;
-		int j = 1;
-
-		auto res = i <=> j;
-
-		std::format("Test {}, Test 2 {}", 0, 1);
-		 
- 		struct test
-		{
-			float t;
-			float v;
-		};
-
-		test t{ .v = 1.f };
-
 		CreatePipeline();
 	}
 
 	Application::~Application()
 	{
-		auto device = GraphicsContext::GetDevice()->GetHandle();
-		vkDestroyPipeline(device, m_pipeline, nullptr);
-		
+		VulkanDeletionQueue::Flush();
+
 		m_window = nullptr;
+		s_instance = nullptr;
 	}
 
 	void Application::Run()
@@ -122,6 +112,11 @@ namespace Lamp
 
 			m_window->Present();
 		}
+	}
+
+	void Application::Shutdown()
+	{
+		m_isRunning = false;
 	}
 
 	void Application::CreatePipeline()
@@ -256,5 +251,15 @@ namespace Lamp
 
 			LP_VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline));
 		}
+
+		vkDestroyShaderModule(device, vertShader, nullptr);
+		vkDestroyShaderModule(device, fragShader, nullptr);
+		
+		VulkanDeletionQueue::Push([this]()
+			{
+				auto device = GraphicsContext::GetDevice()->GetHandle();
+				vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+				vkDestroyPipeline(device, m_pipeline, nullptr);
+			});
 	}
 }

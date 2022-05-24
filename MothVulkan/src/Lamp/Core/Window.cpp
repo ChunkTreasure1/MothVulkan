@@ -2,8 +2,9 @@
 #include "Window.h"
 
 #include "Lamp/Log/Log.h"
-#include "Lamp/Core/Graphics/GraphicsContext.h"
+#include "Lamp/Core/Application.h"
 
+#include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
 
 #include <vulkan/vulkan.h>
@@ -73,10 +74,17 @@ namespace Lamp
 			m_swapchain->Invalidate(m_properties.width, m_properties.height);
 			m_hasBeenInitialized = true;
 		}
+
+		glfwSetWindowUserPointer(m_window, this);
+		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
+			{
+				Application::Get().Shutdown();
+			});
 	}
 
 	void Window::Shutdown()
 	{
+		m_swapchain = nullptr;
 		m_graphicsContext = nullptr;
 		Release();
 		glfwTerminate();
@@ -84,6 +92,7 @@ namespace Lamp
 
 	void Window::Resize(uint32_t width, uint32_t height)
 	{
+		m_swapchain->Resize(width, height);
 	}
 
 	void Window::SetWindowMode(WindowMode windowMode)

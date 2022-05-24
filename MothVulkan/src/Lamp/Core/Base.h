@@ -4,9 +4,12 @@
 
 const char* VKResultToString(int32_t result);
 
+#define BIT(X) (1 << (X))
+
 #ifdef LP_DEBUG
 	#define LP_DEBUGBREAK() __debugbreak()
 	#define LP_VK_CHECK(x) if (x != VK_SUCCESS) { LP_CORE_ERROR("Vulkan Error: {0}", VKResultToString(x)); LP_DEBUGBREAK(); }
+	#define LP_ENABLE_DEBUG_ALLOCATIONS
 #else
 	#define LP_DEBUGBREAK();
 	#define LP_VK_CHECK(x) x

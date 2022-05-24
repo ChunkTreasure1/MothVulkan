@@ -1,14 +1,20 @@
 #pragma once
 
+#include "Lamp/Core/Base.h"
+
 #include <vma/VulkanMemoryAllocator.h>
 
 namespace Lamp
 {
+	class GraphicsDevice;
 	class VulkanAllocator
 	{
+	public:
 		VulkanAllocator() = default;
-		~VulkanAllocator();
+		VulkanAllocator(const std::string& tag);
 
+		~VulkanAllocator();
+		
 		VmaAllocation AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage memoryUsage, VkBuffer& outBuffer);
 		VmaAllocation AllocateImage(VkImageCreateInfo bufferCreateInfo, VmaMemoryUsage memoryUsage, VkImage& outImage);
 	
@@ -26,9 +32,15 @@ namespace Lamp
 		
 		void UnmapMemory(VmaAllocation allocation);
 
-		static void Initialize();
+		static void Initialize(Ref<GraphicsDevice> graphicsDevice);
 		static void Shutdown();
 
-		//static VmaAllocator& GetAllocator();
+		static VmaAllocator& GetAllocator();
+	private:
+		
+	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+		uint64_t m_allocatedBytes = 0;
+	#endif
+		std::string m_tag;
 	};
 }

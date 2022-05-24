@@ -3,6 +3,7 @@
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
+#include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
 #include "Lamp/Log/Log.h"
 
@@ -20,12 +21,15 @@ namespace Lamp
 		LP_CORE_ASSERT(supportsPresentation == VK_TRUE, "No queue with presentation support found!");
 
 		// TODO: Query capabilities
+
+		VulkanDeletionQueue::Push([this]()
+			{
+				Release();
+			});
 	}
 
 	Swapchain::~Swapchain()
-	{
-		Release();
-	}
+	{}
 
 	void Swapchain::Invalidate(uint32_t width, uint32_t height)
 	{
@@ -49,7 +53,7 @@ namespace Lamp
 		}
 
 		auto device = GraphicsContext::GetDevice();
-
+		
 		for (size_t i = 0; i < m_commandPools.size(); i++)
 		{
 			vkDestroyCommandPool(device->GetHandle(), m_commandPools[i], nullptr);
@@ -68,7 +72,6 @@ namespace Lamp
 		{
 			vkDestroyFramebuffer(device->GetHandle(), m_framebuffers[i], nullptr);
 			vkDestroyImageView(device->GetHandle(), m_imageViews[i], nullptr);
-			vkDestroyImage(device->GetHandle(), m_images[i], nullptr);
 		}
 
 		vkDestroySwapchainKHR(device->GetHandle(), m_swapchain, nullptr);

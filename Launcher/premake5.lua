@@ -41,7 +41,9 @@ project "Launcher"
 
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.GLFW}",
-		"%{IncludeDir.spdlog}"
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.yaml}"
 	}
 
     links

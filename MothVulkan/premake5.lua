@@ -30,8 +30,15 @@ project "MothVulkan"
 		"src/**.cpp",
 		"src/**.hpp",
 
+		"vendor/glm/glm/**.hpp",
+		"vendor/glm/glm/**.inl",
+
 		"vendor/vma/vma/VulkanMemoryAllocator.h",
-		"vendor/vma/vma/VulkanMemoryAllocator.cpp"
+		"vendor/vma/vma/VulkanMemoryAllocator.cpp",
+
+		"vendor/yaml-cpp/src/**.cpp",
+		"vendor/yaml-cpp/src/**.h",
+		"vendor/yaml-cpp/include/**.h"
 	}
 
 	includedirs
@@ -41,7 +48,16 @@ project "MothVulkan"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.vma}",
-		"%{IncludeDir.VulkanSDK}"
+		"%{IncludeDir.VulkanSDK}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.yaml}"
+	}
+
+	defines
+	{
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
+		"GLM_FORCE_SSE2",
+		"GLM_FORCE_ALIGNED"
 	}
 
 	filter "files:vendor/**.cpp"

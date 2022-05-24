@@ -5,6 +5,8 @@ IncludeDir["GLFW"] = "%{wks.location}/MothVulkan/vendor/GLFW/include"
 IncludeDir["spdlog"] = "%{wks.location}/MothVulkan/vendor/spdlog/include"
 IncludeDir["vma"] = "%{wks.location}/MothVulkan/vendor/vma"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["glm"] = "%{wks.location}/MothVulkan/vendor/glm"
+IncludeDir["yaml"] = "%{wks.location}/MothVulkan/vendor/yaml-cpp/include"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
