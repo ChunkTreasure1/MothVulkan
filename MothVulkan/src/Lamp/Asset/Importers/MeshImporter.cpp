@@ -1,14 +1,42 @@
-#include "lppch.h"
 #include "MeshImporter.h"
+
+#include "FbxImporter.h"
 
 namespace Lamp
 {
-	bool MeshImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
+	void MeshImporter::Initialize()
 	{
-		return false;
+		s_importers[MeshFormat::Fbx] = CreateScope<FbxImporter>();
 	}
 
-	void MeshImporter::Save(const Ref<Asset>& asset) const
+	void MeshImporter::Shutdown()
 	{
+		s_importers.clear();
 	}
+
+	Ref<Mesh> MeshImporter::ImportMesh(const std::filesystem::path& path)
+	{
+		return s_importers[FormatFromExtension(path)]->ImportMeshImpl(path);
+	}
+
+	MeshImporter::MeshFormat MeshImporter::FormatFromExtension(const std::filesystem::path& path)
+	{
+		auto ext = path.extension().string();
+		
+		if (ext == ".fbx" || ext == ".FBX")
+		{
+			return MeshFormat::Fbx;
+		}
+		else if (ext == ".gltf" || ext == ".glb")
+		{
+			return MeshFormat::GLTF;
+		}
+		else if (ext == ".lgf")
+		{
+			return MeshFormat::LGF;
+		}
+
+		return MeshFormat::Other;
+	}
+
 }
