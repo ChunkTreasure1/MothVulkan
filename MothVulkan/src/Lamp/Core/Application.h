@@ -25,6 +25,8 @@ namespace Lamp
 	};
 
 	class Window;
+	class AssetManager;
+	
 	class Application
 	{
 	public:
@@ -44,6 +46,7 @@ namespace Lamp
 		bool m_isRunning = true;
 
 		Ref<Window> m_window;
+		Ref<AssetManager> m_assetManager;
 
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;

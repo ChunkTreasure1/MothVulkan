@@ -50,7 +50,8 @@ project "MothVulkan"
 		"%{IncludeDir.vma}",
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.yaml}"
+		"%{IncludeDir.yaml}",
+		"%{IncludeDir.fbxsdk}"
 	}
 
 	defines

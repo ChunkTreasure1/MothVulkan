@@ -7,10 +7,12 @@ IncludeDir["vma"] = "%{wks.location}/MothVulkan/vendor/vma"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 IncludeDir["glm"] = "%{wks.location}/MothVulkan/vendor/glm"
 IncludeDir["yaml"] = "%{wks.location}/MothVulkan/vendor/yaml-cpp/include"
+IncludeDir["fbxsdk"] = "%{wks.location}/MothVulkan/vendor/fbxsdk/include"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] = "%{VULKAN_SDK}/Lib"
+LibraryDir["fbxsdk"] = "%{wks.location}/MothVulkan/vendor/fbxsdk/lib/%{cfg.buildcfg}"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
@@ -26,3 +28,7 @@ Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
 Library["ShaderC_Utils_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_util.lib"
 Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
 Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+
+Library["fbxsdk"] = "%{LibraryDir.fbxsdk}/libfbxsdk-md.lib"
+Library["libxml2"] = "%{LibraryDir.fbxsdk}/libxml2-md.lib"
+Library["zlib"] = "%{LibraryDir.fbxsdk}/zlib-md.lib"

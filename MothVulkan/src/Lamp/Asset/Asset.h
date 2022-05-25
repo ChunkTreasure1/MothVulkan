@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <filesystem>
+#include <xhash>
 
 namespace Lamp
 {
@@ -83,5 +84,17 @@ namespace Lamp
 		uint16_t flags = (uint16_t)AssetFlag::None;
 		AssetHandle handle;
 		std::filesystem::path path;
+	};
+}
+
+namespace std
+{
+	template<>
+	struct hash<Lamp::AssetHandle>
+	{
+		size_t operator()(const Lamp::AssetHandle& handle) const
+		{
+			return hash<uint64_t>()(handle);
+		}
 	};
 }

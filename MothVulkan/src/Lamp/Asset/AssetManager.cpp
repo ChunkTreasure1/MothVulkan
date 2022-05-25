@@ -1,6 +1,10 @@
 #include "lppch.h"
 #include "AssetManager.h"
 
+#include "Lamp/Asset/Importers/AssetImporter.h"
+#include "Lamp/Asset/Importers/MeshImporter.h"
+#include "Lamp/Asset/Importers/MeshSourceImporter.h"
+
 #include "Lamp/Core/Base.h"
 #include "Lamp/Log/Log.h"
 
@@ -28,12 +32,94 @@ namespace Lamp
 
 	void AssetManager::Initialize()
 	{
+		MeshImporter::Initialize();
+
+		m_assetImporters.emplace(AssetType::MeshSource, CreateScope<MeshSourceImporter>());
 		LoadAssetRegistry();
 	}
 
 	void AssetManager::Shutdown()
 	{
 		SaveAssetRegistry();
+		MeshImporter::Shutdown();
+	}
+
+	void AssetManager::LoadAsset(const std::filesystem::path& path, Ref<Asset>& asset)
+	{
+		AssetHandle handle = Asset::Null();
+		if (m_assetRegistry.find(path) != m_assetRegistry.end())
+		{
+			handle = m_assetRegistry.at(path);
+		}
+
+		if (handle != Asset::Null() && m_assetCache.find(handle) != m_assetCache.end())
+		{
+			asset = m_assetCache[handle];
+			return;
+		}
+
+		const auto type = GetAssetTypeFromPath(path);
+
+		if (m_assetImporters.find(type) == m_assetImporters.end())
+		{
+			LP_CORE_ERROR("No importer for asset found!");
+			return;
+		}
+
+		m_assetImporters[type]->Load(path, asset);
+		if (handle != Asset::Null())
+		{
+			asset->handle = handle;
+		}
+		else
+		{
+			m_assetRegistry.emplace(path, asset->handle);
+		}
+
+		asset->path = path;
+		m_assetCache.emplace(asset->handle, asset);
+	}
+
+	void AssetManager::LoadAsset(AssetHandle assetHandle, Ref<Asset>& asset)
+	{
+		if (m_assetCache.find(assetHandle) != m_assetCache.end())
+		{
+			asset = m_assetCache[assetHandle];
+			return;
+		}
+
+		const auto path = GetPathFromAssetHandle(assetHandle);
+		if (!path.empty())
+		{
+			LoadAsset(path, asset);
+		}
+	}
+
+	void AssetManager::SaveAsset(const Ref<Asset> asset)
+	{
+		if (m_assetImporters.find(asset->GetType()) == m_assetImporters.end())
+		{
+			LP_CORE_ERROR("No exporter for asset found!");
+			return;
+		}
+
+		if (!asset->IsValid())
+		{
+			LP_CORE_ERROR("Unable to save invalid asset!");
+			return;
+		}
+
+		if (m_assetRegistry.find(asset->path) == m_assetRegistry.end())
+		{
+			m_assetRegistry.emplace(asset->path, asset->handle);
+		}
+
+		if (m_assetCache.find(asset->handle) == m_assetCache.end())
+		{
+			m_assetCache.emplace(asset->handle, asset);
+		}
+
+		m_assetImporters[asset->GetType()]->Save(asset);
 	}
 
 	AssetType AssetManager::GetAssetTypeFromPath(const std::filesystem::path& path)
@@ -43,13 +129,13 @@ namespace Lamp
 
 	AssetType AssetManager::GetAssetTypeFromExtension(const std::string& extension)
 	{
-		std::string extension = Utility::ToLower(extension);
-		if (s_assetExtensionsMap.find(extension) == s_assetExtensionsMap.end()) [[unlikely]]
+		std::string ext = Utility::ToLower(extension);
+		if (s_assetExtensionsMap.find(ext) == s_assetExtensionsMap.end()) [[unlikely]]
 		{
 			return AssetType::None;
 		}
 
-		return s_assetExtensionsMap.at(extension);
+		return s_assetExtensionsMap.at(ext);
 	}
 
 	AssetHandle AssetManager::GetAssetHandleFromPath(const std::filesystem::path& path)
@@ -74,7 +160,7 @@ namespace Lamp
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		
+
 		out << YAML::Key << "Assets" << YAML::BeginSeq;
 		for (const auto& [path, handle] : m_assetRegistry)
 		{
@@ -84,7 +170,7 @@ namespace Lamp
 			out << YAML::EndMap;
 		}
 		out << YAML::EndSeq;
-		
+
 		std::ofstream fout(s_assetRegistryPath);
 		fout << out.c_str();
 		fout.close();
@@ -100,7 +186,7 @@ namespace Lamp
 		std::ifstream file(s_assetRegistryPath);
 		if (!file.is_open()) [[unlikely]]
 		{
-			LP_CORE_ERROR("Failed to open asset registry file: {0}!", s_assetRegistryPath.string());
+			LP_CORE_ERROR("Failed to open asset registry file: {0}!", s_assetRegistryPath.string().c_str());
 			return;
 		}
 
@@ -110,12 +196,12 @@ namespace Lamp
 
 		YAML::Node root = YAML::Load(strStream.str());
 		YAML::Node assets = root["Assets"];
-		
+
 		for (const auto entry : assets)
 		{
 			std::string path = entry["Path"].as<std::string>();
-			AssetHandle handle = entry["Handle"].as<AssetHandle>();
-			
+			AssetHandle handle = entry["Handle"].as<uint64_t>();
+
 			m_assetRegistry.emplace(path, handle);
 		}
 	}

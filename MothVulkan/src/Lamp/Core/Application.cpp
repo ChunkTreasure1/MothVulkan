@@ -10,6 +10,9 @@
 #include "Lamp/Core/Graphics/Swapchain.h"
 #include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
+#include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/Mesh/Mesh.h"
+
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -60,6 +63,9 @@ namespace Lamp
 		windowProperties.title = info.title;
 
 		m_window = Window::Create(windowProperties);
+		m_assetManager = CreateRef<AssetManager>();
+
+		auto mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
 
 		CreatePipeline();
 	}
@@ -68,6 +74,7 @@ namespace Lamp
 	{
 		VulkanDeletionQueue::Flush();
 
+		m_assetManager = nullptr;
 		m_window = nullptr;
 		s_instance = nullptr;
 	}
@@ -126,7 +133,7 @@ namespace Lamp
 		VkShaderModule fragShader;
 		VkShaderModule vertShader;
 
-		if (!LoadShaderModule("shaders/triangle.frag.spv", device, fragShader)) [[unlikely]]
+		if (!LoadShaderModule("Assets/Shaders/triangle.frag.spv", device, fragShader)) [[unlikely]]
 		{
 			std::cout << "Error when building the triangle fragment shader module" << std::endl;
 		}
@@ -135,7 +142,7 @@ namespace Lamp
 			std::cout << "Triangle fragment shader successfully loaded" << std::endl;
 		}
 
-		if (!LoadShaderModule("shaders/triangle.vert.spv", device, vertShader)) [[unlikely]]
+		if (!LoadShaderModule("Assets/Shaders/triangle.vert.spv", device, vertShader)) [[unlikely]]
 		{
 			std::cout << "Error when building the triangle vertex shader module" << std::endl;
 		}

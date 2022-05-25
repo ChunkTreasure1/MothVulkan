@@ -40,9 +40,3 @@ constexpr Ref<T> CreateRef(Args&& ... args)
 {
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
-
-template<typename T, typename V>
-constexpr Ref<V> RefCast(Ref<T> ptr)
-{
-	return std::reinterpret_pointer_cast<V>(ptr);
-}

@@ -43,7 +43,8 @@ project "Launcher"
         "%{IncludeDir.GLFW}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.yaml}"
+		"%{IncludeDir.yaml}",
+		"%{IncludeDir.fbxsdk}"
 	}
 
     links
@@ -52,7 +53,10 @@ project "Launcher"
 
 		"GLFW",
 
-        "%{Library.Vulkan}"
+        "%{Library.Vulkan}",
+		"%{Library.fbxsdk}",
+		"%{Library.libxml2}",
+		"%{Library.zlib}"
     }
 
 	filter "system:windows"
