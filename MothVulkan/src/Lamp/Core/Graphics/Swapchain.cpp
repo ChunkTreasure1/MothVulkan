@@ -31,12 +31,12 @@ namespace Lamp
 	Swapchain::~Swapchain()
 	{}
 
-	void Swapchain::Invalidate(uint32_t width, uint32_t height)
+	void Swapchain::Invalidate(uint32_t width, uint32_t height, bool useVSync)
 	{
 		m_width = width;
 		m_height = height;
 
-		CreateSwapchain(width, height);
+		CreateSwapchain(width, height, useVSync);
 		CreateImageViews();
 		CreateRenderPass();
 		CreateFramebuffers();
@@ -128,11 +128,11 @@ namespace Lamp
 		m_currentFrame = (m_currentFrame + 1) % m_framesInFlight;
 	}
 
-	void Swapchain::Resize(uint32_t width, uint32_t height)
+	void Swapchain::Resize(uint32_t width, uint32_t height, bool useVSync)
 	{
 		m_width = width;
 		m_height = height;
-		Invalidate(width, height);
+		Invalidate(width, height, useVSync);
 	}
 
 	Ref<Swapchain> Swapchain::Create(GLFWwindow* window)
@@ -140,10 +140,19 @@ namespace Lamp
 		return CreateRef<Swapchain>(window);
 	}
 	
-	void Swapchain::CreateSwapchain(uint32_t width, uint32_t height)
+	void Swapchain::CreateSwapchain(uint32_t width, uint32_t height, bool useVSync)
 	{
 		const VkSurfaceFormatKHR surfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-		const VkPresentModeKHR presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+		
+		VkPresentModeKHR presentMode;
+		if (useVSync)
+		{
+			presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		}
+		else
+		{
+			presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+		}
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsContext::GetPhysicalDevice()->GetHandle(), m_surface, &surfaceCapabilities);

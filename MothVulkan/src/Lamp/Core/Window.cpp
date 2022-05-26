@@ -71,7 +71,7 @@ namespace Lamp
 		{
 			m_graphicsContext = GraphicsContext::Create();
 			m_swapchain = Swapchain::Create(m_window);
-			m_swapchain->Invalidate(m_properties.width, m_properties.height);
+			m_swapchain->Resize(m_properties.width, m_properties.height, m_properties.vsync);
 			m_hasBeenInitialized = true;
 		}
 
@@ -92,7 +92,7 @@ namespace Lamp
 
 	void Window::Resize(uint32_t width, uint32_t height)
 	{
-		m_swapchain->Resize(width, height);
+		m_swapchain->Resize(width, height, m_properties.vsync);
 	}
 
 	void Window::SetWindowMode(WindowMode windowMode)

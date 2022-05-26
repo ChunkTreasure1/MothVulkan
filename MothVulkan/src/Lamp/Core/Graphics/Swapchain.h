@@ -13,13 +13,12 @@ namespace Lamp
 		Swapchain(GLFWwindow* window);
 		~Swapchain();
 
-		void Invalidate(uint32_t width, uint32_t height);
 		void Release();
 
 		void BeginFrame();
 		void Present();
 
-		void Resize(uint32_t width, uint32_t height);
+		void Resize(uint32_t width, uint32_t height, bool useVSync);
 
 		inline const uint32_t GetCurrentFrame() const { return m_currentFrame; }
 		inline VkRenderPass GetRenderPass() const { return m_renderPass; }
@@ -29,7 +28,9 @@ namespace Lamp
 		static Ref<Swapchain> Create(GLFWwindow* window);
 
 	private:
-		void CreateSwapchain(uint32_t width, uint32_t height);
+		void Invalidate(uint32_t width, uint32_t height, bool useVSync);
+		
+		void CreateSwapchain(uint32_t width, uint32_t height, bool useVSync);
 		void CreateImageViews();
 		void CreateRenderPass();
 		void CreateFramebuffers();
