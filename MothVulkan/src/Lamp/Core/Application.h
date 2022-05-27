@@ -24,6 +24,12 @@ namespace Lamp
 		bool enableImGui;
 	};
 
+	struct MeshPushConstants
+	{
+		glm::vec4 data;
+		glm::mat4 transform;
+	};
+
 	class Window;
 	class AssetManager;
 	
@@ -54,6 +60,8 @@ namespace Lamp
 		//////Pipeline/////
 		VkPipelineLayout m_pipelineLayout;
 		VkPipeline m_pipeline;
+
+		uint32_t m_frameNumber = 0;
 		///////////////////
 	};
 

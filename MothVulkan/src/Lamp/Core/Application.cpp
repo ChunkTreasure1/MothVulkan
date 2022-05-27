@@ -16,6 +16,8 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace Lamp
 {
 	static bool LoadShaderModule(const std::filesystem::path& path, VkDevice device, VkShaderModule& outShaderModule)
@@ -112,12 +114,28 @@ namespace Lamp
 			}
 
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+
+
+			const glm::vec3 camPos = { 0.f, 0.f, -2.f };
+			const glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+			glm::mat4 projection = glm::perspective(glm::radians(70.f), 1280.f / 720.f, 0.1f, 1000.f);
+			projection[1][1] *= -1.f;
+			
+			const glm::mat4 model = glm::rotate(glm::mat4{ 1.f }, glm::radians(m_frameNumber * 0.4f), glm::vec3{ 0.f, 1.f, 0.f });
+			const glm::mat4 transform = projection * view * model;
+
+			MeshPushConstants constants;
+			constants.transform = transform;
+
+			vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
 			vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 
 			vkCmdEndRenderPass(cmdBuffer);
 			LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 			m_window->Present();
+			m_frameNumber++;
 		}
 	}
 
@@ -153,12 +171,17 @@ namespace Lamp
 
 		// Pipeline layout
 		{
+			VkPushConstantRange pushConstantRange{};
+			pushConstantRange.offset = 0;
+			pushConstantRange.size = sizeof(MeshPushConstants);
+			pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 			VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutInfo.setLayoutCount = 0;
 			pipelineLayoutInfo.pSetLayouts = nullptr;
-			pipelineLayoutInfo.pushConstantRangeCount = 0;
-			pipelineLayoutInfo.pPushConstantRanges = nullptr;
+			pipelineLayoutInfo.pushConstantRangeCount = 1;
+			pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 			LP_VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
 		}
