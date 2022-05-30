@@ -40,6 +40,7 @@ namespace Lamp
 		
 	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		uint64_t m_allocatedBytes = 0;
+		uint64_t m_freedBytes = 0;
 	#endif
 		std::string m_tag;
 	};

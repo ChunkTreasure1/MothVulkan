@@ -25,6 +25,12 @@ namespace Lamp
 		inline const std::vector<SubMesh>& GetSubMeshes() const { return m_subMeshes; }
 		inline const std::unordered_map<uint32_t, Ref<Material>> GetMaterials() const { return m_materials; }
 
+		inline const size_t GetVertexCount() const { return m_vertices.size(); }
+		inline const size_t GetIndexCount() const { return m_indices.size(); }
+		
+		inline const Ref<VertexBuffer>& GetVertexBuffer() const { return m_vertexBuffer; }
+		inline const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
+
 		static AssetType GetStaticType() { return AssetType::Mesh; }
 		AssetType GetType() override { return GetStaticType(); }
 

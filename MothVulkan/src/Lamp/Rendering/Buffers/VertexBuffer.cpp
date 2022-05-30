@@ -92,6 +92,8 @@ namespace Lamp
 
 	void VertexBuffer::Bind(VkCommandBuffer commandBuffer, uint32_t binding) const
 	{
+		const VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(commandBuffer, binding, 1, &m_buffer, &offset);
 	}
 
 	Ref<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices, uint32_t size)

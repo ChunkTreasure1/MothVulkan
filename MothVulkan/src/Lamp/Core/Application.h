@@ -31,10 +31,20 @@ namespace Lamp
 		glm::mat4 transform;
 	};
 
+	struct CameraData
+	{
+		glm::mat4 view;
+		glm::mat4 proj;
+		glm::mat4 viewProj;
+	};
+
 	class Window;
 	class VertexBuffer;
+	class Mesh;
+	class UniformBufferSet;
+
 	class AssetManager;
-	
+
 	class Application
 	{
 	public:
@@ -48,7 +58,7 @@ namespace Lamp
 
 	private:
 		void CreatePipeline();
-		void CreateTriangle();
+		void CreateDescriptors();
 
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -60,6 +70,7 @@ namespace Lamp
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;
 
+
 		//////Pipeline/////
 		VkPipelineLayout m_pipelineLayout;
 		VkPipeline m_pipeline;
@@ -68,8 +79,11 @@ namespace Lamp
 		///////////////////
 		
 		/////Meshes/////
-		Ref<VertexBuffer> m_vertexBuffer;
+		Ref<Mesh> m_mesh;
 		////////////////
+		
+		std::vector<VkDescriptorSet> m_descriptorSets; // One per frame
+		Ref<UniformBufferSet> m_uniformBufferSet;
 	};
 
 	static Application* CreateApplication();

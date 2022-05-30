@@ -27,6 +27,12 @@ namespace Lamp
 		}
 	}
 
+	void IndexBuffer::Bind(VkCommandBuffer commandBuffer)
+	{
+		const VkDeviceSize offset = 0;
+		vkCmdBindIndexBuffer(commandBuffer, m_buffer, offset, VK_INDEX_TYPE_UINT32);
+	}
+
 	Ref<IndexBuffer> IndexBuffer::Create(const std::vector<uint32_t>& indices, uint32_t count)
 	{
 		return CreateRef<IndexBuffer>(indices, count);

@@ -13,6 +13,8 @@ namespace Lamp
 		IndexBuffer(uint32_t* indices, uint32_t count);
 		~IndexBuffer();
 
+		void Bind(VkCommandBuffer commandBuffer);
+
 		static Ref<IndexBuffer> Create(const std::vector<uint32_t>& pIndices, uint32_t count);
 		static Ref<IndexBuffer> Create(uint32_t* pIndices, uint32_t count);
 

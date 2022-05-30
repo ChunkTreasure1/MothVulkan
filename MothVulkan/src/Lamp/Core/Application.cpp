@@ -13,6 +13,10 @@
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
 
+#include "Lamp/Rendering/Buffers/VertexBuffer.h"
+#include "Lamp/Rendering/Buffers/IndexBuffer.h"
+#include "Lamp/Rendering/Buffers/UniformBufferSet.h"
+
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -67,11 +71,10 @@ namespace Lamp
 		m_window = Window::Create(windowProperties);
 		m_assetManager = CreateRef<AssetManager>();
 
-		auto mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
+		m_mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
 
+		CreateDescriptors();
 		CreatePipeline();
-
-		
 	}
 
 	Application::~Application()
@@ -79,6 +82,8 @@ namespace Lamp
 		VulkanDeletionQueue::Flush();
 
 		m_assetManager = nullptr;
+		m_mesh = nullptr;
+		m_uniformBufferSet = nullptr;
 		m_window = nullptr;
 		s_instance = nullptr;
 	}
@@ -122,15 +127,20 @@ namespace Lamp
 			glm::mat4 projection = glm::perspective(glm::radians(70.f), 1280.f / 720.f, 0.1f, 1000.f);
 			projection[1][1] *= -1.f;
 			
-			const glm::mat4 model = glm::rotate(glm::mat4{ 1.f }, glm::radians(m_frameNumber * 0.4f), glm::vec3{ 0.f, 1.f, 0.f });
+			const glm::mat4 model = glm::rotate(glm::mat4{ 1.f }, glm::radians(m_frameNumber * 0.4f), glm::vec3{ 0.f, 1.f, 0.f }) * glm::scale(glm::mat4(1.f), glm::vec3(0.01f));
 			const glm::mat4 transform = projection * view * model;
 
 			MeshPushConstants constants;
 			constants.transform = transform;
 
 			vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
-			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_vertexBuffer->)
-			vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+			m_mesh->GetVertexBuffer()->Bind(cmdBuffer);
+			m_mesh->GetIndexBuffer()->Bind(cmdBuffer);
+
+			for (auto& submesh : m_mesh->GetSubMeshes())
+			{
+				vkCmdDrawIndexed(cmdBuffer, submesh.indexCount, 1, submesh.indexStartOffset, submesh.vertexStartOffset, 0);
+			}
 
 			vkCmdEndRenderPass(cmdBuffer);
 			LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
@@ -189,9 +199,9 @@ namespace Lamp
 
 		std::vector<VkVertexInputBindingDescription> vertexBindings;
 		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
-		
+
 		VkPipelineVertexInputStateCreateFlags vertexInputStateFlags = 0;
-		
+
 		// Vertex input desc
 		{
 			{
@@ -348,22 +358,17 @@ namespace Lamp
 
 		vkDestroyShaderModule(device, vertShader, nullptr);
 		vkDestroyShaderModule(device, fragShader, nullptr);
-		
+
 		VulkanDeletionQueue::Push([this]()
 			{
-				auto device = GraphicsContext::GetDevice()->GetHandle();
-				vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
-				vkDestroyPipeline(device, m_pipeline, nullptr);
+					auto device = GraphicsContext::GetDevice()->GetHandle();
+					vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+					vkDestroyPipeline(device, m_pipeline, nullptr);
 			});
 	}
 	
-	void Application::CreateTriangle()
+	void Application::CreateDescriptors()
 	{
-		std::vector<Vertex> vertices = 
-		{ 
-			{{ 1.f, 1.f, 0.f }},
-			{{ -1.f, 1.f, 0.f }},
-			{{ 0.f, -1.f, 0.f }}
-		};
+		m_uniformBufferSet = UniformBufferSet::Create(sizeof(CameraData), m_window->GetSwapchain().GetFramesInFlight());
 	}
 }

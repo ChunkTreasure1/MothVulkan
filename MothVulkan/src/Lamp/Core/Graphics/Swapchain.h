@@ -21,6 +21,8 @@ namespace Lamp
 		void Resize(uint32_t width, uint32_t height, bool useVSync);
 
 		inline const uint32_t GetCurrentFrame() const { return m_currentFrame; }
+		inline const uint32_t GetFramesInFlight() const { return m_framesInFlight; }
+
 		inline VkRenderPass GetRenderPass() const { return m_renderPass; }
 		inline VkCommandBuffer GetCurrentCommandBuffer() const { return m_commandBuffers[m_currentFrame]; }
 		inline VkFramebuffer GetCurrentFramebuffer() const { return m_framebuffers[m_currentImage]; }

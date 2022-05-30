@@ -177,7 +177,11 @@ namespace Lamp
 			memcpy_s(&mesh->m_vertices[preVertexCount], sizeof(Vertex) * vertices.size(), vertices.data(), sizeof(Vertex) * vertices.size());
 			memcpy_s(&mesh->m_indices[preIndexCount], sizeof(uint32_t) * indices.size(), indices.data(), sizeof(uint32_t) * indices.size());
 			
-			mesh->m_subMeshes.emplace_back((uint32_t)indices.size(), (uint32_t)preIndexCount, (uint32_t)preVertexCount, 0);
+			auto& submesh = mesh->m_subMeshes.emplace_back();
+			submesh.indexCount = indices.size();
+			submesh.indexStartOffset = preIndexCount;
+			submesh.vertexStartOffset = preVertexCount;
+			submesh.materialIndex = matIndex;
 		}
 	}
 
