@@ -15,6 +15,7 @@ namespace Lamp
 		~VertexBuffer();
 
 		void SetData(const void* data, uint32_t size);
+		void Bind(VkCommandBuffer commandBuffer, uint32_t binding = 0) const;
 
 		static Ref<VertexBuffer> Create(const std::vector<Vertex>& vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);

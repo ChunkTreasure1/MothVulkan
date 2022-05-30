@@ -70,6 +70,8 @@ namespace Lamp
 		auto mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
 
 		CreatePipeline();
+
+		
 	}
 
 	Application::~Application()
@@ -115,8 +117,6 @@ namespace Lamp
 
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-
-
 			const glm::vec3 camPos = { 0.f, 0.f, -2.f };
 			const glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
 			glm::mat4 projection = glm::perspective(glm::radians(70.f), 1280.f / 720.f, 0.1f, 1000.f);
@@ -129,6 +129,7 @@ namespace Lamp
 			constants.transform = transform;
 
 			vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_vertexBuffer->)
 			vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 
 			vkCmdEndRenderPass(cmdBuffer);
@@ -160,7 +161,7 @@ namespace Lamp
 			std::cout << "Triangle fragment shader successfully loaded" << std::endl;
 		}
 
-		if (!LoadShaderModule("Assets/Shaders/triangle.vert.spv", device, vertShader)) [[unlikely]]
+		if (!LoadShaderModule("Assets/Shaders/tri_mesh.vert.spv", device, vertShader)) [[unlikely]]
 		{
 			std::cout << "Error when building the triangle vertex shader module" << std::endl;
 		}
@@ -186,12 +187,75 @@ namespace Lamp
 			LP_VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
 		}
 
+		std::vector<VkVertexInputBindingDescription> vertexBindings;
+		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+		
+		VkPipelineVertexInputStateCreateFlags vertexInputStateFlags = 0;
+		
+		// Vertex input desc
+		{
+			{
+				auto& vertInput = vertexBindings.emplace_back();
+				vertInput.binding = 0;
+				vertInput.stride = sizeof(Vertex);
+				vertInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			}
+
+			// Position
+			{
+				auto& vertAttr = vertexAttributes.emplace_back();
+				vertAttr.binding = 0;
+				vertAttr.location = 0;
+				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertAttr.offset = offsetof(Vertex, Vertex::position);
+			}
+
+			// Normal
+			{
+				auto& vertAttr = vertexAttributes.emplace_back();
+				vertAttr.binding = 0;
+				vertAttr.location = 1;
+				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertAttr.offset = offsetof(Vertex, Vertex::normal);
+			}
+
+			// Tangent
+			{
+				auto& vertAttr = vertexAttributes.emplace_back();
+				vertAttr.binding = 0;
+				vertAttr.location = 2;
+				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertAttr.offset = offsetof(Vertex, Vertex::tangent);
+			}
+
+			// Bitangent
+			{
+				auto& vertAttr = vertexAttributes.emplace_back();
+				vertAttr.binding = 0;
+				vertAttr.location = 3;
+				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertAttr.offset = offsetof(Vertex, Vertex::bitangent);
+			}
+
+			// Texture coords
+			{
+				auto& vertAttr = vertexAttributes.emplace_back();
+				vertAttr.binding = 0;
+				vertAttr.location = 4;
+				vertAttr.format = VK_FORMAT_R32G32_SFLOAT;
+				vertAttr.offset = offsetof(Vertex, Vertex::textureCoords);
+			}
+		}
+
 		// Pipeline
 		{
 			VkPipelineVertexInputStateCreateInfo vertInputState{};
 			vertInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-			vertInputState.vertexBindingDescriptionCount = 0;
-			vertInputState.vertexAttributeDescriptionCount = 0;
+			vertInputState.vertexBindingDescriptionCount = vertexBindings.size();
+			vertInputState.pVertexBindingDescriptions = vertexBindings.data();
+
+			vertInputState.vertexAttributeDescriptionCount = vertexAttributes.size();
+			vertInputState.pVertexAttributeDescriptions = vertexAttributes.data();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
 			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -291,5 +355,15 @@ namespace Lamp
 				vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
 				vkDestroyPipeline(device, m_pipeline, nullptr);
 			});
+	}
+	
+	void Application::CreateTriangle()
+	{
+		std::vector<Vertex> vertices = 
+		{ 
+			{{ 1.f, 1.f, 0.f }},
+			{{ -1.f, 1.f, 0.f }},
+			{{ 0.f, -1.f, 0.f }}
+		};
 	}
 }

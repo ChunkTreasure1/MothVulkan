@@ -3,6 +3,7 @@
 #include "Lamp/Core/Base.h"
 
 #include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
 
 #include <string>
 #include <vector>
@@ -31,6 +32,7 @@ namespace Lamp
 	};
 
 	class Window;
+	class VertexBuffer;
 	class AssetManager;
 	
 	class Application
@@ -46,6 +48,7 @@ namespace Lamp
 
 	private:
 		void CreatePipeline();
+		void CreateTriangle();
 
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -63,6 +66,10 @@ namespace Lamp
 
 		uint32_t m_frameNumber = 0;
 		///////////////////
+		
+		/////Meshes/////
+		Ref<VertexBuffer> m_vertexBuffer;
+		////////////////
 	};
 
 	static Application* CreateApplication();

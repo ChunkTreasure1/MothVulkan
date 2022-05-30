@@ -90,6 +90,10 @@ namespace Lamp
 		}
 	}
 
+	void VertexBuffer::Bind(VkCommandBuffer commandBuffer, uint32_t binding) const
+	{
+	}
+
 	Ref<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices, uint32_t size)
 	{
 		return CreateRef<VertexBuffer>(vertices, size);
