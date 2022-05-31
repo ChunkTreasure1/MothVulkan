@@ -30,6 +30,8 @@ namespace Lamp
 			}
 		}
 
+		m_capabilities.minUBOOffsetAlignment = m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+
 		if (!m_physicalDevice)
 		{
 			throw std::runtime_error("Failed to find a supported device!");

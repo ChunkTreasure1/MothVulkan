@@ -38,7 +38,10 @@ project "MothVulkan"
 
 		"vendor/yaml-cpp/src/**.cpp",
 		"vendor/yaml-cpp/src/**.h",
-		"vendor/yaml-cpp/include/**.h"
+		"vendor/yaml-cpp/include/**.h",
+
+		"vendor/stb/**.cpp",
+		"vendor/stb/**.h"
 	}
 
 	includedirs
@@ -51,7 +54,8 @@ project "MothVulkan"
 		"%{IncludeDir.VulkanSDK}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml}",
-		"%{IncludeDir.fbxsdk}"
+		"%{IncludeDir.fbxsdk}",
+		"%{IncludeDir.stb}"
 	}
 
 	defines
@@ -63,6 +67,10 @@ project "MothVulkan"
 
 	filter "files:vendor/**.cpp"
 		flags {"NoPCH"}
+		warnings "off"
+
+	filter "files:vendor/**.h"
+		warnings "off"
 
 	filter "system:windows"
 		systemversion "latest"

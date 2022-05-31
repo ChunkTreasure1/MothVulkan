@@ -1,7 +1,7 @@
 #include "lppch.h"
 #include "UniformBufferSet.h"
 
-#include "Lamp/Rendering/Buffers/UniformBuffer.h"
+#include "Lamp/Rendering/Buffer/UniformBuffer.h"
 
 namespace Lamp
 {
@@ -27,10 +27,12 @@ namespace Lamp
 	{
 		m_uniformBuffers.clear();
 	}
+
 	Ref<UniformBufferSet> UniformBufferSet::Create(const void* data, uint32_t size, uint32_t bufferCount)
 	{
 		return CreateRef<UniformBufferSet>(data, size, bufferCount);
 	}
+	
 	Ref<UniformBufferSet> UniformBufferSet::Create(uint32_t size, uint32_t bufferCount)
 	{
 		return CreateRef<UniformBufferSet>(size, bufferCount);

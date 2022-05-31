@@ -1,8 +1,8 @@
 #include "lppch.h"
 #include "Mesh.h"
 
-#include "Lamp/Rendering/Buffers/VertexBuffer.h"
-#include "Lamp/Rendering/Buffers/IndexBuffer.h"
+#include "Lamp/Rendering/Buffer/VertexBuffer.h"
+#include "Lamp/Rendering/Buffer/IndexBuffer.h"
 
 namespace Lamp
 {

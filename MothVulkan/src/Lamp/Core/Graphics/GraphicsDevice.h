@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "Lamp/Core/Base.h"
@@ -22,17 +23,24 @@ namespace Lamp
 			int32_t presentQueueIndex = -1;
 			int32_t computeQueueIndex = -1;
 		};
+		
+		struct Capabilities
+		{
+			uint64_t minUBOOffsetAlignment;
+		};
 
 		PhysicalGraphicsDevice(VkInstance instance);
 		~PhysicalGraphicsDevice();
 
 		inline VkPhysicalDevice GetHandle() const { return m_physicalDevice; }
 		inline const QueueIndices& GetQueueIndices() const { return m_queueIndices; }
+		inline const Capabilities& GetCapabilities() const { return m_capabilities; }
 
 		static Ref<PhysicalGraphicsDevice> Create(VkInstance instance);
 
 	private:
 		QueueIndices m_queueIndices;
+		Capabilities m_capabilities;
 
 		VkPhysicalDevice m_physicalDevice = nullptr;
 		VkPhysicalDeviceProperties m_physicalDeviceProperties;

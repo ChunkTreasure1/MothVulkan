@@ -178,9 +178,9 @@ namespace Lamp
 			memcpy_s(&mesh->m_indices[preIndexCount], sizeof(uint32_t) * indices.size(), indices.data(), sizeof(uint32_t) * indices.size());
 			
 			auto& submesh = mesh->m_subMeshes.emplace_back();
-			submesh.indexCount = indices.size();
-			submesh.indexStartOffset = preIndexCount;
-			submesh.vertexStartOffset = preVertexCount;
+			submesh.indexCount = (uint32_t)indices.size();
+			submesh.indexStartOffset = (uint32_t)preIndexCount;
+			submesh.vertexStartOffset = (uint32_t)preVertexCount;
 			submesh.materialIndex = matIndex;
 		}
 	}

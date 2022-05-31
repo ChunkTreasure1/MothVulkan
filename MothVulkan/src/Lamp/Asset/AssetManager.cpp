@@ -3,6 +3,7 @@
 
 #include "Lamp/Asset/Importers/AssetImporter.h"
 #include "Lamp/Asset/Importers/MeshImporter.h"
+#include "Lamp/Asset/Importers/TextureImporter.h"
 #include "Lamp/Asset/Importers/MeshSourceImporter.h"
 
 #include "Lamp/Core/Base.h"
@@ -33,8 +34,10 @@ namespace Lamp
 	void AssetManager::Initialize()
 	{
 		MeshImporter::Initialize();
+		TextureImporter::Initialize();
 
 		m_assetImporters.emplace(AssetType::MeshSource, CreateScope<MeshSourceImporter>());
+		m_assetImporters.emplace(AssetType::Texture, CreateScope<TextureSourceImporter>());
 		LoadAssetRegistry();
 	}
 
@@ -42,6 +45,7 @@ namespace Lamp
 	{
 		SaveAssetRegistry();
 		MeshImporter::Shutdown();
+		TextureImporter::Shutdown();
 	}
 
 	void AssetManager::LoadAsset(const std::filesystem::path& path, Ref<Asset>& asset)

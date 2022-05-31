@@ -38,10 +38,16 @@ namespace Lamp
 		glm::mat4 viewProj;
 	};
 
+	struct ObjectData
+	{
+		glm::mat4 transform;
+	};
+
 	class Window;
-	class VertexBuffer;
 	class Mesh;
 	class UniformBufferSet;
+	class ShaderStorageBufferSet;
+	class Texture2D;
 
 	class AssetManager;
 
@@ -78,12 +84,23 @@ namespace Lamp
 		uint32_t m_frameNumber = 0;
 		///////////////////
 		
-		/////Meshes/////
+		/////Assets/////
 		Ref<Mesh> m_mesh;
+		Ref<Texture2D> m_texture;
 		////////////////
 		
-		std::vector<VkDescriptorSet> m_descriptorSets; // One per frame
+		/////Descriptors/////
+		VkDescriptorSetLayout m_globalSetLayout;
+		VkDescriptorSetLayout m_objectSetLayout;
+
+		VkDescriptorPool m_descriptorPool;
+
+		std::vector<VkDescriptorSet> m_globalDescriptorSets; // One per frame
+		std::vector<VkDescriptorSet> m_objectDescriptorSets; // One per frame
+		
 		Ref<UniformBufferSet> m_uniformBufferSet;
+		Ref<ShaderStorageBufferSet> m_objectBufferSet;
+		/////////////////////
 	};
 
 	static Application* CreateApplication();

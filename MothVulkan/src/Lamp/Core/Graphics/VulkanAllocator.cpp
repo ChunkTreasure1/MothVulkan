@@ -19,20 +19,24 @@ namespace Lamp
 
 	VulkanAllocator::VulkanAllocator(const std::string& tag)
 		: m_tag(tag)
-	{}
+	{
+	}
 
 	VulkanAllocator::~VulkanAllocator()
 	{
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
-		if (m_tag.empty()) [[likely]]
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+		if (m_allocatedBytes != 0 || m_freedBytes != 0)
 		{
-			LP_CORE_INFO("Anonymous VulkanAllocator {0} {1} bytes!", m_allocatedBytes == 0 ? "freed" : "allocated", m_allocatedBytes == 0 ? m_freedBytes : m_allocatedBytes);
+			if (m_tag.empty()) [[likely]]
+			{
+				LP_CORE_INFO("Anonymous VulkanAllocator {0} {1} bytes!", m_allocatedBytes == 0 ? "freed" : "allocated", m_allocatedBytes == 0 ? m_freedBytes : m_allocatedBytes);
+			}
+			else
+			{
+				LP_CORE_INFO("VulkanAllocator {0} {1} {2} bytes!", m_tag.c_str(), m_allocatedBytes == 0 ? "freed" : "allocated", m_allocatedBytes == 0 ? m_freedBytes : m_allocatedBytes);
+			}
 		}
-		else
-		{
-			LP_CORE_INFO("VulkanAllocator {0} {1} {2} bytes!", m_tag.c_str(), m_allocatedBytes == 0 ? "freed" : "allocated", m_allocatedBytes == 0 ? m_freedBytes : m_allocatedBytes);
-		}
-	#endif
+#endif
 	}
 
 	VmaAllocation VulkanAllocator::AllocateBuffer(VkBufferCreateInfo bufferCreateInfo, VmaMemoryUsage memoryUsage, VkBuffer& outBuffer)
@@ -47,11 +51,11 @@ namespace Lamp
 		vmaGetAllocationInfo(s_allocatorData->allocator, allocation, &allocInfo);
 
 		s_allocatorData->totalAllocatedBytes += allocInfo.size;
-		
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		m_allocatedBytes += (uint64_t)allocInfo.size;
-	#endif
-		
+#endif
+
 		return allocation;
 	}
 
@@ -59,18 +63,18 @@ namespace Lamp
 	{
 		VmaAllocationCreateInfo allocCreateInfo{};
 		allocCreateInfo.usage = memoryUsage;
-		
+
 		VmaAllocation allocation;
 		vmaCreateImage(s_allocatorData->allocator, &bufferCreateInfo, &allocCreateInfo, &outImage, &allocation, nullptr);
-		
+
 		VmaAllocationInfo allocInfo{};
 		vmaGetAllocationInfo(s_allocatorData->allocator, allocation, &allocInfo);
 
 		s_allocatorData->totalAllocatedBytes += allocInfo.size;
-		
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		m_allocatedBytes += (uint64_t)allocInfo.size;
-	#endif
+#endif
 
 		return allocation;
 	}
@@ -82,11 +86,10 @@ namespace Lamp
 		VmaAllocationInfo allocInfo{};
 		vmaGetAllocationInfo(s_allocatorData->allocator, allocation, &allocInfo);
 		s_allocatorData->totalFreedBytes += allocInfo.size;
-		
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		m_freedBytes += (uint64_t)allocInfo.size;
-	#endif
-		
+#endif
 		vmaFreeMemory(s_allocatorData->allocator, allocation);
 	}
 
@@ -94,14 +97,14 @@ namespace Lamp
 	{
 		LP_CORE_ASSERT(buffer, "Unable to destroy null buffer!");
 		LP_CORE_ASSERT(allocation, "Unable to free null allocation!");
-	
+
 		VmaAllocationInfo allocInfo{};
 		vmaGetAllocationInfo(s_allocatorData->allocator, allocation, &allocInfo);
 		s_allocatorData->totalFreedBytes += allocInfo.size;
-		
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		m_freedBytes += (uint64_t)allocInfo.size;
-	#endif
+#endif
 
 		vmaDestroyBuffer(s_allocatorData->allocator, buffer, allocation);
 	}
@@ -114,11 +117,11 @@ namespace Lamp
 		VmaAllocationInfo allocInfo{};
 		vmaGetAllocationInfo(s_allocatorData->allocator, allocation, &allocInfo);
 		s_allocatorData->totalFreedBytes += allocInfo.size;
-		
-	#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
+
+#ifdef LP_ENABLE_DEBUG_ALLOCATIONS
 		m_freedBytes += (uint64_t)allocInfo.size;
-	#endif
-	
+#endif
+
 		vmaDestroyImage(s_allocatorData->allocator, image, allocation);
 	}
 

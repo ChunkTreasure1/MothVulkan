@@ -19,7 +19,8 @@ project "Launcher"
 	linkoptions 
 	{
 		"/ignore:4006",
-		"/ignore:4099"
+		"/ignore:4099",
+		"/ignore:4098"
 	}
 
     defines
@@ -44,7 +45,8 @@ project "Launcher"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml}",
-		"%{IncludeDir.fbxsdk}"
+		"%{IncludeDir.fbxsdk}",
+		"%{IncludeDir.stb}"
 	}
 
     links

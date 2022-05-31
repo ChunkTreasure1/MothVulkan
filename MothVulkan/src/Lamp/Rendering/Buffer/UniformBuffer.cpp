@@ -10,11 +10,10 @@ namespace Lamp
 		: m_size(size)
 	{
 		auto device = GraphicsContext::GetDevice();
-		VkDeviceSize bufferSize = size;
+		const VkDeviceSize bufferSize = size;
 		VulkanAllocator allocator{ "UniformBuffer - Create" };
 
 		// Create buffer
-		if (m_buffer == VK_NULL_HANDLE)
 		{
 			VkBufferCreateInfo bufferInfo{};
 			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -48,6 +47,12 @@ namespace Lamp
 
 		void* bufferData = allocator.MapMemory<void*>(m_bufferAllocation);
 		memcpy_s(bufferData, m_size, data, size);
+		allocator.UnmapMemory(m_bufferAllocation);
+	}
+
+	void UniformBuffer::Unmap()
+	{
+		VulkanAllocator allocator{};
 		allocator.UnmapMemory(m_bufferAllocation);
 	}
 
