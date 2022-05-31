@@ -9,6 +9,8 @@ IncludeDir["glm"] = "%{wks.location}/MothVulkan/vendor/glm"
 IncludeDir["yaml"] = "%{wks.location}/MothVulkan/vendor/yaml-cpp/include"
 IncludeDir["fbxsdk"] = "%{wks.location}/MothVulkan/vendor/fbxsdk/include"
 IncludeDir["stb"] = "%{wks.location}/MothVulkan/vendor/stb"
+IncludeDir["shaderc_utils"] = "%{wks.location}/MothVulkan/vendor/shaderc/libshaderc_util/include"
+IncludeDir["shaderc_glslc"] = "%{wks.location}/MothVulkan/vendor/shaderc/glslc"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

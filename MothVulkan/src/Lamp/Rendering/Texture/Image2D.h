@@ -97,6 +97,9 @@ namespace Lamp
 		inline const uint32_t GetWidth() const { return m_specification.width; }
 		inline const uint32_t GetHeight() const { return m_specification.height; }
 
+		inline const VkImageView GetView(uint32_t index = 0) const { return m_imageViews.at(index); }
+		inline const VkSampler GetSampler() const { return m_sampler; }
+
 		static Ref<Image2D> Create(const ImageSpecification& specification, const void* data = nullptr);
 
 	private:

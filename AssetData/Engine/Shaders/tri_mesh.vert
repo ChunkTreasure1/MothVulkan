@@ -6,6 +6,8 @@ layout(location = 2) in vec3 a_tangent;
 layout(location = 3) in vec3 a_bitangent;
 layout(location = 4) in vec2 a_texCoords;
 
+layout(location = 0) out vec2 v_texCoords;
+
 struct ObjectData
 {
     mat4 transform;
@@ -33,5 +35,6 @@ layout(set = 1, binding = 0) readonly buffer ObjectBuffer
 
 void main()
 {
+    v_texCoords = a_texCoords;
     gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[gl_BaseInstance].transform * vec4(a_position, 1.f);
 }

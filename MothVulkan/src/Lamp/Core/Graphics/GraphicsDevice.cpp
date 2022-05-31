@@ -98,8 +98,14 @@ namespace Lamp
 			queueInfo.queueFamilyIndex = queue;
 		}
 
+		VkPhysicalDeviceVulkan11Features vulkan11Features{};
+		vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+		vulkan11Features.shaderDrawParameters = VK_TRUE;
+		vulkan11Features.pNext = nullptr;
+
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pNext = &vulkan11Features;
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueInfos.size());
 		createInfo.pQueueCreateInfos = deviceQueueInfos.data();
 		createInfo.pEnabledFeatures = &enabledFeatures;

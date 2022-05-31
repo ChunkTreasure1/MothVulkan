@@ -27,7 +27,8 @@ namespace Lamp
 		Animation,
 		Skeleton,
 		Texture,
-		Material
+		Material,
+		Shader
 	};
 
 	inline static std::unordered_map<std::string, AssetType> s_assetExtensionsMap =
@@ -36,14 +37,16 @@ namespace Lamp
 		{ ".gltf", AssetType::MeshSource },
 		{ ".lgf", AssetType::Mesh },
 
-		{ ".lsk", AssetType::Skeleton },
-		{ ".lsa", AssetType::Animation },
+		{ ".lpsk", AssetType::Skeleton },
+		{ ".lpsa", AssetType::Animation },
 
 		{ ".png", AssetType::Texture },
 		{ ".jpg", AssetType::Texture },
 		{ ".jpeg", AssetType::Texture },
 		{ ".tga", AssetType::Texture },
-		{ ".ktx", AssetType::Texture }
+		{ ".ktx", AssetType::Texture },
+		
+		{ ".lpsdef", AssetType::Shader },
 	};
 
 	class Asset

@@ -10,7 +10,13 @@ const char* VKResultToString(int32_t result);
 	#define LP_DEBUGBREAK() __debugbreak()
 	#define LP_VK_CHECK(x) if (x != VK_SUCCESS) { LP_CORE_ERROR("Vulkan Error: {0}", VKResultToString(x)); LP_DEBUGBREAK(); }
 	#define LP_ENABLE_DEBUG_ALLOCATIONS
+	#define LP_ENABLE_SHADER_DEBUG
 #else
+
+#ifdef LP_RELEASE
+	#define LP_ENABLE_SHADER_DEBUG
+#endif
+
 	#define LP_DEBUGBREAK();
 	#define LP_VK_CHECK(x) x
 #endif

@@ -17,6 +17,8 @@ namespace Lamp
 		const uint32_t GetWidth() const;
 		const uint32_t GetHeight() const;
 
+		inline const Ref<Image2D> GetImage() const { return m_image; }
+
 		static AssetType GetStaticType() { return AssetType::Texture; }
 		AssetType GetType() { return GetStaticType(); }		
 		

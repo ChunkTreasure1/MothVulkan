@@ -41,7 +41,13 @@ project "MothVulkan"
 		"vendor/yaml-cpp/include/**.h",
 
 		"vendor/stb/**.cpp",
-		"vendor/stb/**.h"
+		"vendor/stb/**.h",
+
+		"%{IncludeDir.shaderc_glslc}/**.cc",
+		"%{IncludeDir.shaderc_glslc}/**.h",
+
+		"%{IncludeDir.shaderc_utils}/**.cc",
+		"%{IncludeDir.shaderc_utils}/**.h"
 	}
 
 	includedirs
@@ -55,7 +61,9 @@ project "MothVulkan"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.fbxsdk}",
-		"%{IncludeDir.stb}"
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.shaderc_glslc}",
+		"%{IncludeDir.shaderc_utils}"
 	}
 
 	defines
@@ -67,10 +75,10 @@ project "MothVulkan"
 
 	filter "files:vendor/**.cpp"
 		flags {"NoPCH"}
-		warnings "off"
+		disablewarnings { "26451", "6387", "26812", "26439", "26800", "26495" }
 
 	filter "files:vendor/**.h"
-		warnings "off"
+		disablewarnings { "26451", "6387", "26812", "26439", "26800", "26495" }
 
 	filter "system:windows"
 		systemversion "latest"

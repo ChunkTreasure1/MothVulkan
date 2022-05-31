@@ -92,11 +92,13 @@ namespace Lamp
 		/////Descriptors/////
 		VkDescriptorSetLayout m_globalSetLayout;
 		VkDescriptorSetLayout m_objectSetLayout;
+		VkDescriptorSetLayout m_textureSetLayout;
 
 		VkDescriptorPool m_descriptorPool;
 
 		std::vector<VkDescriptorSet> m_globalDescriptorSets; // One per frame
 		std::vector<VkDescriptorSet> m_objectDescriptorSets; // One per frame
+		std::vector<VkDescriptorSet> m_textureDescriptorSets;
 		
 		Ref<UniformBufferSet> m_uniformBufferSet;
 		Ref<ShaderStorageBufferSet> m_objectBufferSet;

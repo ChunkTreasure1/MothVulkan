@@ -34,4 +34,14 @@ namespace Lamp
 	void TextureSourceImporter::Save(const Ref<Asset>& asset) const
 	{
 	}
+
+	bool ShaderImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
+	{
+		return false;
+	}
+
+	void ShaderImporter::Save(const Ref<Asset>& asset) const
+	{
+		
+	}
 }
