@@ -78,6 +78,7 @@ namespace Lamp
 
 		m_mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
 		m_texture = AssetManager::GetAsset<Texture2D>("Assets/Textures/peter_lambert.png");
+		m_shader = AssetManager::GetAsset<Shader>("Engine/Shaders/Definitions/trimesh.lpsdef");
 
 		CreateDescriptors();
 		CreatePipeline();
@@ -92,6 +93,7 @@ namespace Lamp
 		m_assetManager = nullptr;
 		m_mesh = nullptr;
 		m_texture = nullptr;
+		m_shader = nullptr;
 		m_uniformBufferSet = nullptr;
 		m_objectBufferSet = nullptr;
 
@@ -117,7 +119,7 @@ namespace Lamp
 
 			// Begin RenderPass
 			{
-				VkClearValue clearValue;
+				VkClearValue clearValue{};
 				clearValue.color = { { 1.f, 0.f, 1.f, 1.f } };
 
 				VkRenderPassBeginInfo renderPassBegin{};
@@ -163,13 +165,15 @@ namespace Lamp
 			}
 
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_globalDescriptorSets[currentFrame], 0, nullptr);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1, &m_objectDescriptorSets[currentFrame], 0, nullptr);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1, &m_textureDescriptorSets[currentFrame], 0, nullptr);
+
+			for (size_t i = 0; i < m_frameDescriptorSets[currentFrame].size(); i++)
+			{
+				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, (uint32_t)i, 1, &m_frameDescriptorSets[currentFrame][i], 0, nullptr);
+			}
 
 			// Update push constants
 			{
-				MeshPushConstants constants;
+				MeshPushConstants constants{};
 				constants.transform = transform;
 				vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
 			}
@@ -202,27 +206,6 @@ namespace Lamp
 	{
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
-		VkShaderModule fragShader;
-		VkShaderModule vertShader;
-
-		if (!LoadShaderModule("Assets/Shaders/tri_mesh.frag.spv", device, fragShader)) [[unlikely]]
-		{
-			std::cout << "Error when building the triangle fragment shader module" << std::endl;
-		}
-		else [[likely]]
-		{
-			std::cout << "Triangle fragment shader successfully loaded" << std::endl;
-		}
-
-		if (!LoadShaderModule("Assets/Shaders/tri_mesh.vert.spv", device, vertShader)) [[unlikely]]
-		{
-			std::cout << "Error when building the triangle vertex shader module" << std::endl;
-		}
-		else [[likely]]
-		{
-			std::cout << "Triangle vertex shader successfully loaded" << std::endl;
-		}
-
 		// Pipeline layout
 		{
 			VkPushConstantRange pushConstantRange{};
@@ -232,16 +215,12 @@ namespace Lamp
 
 			VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			pipelineLayoutInfo.setLayoutCount = 0;
-			pipelineLayoutInfo.pSetLayouts = nullptr;
 
 			pipelineLayoutInfo.pushConstantRangeCount = 1;
 			pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-			pipelineLayoutInfo.setLayoutCount = 3;
 
-			VkDescriptorSetLayout layouts[] = { m_globalSetLayout, m_objectSetLayout, m_textureSetLayout };
-
-			pipelineLayoutInfo.pSetLayouts = layouts;
+			pipelineLayoutInfo.setLayoutCount = (uint32_t)m_shader->GetResources().setLayouts.size();
+			pipelineLayoutInfo.pSetLayouts = m_shader->GetResources().setLayouts.data();
 
 			LP_VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
 		}
@@ -373,24 +352,10 @@ namespace Lamp
 			blendState.pAttachments = &colorBlendAttachmentState;
 			blendState.logicOp = VK_LOGIC_OP_COPY;
 
-			VkPipelineShaderStageCreateInfo shaderStages[2]{};
-			{
-				shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-				shaderStages[0].module = vertShader;
-				shaderStages[0].pName = "main";
-				shaderStages[0].pSpecializationInfo = nullptr;
-				shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-				shaderStages[1].module = fragShader;
-				shaderStages[1].pName = "main";
-				shaderStages[1].pSpecializationInfo = nullptr;
-			}
-
 			VkGraphicsPipelineCreateInfo pipelineInfo{};
 			pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-			pipelineInfo.stageCount = 2;
-			pipelineInfo.pStages = &shaderStages[0];
+			pipelineInfo.stageCount = (uint32_t)m_shader->GetStageInfos().size();
+			pipelineInfo.pStages = m_shader->GetStageInfos().data();
 			pipelineInfo.pVertexInputState = &vertInputState;
 			pipelineInfo.pInputAssemblyState = &inputAssemblyState;
 			pipelineInfo.pViewportState = &viewportState;
@@ -404,9 +369,6 @@ namespace Lamp
 
 			LP_VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline));
 		}
-
-		vkDestroyShaderModule(device, vertShader, nullptr);
-		vkDestroyShaderModule(device, fragShader, nullptr);
 
 		VulkanDeletionQueue::Push([this]()
 			{
@@ -423,78 +385,6 @@ namespace Lamp
 
 		constexpr uint32_t MAX_OBJECT_COUNT = 10000;
 		m_objectBufferSet = ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight);
-
-		// Create camera descriptor set layout
-		{
-			VkDescriptorSetLayoutBinding uboBinding{};
-			uboBinding.binding = 0;
-			uboBinding.descriptorCount = 1;
-			uboBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uboBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-			VkDescriptorSetLayoutCreateInfo layoutCreateInfo{};
-			layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			layoutCreateInfo.pNext = nullptr;
-			layoutCreateInfo.flags = 0;
-
-			layoutCreateInfo.bindingCount = 1;
-			layoutCreateInfo.pBindings = &uboBinding;
-
-			vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutCreateInfo, nullptr, &m_globalSetLayout);
-
-			VulkanDeletionQueue::Push([&]()
-				{
-					vkDestroyDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), m_globalSetLayout, nullptr);
-				});
-		}
-
-		// Create object descriptor set layout
-		{
-			VkDescriptorSetLayoutBinding objectBinding{};
-			objectBinding.binding = 0;
-			objectBinding.descriptorCount = 1;
-			objectBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			objectBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-			VkDescriptorSetLayoutCreateInfo layoutCreateInfo{};
-			layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			layoutCreateInfo.pNext = nullptr;
-			layoutCreateInfo.flags = 0;
-
-			layoutCreateInfo.bindingCount = 1;
-			layoutCreateInfo.pBindings = &objectBinding;
-
-			vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutCreateInfo, nullptr, &m_objectSetLayout);
-
-			VulkanDeletionQueue::Push([&]()
-				{
-					vkDestroyDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), m_objectSetLayout, nullptr);
-				});
-		}
-
-		// Create texture descriptor set layout
-		{
-			VkDescriptorSetLayoutBinding textureBinding{};
-			textureBinding.binding = 0;
-			textureBinding.descriptorCount = 1;
-			textureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			textureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-			VkDescriptorSetLayoutCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			createInfo.pNext = nullptr;
-			createInfo.flags = 0;
-
-			createInfo.bindingCount = 1;
-			createInfo.pBindings = &textureBinding;
-
-			vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &createInfo, nullptr, &m_textureSetLayout);
-
-			VulkanDeletionQueue::Push([&]()
-				{
-					vkDestroyDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), m_textureSetLayout, nullptr);
-				});
-		}
 
 		// Create descriptor pool
 		{
@@ -520,91 +410,55 @@ namespace Lamp
 				});
 		}
 
+		m_shaderResources = m_shader->GetResources();
+
 		// Allocate descriptor sets
 		{
-			m_globalDescriptorSets.resize(framesInFlight);
-			m_objectDescriptorSets.resize(framesInFlight);
-			m_textureDescriptorSets.resize(framesInFlight);
-
-			for (uint32_t i = 0; i < framesInFlight; i++)
+			m_frameDescriptorSets.resize(framesInFlight);
+			for (uint32_t i = 0; i < m_frameDescriptorSets.size(); i++)
 			{
+				auto& sets = m_frameDescriptorSets[i];
+
+				VkDescriptorSetAllocateInfo allocInfo = m_shader->GetResources().setAllocInfo;
+				allocInfo.descriptorPool = m_descriptorPool;
+				sets.resize(allocInfo.descriptorSetCount);
+
+				vkAllocateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), &allocInfo, sets.data());
+
 				std::vector<VkWriteDescriptorSet> writeDescriptors;
 
-				// Camera descriptors
+				for (auto& [set, bindings] : m_shaderResources.writeDescriptors)
 				{
-					VkDescriptorSetAllocateInfo allocInfo{};
-					allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-					allocInfo.descriptorPool = m_descriptorPool;
-					allocInfo.descriptorSetCount = 1;
-					allocInfo.pSetLayouts = &m_globalSetLayout;
-
-					vkAllocateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), &allocInfo, &m_globalDescriptorSets[i]);
-
-					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = m_uniformBufferSet->Get(i)->GetHandle();
-					bufferInfo.offset = 0;
-					bufferInfo.range = sizeof(CameraData);
-
-					VkWriteDescriptorSet& descriptorWrite = writeDescriptors.emplace_back();
-					descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrite.pNext = nullptr;
-					descriptorWrite.dstBinding = 0;
-					descriptorWrite.dstSet = m_globalDescriptorSets[i];
-					descriptorWrite.descriptorCount = 1;
-					descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-					descriptorWrite.pBufferInfo = &bufferInfo;
-
+					for (auto& [binding, write] : bindings)
+					{
+						if (m_shaderResources.uniformBuffersInfos[set].find(binding) != m_shaderResources.uniformBuffersInfos[set].end())
+						{
+							write.pBufferInfo = &m_shaderResources.uniformBuffersInfos[set][binding];
+						}
+						else if (m_shaderResources.storageBuffersInfos[set].find(binding) != m_shaderResources.storageBuffersInfos[set].end())
+						{
+							write.pBufferInfo = &m_shaderResources.storageBuffersInfos[set][binding];
+						}
+						else if (m_shaderResources.imageInfos[set].find(binding) != m_shaderResources.imageInfos[set].end())
+						{
+							write.pImageInfo = &m_shaderResources.imageInfos[set][binding];
+						}
+					}
 				}
+				m_shaderResources.uniformBuffersInfos[0][0].buffer = m_uniformBufferSet->Get(i)->GetHandle();
+				m_shaderResources.writeDescriptors[0][0].dstSet = sets[0];
 
-				// Object descriptors
-				{
-					VkDescriptorSetAllocateInfo allocInfo{};
-					allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-					allocInfo.descriptorPool = m_descriptorPool;
-					allocInfo.descriptorSetCount = 1;
-					allocInfo.pSetLayouts = &m_objectSetLayout;
+				m_shaderResources.storageBuffersInfos[1][0].buffer = m_objectBufferSet->Get(i)->GetHandle();
+				m_shaderResources.storageBuffersInfos[1][0].range = sizeof(ObjectData) * MAX_OBJECT_COUNT;
+				m_shaderResources.writeDescriptors[1][0].dstSet = sets[1];
 
-					vkAllocateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), &allocInfo, &m_objectDescriptorSets[i]);
+				m_shaderResources.imageInfos[2][0].imageView = m_texture->GetImage()->GetView();
+				m_shaderResources.imageInfos[2][0].sampler = m_texture->GetImage()->GetSampler();
+				m_shaderResources.writeDescriptors[2][0].dstSet = sets[2];
 
-					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = m_objectBufferSet->Get(i)->GetHandle();
-					bufferInfo.offset = 0;
-					bufferInfo.range = sizeof(ObjectData) * MAX_OBJECT_COUNT;
-
-					VkWriteDescriptorSet& descriptorWrite = writeDescriptors.emplace_back();
-					descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrite.pNext = nullptr;
-					descriptorWrite.dstBinding = 0;
-					descriptorWrite.dstSet = m_objectDescriptorSets[i];
-					descriptorWrite.descriptorCount = 1;
-					descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-					descriptorWrite.pBufferInfo = &bufferInfo;
-				}
-
-				// Texture descriptors
-				{
-					VkDescriptorSetAllocateInfo allocInfo{};
-					allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-					allocInfo.descriptorPool = m_descriptorPool;
-					allocInfo.descriptorSetCount = 1;
-					allocInfo.pSetLayouts = &m_textureSetLayout;
-					
-					vkAllocateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), &allocInfo, &m_textureDescriptorSets[i]);
-
-					VkDescriptorImageInfo imageInfo{};
-					imageInfo.imageView = m_texture->GetImage()->GetView();
-					imageInfo.sampler = m_texture->GetImage()->GetSampler();
-					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					
-					VkWriteDescriptorSet& descriptorWrite = writeDescriptors.emplace_back();
-					descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrite.pNext = nullptr;
-					descriptorWrite.dstBinding = 0;
-					descriptorWrite.dstSet = m_textureDescriptorSets[i];
-					descriptorWrite.descriptorCount = 1;
-					descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-					descriptorWrite.pImageInfo = &imageInfo;
-				}
+				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[0][0]);
+				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[1][0]);
+				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[2][0]);
 
 				vkUpdateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
 			}

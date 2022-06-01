@@ -2,6 +2,8 @@
 
 #include "Lamp/Core/Base.h"
 
+#include "Lamp/Rendering/Shader/Shader.h"
+
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
@@ -87,19 +89,15 @@ namespace Lamp
 		/////Assets/////
 		Ref<Mesh> m_mesh;
 		Ref<Texture2D> m_texture;
+		Ref<Shader> m_shader;
+
+		Shader::ShaderResources m_shaderResources;
 		////////////////
 		
 		/////Descriptors/////
-		VkDescriptorSetLayout m_globalSetLayout;
-		VkDescriptorSetLayout m_objectSetLayout;
-		VkDescriptorSetLayout m_textureSetLayout;
-
 		VkDescriptorPool m_descriptorPool;
+		std::vector<std::vector<VkDescriptorSet>> m_frameDescriptorSets; // frame -> set
 
-		std::vector<VkDescriptorSet> m_globalDescriptorSets; // One per frame
-		std::vector<VkDescriptorSet> m_objectDescriptorSets; // One per frame
-		std::vector<VkDescriptorSet> m_textureDescriptorSets;
-		
 		Ref<UniformBufferSet> m_uniformBufferSet;
 		Ref<ShaderStorageBufferSet> m_objectBufferSet;
 		/////////////////////

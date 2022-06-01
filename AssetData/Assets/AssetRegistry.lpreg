@@ -3,3 +3,5 @@ Assets:
     Path: Assets/SM_Particle_Chest.fbx
   - Handle: 9205985004321197576
     Path: Assets/Textures/peter_lambert.png
+  - Handle: 7891254137574768102
+    Path: Engine/Shaders/Definitions/trimesh.lpsdef

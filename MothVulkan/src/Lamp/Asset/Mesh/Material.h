@@ -11,10 +11,11 @@ namespace Lamp
 
 		static AssetType GetStaticType() { return AssetType::Material; }
 		AssetType GetType() override { return GetStaticType(); }
-
+		 
 		static Ref<Material> Create(const std::string& name, uint32_t index);
 
 	private:
+
 		std::string m_name;
 		uint32_t m_index;
 	};

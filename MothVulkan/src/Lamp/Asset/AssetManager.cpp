@@ -38,6 +38,7 @@ namespace Lamp
 
 		m_assetImporters.emplace(AssetType::MeshSource, CreateScope<MeshSourceImporter>());
 		m_assetImporters.emplace(AssetType::Texture, CreateScope<TextureSourceImporter>());
+		m_assetImporters.emplace(AssetType::Shader, CreateScope<ShaderImporter>());
 		LoadAssetRegistry();
 	}
 
