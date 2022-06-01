@@ -115,9 +115,19 @@ namespace Lamp
 
 			auto& data = outShaderData[stage];
 
+			std::filesystem::path currentStagePath;
+			for (const auto& shaderPath : m_shaderPaths)
+			{
+				if (stage == Utility::GetShaderStageFromExtension(shaderPath.extension().string()))
+				{
+					currentStagePath = shaderPath;
+					break;
+				}
+			}
+
 			if (!forceCompile)
 			{
-				auto cachedPath = cacheDirectory / (path.filename().string() + extension);
+				auto cachedPath = cacheDirectory / (currentStagePath.filename().string() + extension);
 
 				std::ifstream file(cachedPath.string(), std::ios::binary | std::ios::in | std::ios::ate);
 				if (file.is_open())

@@ -45,6 +45,9 @@ namespace Lamp
 				case CullMode::FrontAndBack: return VK_CULL_MODE_FRONT_AND_BACK;
 				case CullMode::None: return VK_CULL_MODE_NONE;
 			}
+			
+			LP_CORE_ASSERT(false, "Cull mode not supported!");
+			return VK_CULL_MODE_BACK_BIT;
 		}
 	}
 
