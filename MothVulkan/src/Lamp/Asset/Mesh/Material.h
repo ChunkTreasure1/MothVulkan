@@ -4,6 +4,7 @@
 
 namespace Lamp
 {
+	class RenderPipeline;
 	class Material : public Asset
 	{
 	public:
@@ -15,6 +16,7 @@ namespace Lamp
 		static Ref<Material> Create(const std::string& name, uint32_t index);
 
 	private:
+		Ref<RenderPipeline> m_renderPipeline;
 
 		std::string m_name;
 		uint32_t m_index;

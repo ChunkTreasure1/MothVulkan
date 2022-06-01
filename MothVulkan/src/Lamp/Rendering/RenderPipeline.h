@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Rendering/Buffer/BufferLayout.h"
 
@@ -59,10 +60,11 @@ namespace Lamp
 		std::string debugName;
 	};
 
-	class RenderPipeline
+	class RenderPipeline : public Asset
 	{
 	public:
 		RenderPipeline(const RenderPipelineSpecification& pipelineSpec);
+		RenderPipeline() = default;
 		~RenderPipeline();
 
 		void Invalidate();
@@ -72,6 +74,9 @@ namespace Lamp
 		
 		inline const size_t GetHash() const { return m_hash; }
 		inline const RenderPipelineSpecification& GetSpecification() const { return m_specification; }
+
+		static AssetType GetStaticType() { return AssetType::RenderPipeline; }
+		AssetType GetType() override { return GetStaticType(); }
 
 		static Ref<RenderPipeline> Create(const RenderPipelineSpecification& pipelineSpec);
 

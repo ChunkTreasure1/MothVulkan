@@ -28,7 +28,8 @@ namespace Lamp
 		Skeleton,
 		Texture,
 		Material,
-		Shader
+		Shader,
+		RenderPipeline
 	};
 
 	inline static std::unordered_map<std::string, AssetType> s_assetExtensionsMap =
@@ -47,6 +48,7 @@ namespace Lamp
 		{ ".ktx", AssetType::Texture },
 		
 		{ ".lpsdef", AssetType::Shader },
+		{ ".lprpdef", AssetType::RenderPipeline }
 	};
 
 	class Asset

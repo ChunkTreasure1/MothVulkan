@@ -48,6 +48,60 @@ namespace Lamp
 		return 0;
 	}
 
+	static ElementType GetTypeFromString(const std::string& string)
+	{
+		if (string == "Bool")
+		{
+			return ElementType::Bool;
+		}
+		else if (string == "Int")
+		{
+			return ElementType::Int;
+		}
+		else if (string == "UInt")
+		{
+			return ElementType::UInt;
+		}
+		else if (string == "UInt2")
+		{
+			return ElementType::UInt2;
+		}
+		else if (string == "UInt3")
+		{
+			return ElementType::UInt3;
+		}
+		else if (string == "UInt4")
+		{
+			return ElementType::UInt4;
+		}
+		else if (string == "Float")
+		{
+			return ElementType::Float;
+		}
+		else if (string == "Float2")
+		{
+			return ElementType::Float2;
+		}
+		else if (string == "Float3")
+		{
+			return ElementType::Float3;
+		}
+		else if (string == "Float4")
+		{
+			return ElementType::Float4;
+		}
+		else if (string == "Mat3")
+		{
+			return ElementType::Mat3;
+		}
+		else if (string == "Mat4")
+		{
+			return ElementType::Mat4;
+		}
+
+		return ElementType::Float;
+	}
+
 	static VkFormat LampToVulkanFormat(ElementType type)
 	{
 		switch (type)
@@ -108,6 +162,12 @@ namespace Lamp
 		BufferLayout() {}
 
 		BufferLayout(std::initializer_list<BufferElement> elements)
+			: m_elements(elements)
+		{
+			CalculateOffsetAndStride();
+		}
+
+		BufferLayout(std::vector<BufferElement> elements)
 			: m_elements(elements)
 		{
 			CalculateOffsetAndStride();

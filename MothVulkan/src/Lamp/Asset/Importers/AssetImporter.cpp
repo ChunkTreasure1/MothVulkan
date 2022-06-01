@@ -63,7 +63,7 @@ namespace Lamp
 		YAML::Node root = YAML::Load(sstream.str());
 		std::string name = root["name"] ? root["name"].as<std::string>() : "Unnamed";
 		
-		if (!root["paths"])
+		if (!root["paths"]) [[unlikely]]
 		{
 			LP_CORE_ERROR("No shaders defined in shader definition {0}!", path.string().c_str());
 			asset->SetFlag(AssetFlag::Invalid, true);
@@ -79,7 +79,7 @@ namespace Lamp
 		}
 
 		Ref<Shader> shader = Shader::Create(name, paths, false);
-		if (!shader)
+		if (!shader) [[unlikely]]
 		{
 			LP_CORE_ERROR("Failed to create shader {0}!", name.c_str());
 			asset->SetFlag(AssetFlag::Invalid, true);

@@ -1,0 +1,23 @@
+RenderPipeline: 
+  debugName: "TriMesh"
+  shader: "trimesh"
+  renderPass: "forward"
+  topology: "TriangleList"
+  cullMode: "Back"
+  fillMode: "Solid"
+  depthMode: "ReadWrite"
+  depthTest: true
+  depthWrite: false
+  lineWidth: 1.0
+  tessellationControlPoints: 4
+  bufferLayout:
+    - type: "Float3"
+      name: "a_position"
+    - type: "Float3"
+      name: "a_normal"
+    - type: "Float3"
+      name: "a_tangent"
+    - type: "Float3"
+      name: "a_bitangent"
+    - type: "Float2"
+      name: "a_texCoords"
