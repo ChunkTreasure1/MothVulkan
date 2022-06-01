@@ -13,13 +13,6 @@ struct ObjectData
     mat4 transform;
 };
 
-layout(push_constant) uniform constants
-{
-    vec4 data;
-    mat4 transform;
-    
-} u_pushConstants;
-
 layout(set = 0, binding = 0) uniform CameraBuffer
 {
     mat4 view;

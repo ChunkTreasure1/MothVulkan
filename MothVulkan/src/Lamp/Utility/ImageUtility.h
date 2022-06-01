@@ -281,6 +281,22 @@ namespace Lamp
 			device->FlushThreadSafeCommandBuffer(cmdBuffer);
 		}
 
+		inline void InsertImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkImageLayout oldLayout, VkImageLayout newLayout, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkImageSubresourceRange subResourceRange)
+		{
+			VkImageMemoryBarrier imageMemBarrier{};
+			imageMemBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageMemBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemBarrier.srcAccessMask = srcAccess;
+			imageMemBarrier.dstAccessMask = dstAccess;
+			imageMemBarrier.oldLayout = oldLayout;
+			imageMemBarrier.newLayout = newLayout;
+			imageMemBarrier.image = image;
+			imageMemBarrier.subresourceRange = subResourceRange;
+
+			vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1, &imageMemBarrier);
+		}
+
 		///////////////////////////Conversions////////////////////////////
 		inline bool IsDepthFormat(ImageFormat format)
 		{

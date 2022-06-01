@@ -50,7 +50,8 @@ namespace Lamp
 	class UniformBufferSet;
 	class ShaderStorageBufferSet;
 	class Texture2D;
-
+	class RenderPipeline;
+	class Framebuffer;
 	class AssetManager;
 
 	class Application
@@ -80,9 +81,6 @@ namespace Lamp
 
 
 		//////Pipeline/////
-		VkPipelineLayout m_pipelineLayout;
-		VkPipeline m_pipeline;
-
 		uint32_t m_frameNumber = 0;
 		///////////////////
 		
@@ -90,6 +88,8 @@ namespace Lamp
 		Ref<Mesh> m_mesh;
 		Ref<Texture2D> m_texture;
 		Ref<Shader> m_shader;
+		Ref<RenderPipeline> m_renderPipeline;
+		Ref<Framebuffer> m_framebuffer;
 
 		Shader::ShaderResources m_shaderResources;
 		////////////////

@@ -98,10 +98,14 @@ namespace Lamp
 			queueInfo.queueFamilyIndex = queue;
 		}
 
+		VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
+		dynamicRendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+		dynamicRendering.dynamicRendering = VK_TRUE;
+
 		VkPhysicalDeviceVulkan11Features vulkan11Features{};
 		vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
 		vulkan11Features.shaderDrawParameters = VK_TRUE;
-		vulkan11Features.pNext = nullptr;
+		vulkan11Features.pNext = &dynamicRendering;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

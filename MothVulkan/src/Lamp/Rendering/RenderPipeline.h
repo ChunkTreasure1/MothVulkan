@@ -7,6 +7,7 @@
 namespace Lamp
 {
 	class Shader;
+	class Framebuffer;
 
 	enum class Topology : uint32_t
 	{
@@ -40,6 +41,7 @@ namespace Lamp
 
 	struct RenderPipelineSpecification
 	{
+		Ref<Framebuffer> framebuffer;
 		Ref<Shader> shader;
 		
 		Topology topology = Topology::TriangleList;
@@ -47,6 +49,8 @@ namespace Lamp
 		FillMode fillMode = FillMode::Solid;
 		DepthMode depthMode = DepthMode::ReadWrite;
 
+		bool depthTest = true;
+		bool depthWrite = true;
 		float lineWidth = 1.f;
 		uint32_t tessellationControlPoints = 4;
 
@@ -62,7 +66,12 @@ namespace Lamp
 		~RenderPipeline();
 
 		void Invalidate();
+		void Bind(VkCommandBuffer cmdBuffer);
+
+		void BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const;
+		
 		inline const size_t GetHash() const { return m_hash; }
+		inline const RenderPipelineSpecification& GetSpecification() const { return m_specification; }
 
 		static Ref<RenderPipeline> Create(const RenderPipelineSpecification& pipelineSpec);
 
@@ -72,6 +81,9 @@ namespace Lamp
 
 		std::vector<VkVertexInputBindingDescription> m_vertexBindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> m_vertexAttributeDescriptions;
+
+		VkPipelineLayout m_pipelineLayout = nullptr;
+		VkPipeline m_pipeline = nullptr;
 
 		size_t m_hash = 0;
 		RenderPipelineSpecification m_specification;

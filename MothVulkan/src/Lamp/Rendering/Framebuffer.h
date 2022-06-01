@@ -19,6 +19,10 @@ namespace Lamp
 			: format(aFormat), clearMode(aClearMode)
 		{}
 
+		FramebufferAttachment(ImageFormat aFormat)
+			: format(aFormat)
+		{}
+
 		FramebufferAttachment(ImageFormat aFormat, TextureFilter aFilter, 
 			TextureWrap aWrap, TextureBlend aBlend, ClearMode aClearMode,
 			const glm::vec4& aBorderColor = { 1.f, 1.f, 1.f, 1.f }, 
@@ -47,5 +51,52 @@ namespace Lamp
 	
 		std::vector<FramebufferAttachment> attachments;
 		std::map<uint32_t, Ref<Image2D>> existingImages;
+	};
+
+	class Framebuffer
+	{
+	public:
+		Framebuffer(const FramebufferSpecification& specification);
+		~Framebuffer();
+
+		void Invalidate();
+
+		void Bind(VkCommandBuffer cmdBuffer) const;
+		void Unbind(VkCommandBuffer cmdBuffer) const;
+		
+		void Resize(uint32_t width, uint32_t height);
+
+		inline const Ref<Image2D> GetDepthAttachment() const { return m_depthAttachmentImage; }
+		inline const Ref<Image2D> GetColorAttachment(uint32_t index) const { return m_colorAttachmentImages[index]; }
+		inline const FramebufferSpecification& GetSpecification() const { return m_specification; }
+
+		inline const std::vector<VkRenderingAttachmentInfo>& GetColorAttachmentInfos() const { return m_colorAttachmentInfos; }
+		inline const VkRenderingAttachmentInfo& GetDepthAttachmentInfo() const { return m_depthAttachmentInfo; }
+
+		inline const uint32_t GetWidth() const { return m_width; }
+		inline const uint32_t GetHeight() const { return m_height; }
+		
+		static Ref<Framebuffer> Create(const FramebufferSpecification& specification);
+
+	private:
+		friend class RenderPipeline;
+
+		void Release();
+
+		FramebufferSpecification m_specification;
+
+		mutable bool m_firstBind = true;
+
+		uint32_t m_width;
+		uint32_t m_height;
+		
+		Ref<Image2D> m_depthAttachmentImage;
+		std::vector<Ref<Image2D>> m_colorAttachmentImages;
+
+		std::vector<VkFormat> m_colorFormats;
+		VkFormat m_depthFormat;
+
+		std::vector<VkRenderingAttachmentInfo> m_colorAttachmentInfos;
+		VkRenderingAttachmentInfo m_depthAttachmentInfo;
 	};
 }

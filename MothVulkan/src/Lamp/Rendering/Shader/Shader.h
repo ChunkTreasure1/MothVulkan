@@ -15,7 +15,7 @@ namespace Lamp
 		struct ShaderResources
 		{
 			std::vector<VkDescriptorSetLayout> setLayouts;
-			std::map<VkShaderStageFlagBits, VkPushConstantRange> pushConstantRanges;
+			std::vector<VkPushConstantRange> pushConstantRanges;
 			
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> infos
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> storageBuffersInfos; // set -> infos

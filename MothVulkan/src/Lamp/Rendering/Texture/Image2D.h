@@ -96,6 +96,8 @@ namespace Lamp
 		inline const VkImage GetHandle() const { return m_image; };
 		inline const uint32_t GetWidth() const { return m_specification.width; }
 		inline const uint32_t GetHeight() const { return m_specification.height; }
+		inline const ImageFormat GetFormat() const { return m_specification.format; }
+		inline const ImageSpecification& GetSpecification() const { return m_specification; }
 
 		inline const VkImageView GetView(uint32_t index = 0) const { return m_imageViews.at(index); }
 		inline const VkSampler GetSampler() const { return m_sampler; }

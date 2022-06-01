@@ -21,6 +21,8 @@
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer.h"
 
 #include "Lamp/Rendering/Texture/Texture2D.h"
+#include "Lamp/Rendering/RenderPipeline.h"
+#include "Lamp/Rendering/Framebuffer.h"
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -29,37 +31,6 @@
 
 namespace Lamp
 {
-	static bool LoadShaderModule(const std::filesystem::path& path, VkDevice device, VkShaderModule& outShaderModule)
-	{
-		std::ifstream file(path, std::ios::ate | std::ios::binary);
-
-		if (!file.is_open())
-		{
-			return false;
-		}
-
-		size_t fileSize = (size_t)file.tellg();
-		std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
-
-		file.seekg(0);
-		file.read((char*)buffer.data(), fileSize);
-		file.close();
-
-		VkShaderModuleCreateInfo info{};
-		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		info.codeSize = fileSize;
-		info.pCode = buffer.data();
-
-		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(device, &info, nullptr, &shaderModule) != VK_SUCCESS) [[unlikely]]
-		{
-			return false;
-		}
-
-		outShaderModule = shaderModule;
-		return true;
-	}
-
 	Application::Application(const ApplicationInfo& info)
 	{
 		LP_CORE_ASSERT(!s_instance, "Application already exists!");
@@ -93,7 +64,11 @@ namespace Lamp
 		m_assetManager = nullptr;
 		m_mesh = nullptr;
 		m_texture = nullptr;
+		
+		m_renderPipeline = nullptr;
 		m_shader = nullptr;
+		m_framebuffer = nullptr;
+		
 		m_uniformBufferSet = nullptr;
 		m_objectBufferSet = nullptr;
 
@@ -119,25 +94,33 @@ namespace Lamp
 
 			// Begin RenderPass
 			{
-				VkClearValue clearValue{};
-				clearValue.color = { { 1.f, 0.f, 1.f, 1.f } };
+				auto framebuffer = m_renderPipeline->GetSpecification().framebuffer;
 
-				VkRenderPassBeginInfo renderPassBegin{};
-				renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-				renderPassBegin.clearValueCount = 1;
-				renderPassBegin.pClearValues = &clearValue;
-				renderPassBegin.framebuffer = m_window->GetSwapchain().GetCurrentFramebuffer();
-				renderPassBegin.renderPass = m_window->GetSwapchain().GetRenderPass();
-				renderPassBegin.renderArea.extent = { m_applicationInfo.width, m_applicationInfo.height };
-				renderPassBegin.renderArea.offset = { 0, 0 };
+				framebuffer->Bind(cmdBuffer);
+				
+				VkRenderingInfo renderingInfo{};
+				renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+				renderingInfo.renderArea = { 0, 0, framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
+				renderingInfo.layerCount = 1;
+				renderingInfo.colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentInfos().size();
+				renderingInfo.pColorAttachments = framebuffer->GetColorAttachmentInfos().data();
+				
+				if (framebuffer->GetDepthAttachment())
+				{
+					renderingInfo.pDepthAttachment = &framebuffer->GetDepthAttachmentInfo();
+				}
+				else
+				{
+					renderingInfo.pDepthAttachment = nullptr;
+				}
+				renderingInfo.pStencilAttachment = nullptr;
 
-				vkCmdBeginRenderPass(cmdBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
+				vkCmdBeginRendering(cmdBuffer, &renderingInfo);
 			}
 
 			const glm::vec3 camPos = { 0.f, 0.f, -2.f };
 			const glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
 			glm::mat4 projection = glm::perspective(glm::radians(70.f), 1280.f / 720.f, 0.1f, 1000.f);
-			projection[1][1] *= -1.f;
 
 			const glm::mat4 model = glm::rotate(glm::mat4{ 1.f }, glm::radians(m_frameNumber * 0.4f), glm::vec3{ 0.f, 1.f, 0.f }) * glm::scale(glm::mat4(1.f), glm::vec3(0.01f));
 			const glm::mat4 transform = model;
@@ -164,18 +147,11 @@ namespace Lamp
 				currentObjectBuffer->Unmap();
 			}
 
-			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+			m_renderPipeline->Bind(cmdBuffer);
 
 			for (size_t i = 0; i < m_frameDescriptorSets[currentFrame].size(); i++)
 			{
-				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, (uint32_t)i, 1, &m_frameDescriptorSets[currentFrame][i], 0, nullptr);
-			}
-
-			// Update push constants
-			{
-				MeshPushConstants constants{};
-				constants.transform = transform;
-				vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+				m_renderPipeline->BindDescriptorSet(cmdBuffer, m_frameDescriptorSets[currentFrame][i], (uint32_t)i);
 			}
 
 			// Draw
@@ -189,7 +165,25 @@ namespace Lamp
 				}
 			}
 
-			vkCmdEndRenderPass(cmdBuffer);
+			vkCmdEndRendering(cmdBuffer);
+			m_renderPipeline->GetSpecification().framebuffer->Unbind(cmdBuffer);
+
+			// Swapchain
+			{
+				VkClearValue clearValue{};
+				clearValue.color = { { 1.f, 0.f, 1.f, 1.f } };
+				VkRenderPassBeginInfo renderPassBegin{};
+				renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+				renderPassBegin.clearValueCount = 1;
+				renderPassBegin.pClearValues = &clearValue;
+				renderPassBegin.framebuffer = m_window->GetSwapchain().GetCurrentFramebuffer();
+				renderPassBegin.renderPass = m_window->GetSwapchain().GetRenderPass();
+				renderPassBegin.renderArea.extent = { m_applicationInfo.width, m_applicationInfo.height };
+				renderPassBegin.renderArea.offset = { 0, 0 };
+				vkCmdBeginRenderPass(cmdBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
+				vkCmdEndRenderPass(cmdBuffer);
+			}
+
 			LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 			m_window->Present();
@@ -206,176 +200,30 @@ namespace Lamp
 	{
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
-		// Pipeline layout
+		FramebufferSpecification framebufferSpec{};
+		framebufferSpec.width = 1280;
+		framebufferSpec.height = 720;
+		framebufferSpec.attachments =
 		{
-			VkPushConstantRange pushConstantRange{};
-			pushConstantRange.offset = 0;
-			pushConstantRange.size = sizeof(MeshPushConstants);
-			pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			ImageFormat::RGBA,
+			ImageFormat::DEPTH32F
+		};
 
-			VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		m_framebuffer = Framebuffer::Create(framebufferSpec);
 
-			pipelineLayoutInfo.pushConstantRangeCount = 1;
-			pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-			pipelineLayoutInfo.setLayoutCount = (uint32_t)m_shader->GetResources().setLayouts.size();
-			pipelineLayoutInfo.pSetLayouts = m_shader->GetResources().setLayouts.data();
-
-			LP_VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
-		}
-
-		std::vector<VkVertexInputBindingDescription> vertexBindings;
-		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
-
-		VkPipelineVertexInputStateCreateFlags vertexInputStateFlags = 0;
-
-		// Vertex input desc
+		RenderPipelineSpecification renderSpec{};
+		renderSpec.shader = m_shader;
+		renderSpec.framebuffer = m_framebuffer;
+		renderSpec.vertexLayout =
 		{
-			{
-				auto& vertInput = vertexBindings.emplace_back();
-				vertInput.binding = 0;
-				vertInput.stride = sizeof(Vertex);
-				vertInput.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			}
+			{ ElementType::Float3, "a_position" },
+			{ ElementType::Float3, "a_normal" },
+			{ ElementType::Float3, "a_tangent" },
+			{ ElementType::Float3, "a_bitangent" },
+			{ ElementType::Float2, "a_texCoords" }
+		};
 
-			// Position
-			{
-				auto& vertAttr = vertexAttributes.emplace_back();
-				vertAttr.binding = 0;
-				vertAttr.location = 0;
-				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
-				vertAttr.offset = offsetof(Vertex, Vertex::position);
-			}
-
-			// Normal
-			{
-				auto& vertAttr = vertexAttributes.emplace_back();
-				vertAttr.binding = 0;
-				vertAttr.location = 1;
-				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
-				vertAttr.offset = offsetof(Vertex, Vertex::normal);
-			}
-
-			// Tangent
-			{
-				auto& vertAttr = vertexAttributes.emplace_back();
-				vertAttr.binding = 0;
-				vertAttr.location = 2;
-				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
-				vertAttr.offset = offsetof(Vertex, Vertex::tangent);
-			}
-
-			// Bitangent
-			{
-				auto& vertAttr = vertexAttributes.emplace_back();
-				vertAttr.binding = 0;
-				vertAttr.location = 3;
-				vertAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
-				vertAttr.offset = offsetof(Vertex, Vertex::bitangent);
-			}
-
-			// Texture coords
-			{
-				auto& vertAttr = vertexAttributes.emplace_back();
-				vertAttr.binding = 0;
-				vertAttr.location = 4;
-				vertAttr.format = VK_FORMAT_R32G32_SFLOAT;
-				vertAttr.offset = offsetof(Vertex, Vertex::textureCoords);
-			}
-		}
-
-		// Pipeline
-		{
-			VkPipelineVertexInputStateCreateInfo vertInputState{};
-			vertInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-			vertInputState.vertexBindingDescriptionCount = (uint32_t)vertexBindings.size();
-			vertInputState.pVertexBindingDescriptions = vertexBindings.data();
-
-			vertInputState.vertexAttributeDescriptionCount = (uint32_t)vertexAttributes.size();
-			vertInputState.pVertexAttributeDescriptions = vertexAttributes.data();
-
-			VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
-			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-			inputAssemblyState.primitiveRestartEnable = VK_FALSE;
-			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-
-			VkViewport viewport{};
-			viewport.width = (float)m_applicationInfo.width;
-			viewport.height = (float)m_applicationInfo.height;
-			viewport.minDepth = 0.f;
-			viewport.maxDepth = 1.f;
-			viewport.x = 0;
-			viewport.y = 0;
-
-			VkRect2D scissor{};
-			scissor.extent = { m_applicationInfo.width, m_applicationInfo.height };
-			scissor.offset = { 0, 0 };
-
-			VkPipelineRasterizationStateCreateInfo rasterizationState{};
-			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.cullMode = VK_CULL_MODE_NONE;
-			rasterizationState.depthBiasClamp = VK_FALSE;
-			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-			rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
-			rasterizationState.depthBiasEnable = VK_FALSE;
-			rasterizationState.depthBiasConstantFactor = 0.f;
-			rasterizationState.depthBiasClamp = 0.f;
-			rasterizationState.depthBiasSlopeFactor = 0.f;
-			rasterizationState.lineWidth = 1.f;
-
-			VkPipelineMultisampleStateCreateInfo multisampleState{};
-			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-			multisampleState.sampleShadingEnable = VK_FALSE;
-			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-			multisampleState.minSampleShading = 1.f;
-			multisampleState.pSampleMask = nullptr;
-			multisampleState.alphaToCoverageEnable = VK_FALSE;
-			multisampleState.alphaToOneEnable = VK_FALSE;
-
-			VkPipelineColorBlendAttachmentState colorBlendAttachmentState{};
-			colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-			colorBlendAttachmentState.blendEnable = VK_FALSE;
-
-			VkPipelineViewportStateCreateInfo viewportState{};
-			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-			viewportState.pNext = nullptr;
-			viewportState.viewportCount = 1;
-			viewportState.pViewports = &viewport;
-			viewportState.scissorCount = 1;
-			viewportState.pScissors = &scissor;
-
-			VkPipelineColorBlendStateCreateInfo blendState{};
-			blendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-			blendState.logicOpEnable = VK_FALSE;
-			blendState.attachmentCount = 1;
-			blendState.pAttachments = &colorBlendAttachmentState;
-			blendState.logicOp = VK_LOGIC_OP_COPY;
-
-			VkGraphicsPipelineCreateInfo pipelineInfo{};
-			pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-			pipelineInfo.stageCount = (uint32_t)m_shader->GetStageInfos().size();
-			pipelineInfo.pStages = m_shader->GetStageInfos().data();
-			pipelineInfo.pVertexInputState = &vertInputState;
-			pipelineInfo.pInputAssemblyState = &inputAssemblyState;
-			pipelineInfo.pViewportState = &viewportState;
-			pipelineInfo.pRasterizationState = &rasterizationState;
-			pipelineInfo.pMultisampleState = &multisampleState;
-			pipelineInfo.pColorBlendState = &blendState;
-			pipelineInfo.layout = m_pipelineLayout;
-			pipelineInfo.renderPass = m_window->GetSwapchain().GetRenderPass();
-			pipelineInfo.subpass = 0;
-			pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-			LP_VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline));
-		}
-
-		VulkanDeletionQueue::Push([this]()
-			{
-				auto device = GraphicsContext::GetDevice()->GetHandle();
-				vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
-				vkDestroyPipeline(device, m_pipeline, nullptr);
-			});
+		m_renderPipeline = RenderPipeline::Create(renderSpec);
 	}
 
 	void Application::CreateDescriptors()
