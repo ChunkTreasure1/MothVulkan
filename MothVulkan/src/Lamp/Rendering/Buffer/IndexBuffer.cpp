@@ -22,7 +22,7 @@ namespace Lamp
 	{
 		if (m_buffer)
 		{
-			VulkanAllocator allocator;
+			VulkanAllocator allocator{ "IndexBuffer - Destroy" };
 			allocator.DestroyBuffer(m_buffer, m_bufferAllocation);
 		}
 	}
@@ -50,7 +50,7 @@ namespace Lamp
 		VkBuffer stagingBuffer;
 		VmaAllocation stagingAllocation;
 		VkDeviceSize bufferSize = size;
-		VulkanAllocator allocator{ "IndexBuffer" };
+		VulkanAllocator allocator{ "IndexBuffer - Create" };
 
 		if (m_buffer != VK_NULL_HANDLE)
 		{
