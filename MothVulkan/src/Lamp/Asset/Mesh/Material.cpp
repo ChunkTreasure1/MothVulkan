@@ -8,15 +8,13 @@
 #include "Lamp/Log/Log.h"
 #include "Lamp/Asset/Mesh/MaterialInstance.h"
 
-#include "Lamp/Rendering/RenderPipeline.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
-#include "Lamp/Rendering/Buffer/UniformBufferRegistry.h"
-#include "Lamp/Rendering/Buffer/UniformBufferSet.h"
-#include "Lamp/Rendering/Buffer/UniformBuffer.h"
+#include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
+#include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
 
-#include "Lamp/Rendering/Buffer/ShaderStorageBufferRegistry.h"
-#include "Lamp/Rendering/Buffer/ShaderStorageBufferSet.h"
-#include "Lamp/Rendering/Buffer/ShaderStorageBuffer.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferRegistry.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
 
 #include "Lamp/Rendering/Texture/Image2D.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"

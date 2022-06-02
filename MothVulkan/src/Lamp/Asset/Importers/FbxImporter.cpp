@@ -6,7 +6,7 @@
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
 
-#include "Lamp/Rendering/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
 namespace Lamp
 {

@@ -1,0 +1,20 @@
+RenderPass:
+  name: "forward"
+  overridePipeline: ""
+  drawType: "Opaque"
+  framebuffer:
+    width: 1280
+    height: 720
+    attachments:
+      - format: "RGBA"
+        filter: "Linear"
+        wrapMode: "Repeat"
+        blendMode: "None"
+        clearMode: "Clear"
+        borderColor: [ 1.0, 1.0, 1.0, 1.0 ]
+        clearColor: [ 1.0, 1.0, 1.0, 1.0 ]
+        debugName: ""
+      - format: "DEPTH32F"
+        filter: "Linear"
+    existingImages:
+    

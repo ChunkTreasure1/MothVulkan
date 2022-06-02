@@ -11,7 +11,7 @@
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 
-#include "Lamp/Rendering/RenderPipeline.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 namespace Lamp
 {

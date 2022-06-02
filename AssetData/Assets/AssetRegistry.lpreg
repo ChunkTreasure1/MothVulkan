@@ -1,11 +1,15 @@
 Assets:
   - Handle: 5733995515339993516
     Path: Assets/SM_Particle_Chest.fbx
+  - Handle: 13712554027042723773
+    Path: Engine/RenderPasses\forward.lprp
   - Handle: 9205985004321197576
     Path: Assets/Textures/peter_lambert.png
-  - Handle: 6850898759638084132
-    Path: Engine/RenderPipelines\trimeshPipeline.lprpdef
   - Handle: 7891254137574768102
     Path: Engine/Shaders/Definitions/trimesh.lpsdef
+  - Handle: 15132679692990959653
+    Path: Engine/RenderPipelines\trimeshPipeline.lprpdef
   - Handle: 15938396669042562110
     Path: Engine/RenderPipelines/trimeshPipeline.lprpdef
+  - Handle: 18369243058121074766
+    Path: Engine/RenderPasses/forward.lprp

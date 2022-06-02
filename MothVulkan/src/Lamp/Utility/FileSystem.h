@@ -31,6 +31,11 @@ public:
 		return "Engine/RenderPipelines";
 	}
 
+	static std::filesystem::path GetRenderPassesPath()
+	{
+		return "Engine/RenderPasses";
+	}
+
 	static std::filesystem::path GetPathRelativeToBaseFolder(const std::filesystem::path& aPath)
 	{
 		return std::filesystem::relative(aPath, std::filesystem::current_path());

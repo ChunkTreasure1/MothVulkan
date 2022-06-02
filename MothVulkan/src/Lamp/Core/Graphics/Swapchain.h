@@ -24,8 +24,10 @@ namespace Lamp
 		inline const uint32_t GetFramesInFlight() const { return m_framesInFlight; }
 
 		inline VkRenderPass GetRenderPass() const { return m_renderPass; }
-		inline VkCommandBuffer GetCurrentCommandBuffer() const { return m_commandBuffers[m_currentFrame]; }
 		inline VkFramebuffer GetCurrentFramebuffer() const { return m_framebuffers[m_currentImage]; }
+		inline VkCommandBuffer GetCurrentCommandBuffer() const { return m_commandBuffers[m_currentFrame]; }
+		inline VkCommandBuffer GetCommandBuffer(uint32_t index) const { return m_commandBuffers[index]; }
+		inline VkCommandPool GetCommandPool(uint32_t index) const { return m_commandPools[index]; }
 
 		static Ref<Swapchain> Create(GLFWwindow* window);
 

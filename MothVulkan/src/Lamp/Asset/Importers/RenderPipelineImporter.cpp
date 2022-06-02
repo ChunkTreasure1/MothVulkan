@@ -3,17 +3,15 @@
 
 #include "Lamp/Log/Log.h"
 
-#include "Lamp/Rendering/RenderPipeline.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Vertex.h"
 #include "Lamp/Rendering/Shader/ShaderRegistry.h"
 
 #include "Lamp/Utility/YAMLSerializationHelpers.h"
 #include "Lamp/Utility/SerializationMacros.h"
 
-
-
-#include "Lamp/Core/Application.h"
-
+#include "Lamp/Rendering/RenderPass/RenderPassRegistry.h"
+#include "Lamp/Rendering/RenderPass/RenderPass.h"
 
 namespace Lamp
 {
@@ -139,7 +137,16 @@ namespace Lamp
 
 			std::string renderPassName;
 			LP_DESERIALIZE_PROPERTY(renderPass, renderPassName, pipelineNode, std::string());
-			pipelineSpec.framebuffer = Application::s_framebuffer; // TODO: change to renderpass
+			Ref<Framebuffer> framebuffer = RenderPassRegistry::Get(renderPassName)->framebuffer;
+			
+			if (!framebuffer)
+			{
+				LP_CORE_ERROR("Invalid renderpass: {0}!", path.string().c_str());
+				asset->SetFlag(AssetFlag::Invalid, true);
+				return false;
+			}
+
+			pipelineSpec.framebuffer =  framebuffer;
 
 			std::string topologyName;
 			LP_DESERIALIZE_PROPERTY(topology, topologyName, pipelineNode, std::string());

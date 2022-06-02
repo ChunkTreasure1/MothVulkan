@@ -15,6 +15,9 @@ namespace Lamp
 
 	struct FramebufferAttachment
 	{
+		FramebufferAttachment()
+		{ }
+
 		FramebufferAttachment(ImageFormat aFormat, ClearMode aClearMode)
 			: format(aFormat), clearMode(aClearMode)
 		{}
