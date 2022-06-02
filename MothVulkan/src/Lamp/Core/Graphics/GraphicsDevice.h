@@ -50,7 +50,7 @@ namespace Lamp
 	{
 	public:
 		GraphicsDevice(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures enabledFeatures);
-		~GraphicsDevice() = default;
+		~GraphicsDevice();
 
 		VkCommandBuffer GetThreadSafeCommandBuffer(bool begin);
 		VkCommandBuffer GetCommandBuffer(bool begin);

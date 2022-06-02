@@ -8,21 +8,29 @@
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
-#include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
+#include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/Mesh/MaterialInstance.h"
 
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
+
 #include "Lamp/Rendering/Buffer/UniformBufferSet.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer.h"
+#include "Lamp/Rendering/Buffer/UniformBufferRegistry.h"
+
 #include "Lamp/Rendering/Buffer/ShaderStorageBufferSet.h"
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBufferRegistry.h"
 
 #include "Lamp/Rendering/Texture/Texture2D.h"
 #include "Lamp/Rendering/RenderPipeline.h"
 #include "Lamp/Rendering/Framebuffer.h"
+
+#include "Lamp/Rendering/Shader/ShaderRegistry.h"
+#include "Lamp/Rendering/RenderPipelineRegistry.h"
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -47,11 +55,37 @@ namespace Lamp
 		m_window = Window::Create(windowProperties);
 		m_assetManager = CreateRef<AssetManager>();
 
+		// Framebuffer
+		{
+			FramebufferSpecification framebufferSpec{};
+			framebufferSpec.width = 1280;
+			framebufferSpec.height = 720;
+			framebufferSpec.attachments =
+			{
+				ImageFormat::RGBA,
+				ImageFormat::DEPTH32F
+			};
+
+			framebufferSpec.attachments[0].clearColor = { 0.f, 0.f, 0.f, 1.f };
+
+			s_framebuffer = Framebuffer::Create(framebufferSpec);
+		}
+
+		UniformBufferRegistry::Initialize();
+		ShaderStorageBufferRegistry::Initialize();
+
+		const uint32_t framesInFlight = m_window->GetSwapchain().GetFramesInFlight();
+		constexpr uint32_t MAX_OBJECT_COUNT = 10000;
+
+		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
+		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
+
+		ShaderRegistry::Initialize();
+		RenderPipelineRegistry::Initialize();
+
 		m_mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
 		m_texture = AssetManager::GetAsset<Texture2D>("Assets/Textures/peter_lambert.png");
-		m_shader = AssetManager::GetAsset<Shader>("Engine/Shaders/Definitions/trimesh.lpsdef");
 
-		CreateDescriptors();
 		CreatePipeline();
 	}
 
@@ -59,20 +93,22 @@ namespace Lamp
 	{
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
 
-		VulkanDeletionQueue::Flush();
-
-		m_assetManager = nullptr;
+		m_materialInstance = nullptr;
+		m_material = nullptr;
 		m_mesh = nullptr;
 		m_texture = nullptr;
-		
-		m_renderPipeline = nullptr;
-		m_shader = nullptr;
-		m_framebuffer = nullptr;
-		
-		m_uniformBufferSet = nullptr;
-		m_objectBufferSet = nullptr;
 
+		m_renderPipeline = nullptr;
+		s_framebuffer = nullptr;
+
+		ShaderStorageBufferRegistry::Shutdowm();
+		UniformBufferRegistry::Shutdowm();
+		RenderPipelineRegistry::Shutdown();
+		ShaderRegistry::Shutdown();
+
+		m_assetManager = nullptr;
 		m_window = nullptr;
+
 		s_instance = nullptr;
 	}
 
@@ -97,14 +133,14 @@ namespace Lamp
 				auto framebuffer = m_renderPipeline->GetSpecification().framebuffer;
 
 				framebuffer->Bind(cmdBuffer);
-				
+
 				VkRenderingInfo renderingInfo{};
 				renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
 				renderingInfo.renderArea = { 0, 0, framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 				renderingInfo.layerCount = 1;
 				renderingInfo.colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentInfos().size();
 				renderingInfo.pColorAttachments = framebuffer->GetColorAttachmentInfos().data();
-				
+
 				if (framebuffer->GetDepthAttachment())
 				{
 					renderingInfo.pDepthAttachment = &framebuffer->GetDepthAttachmentInfo();
@@ -127,7 +163,7 @@ namespace Lamp
 
 			// Update camera data
 			{
-				auto currentCameraBuffer = m_uniformBufferSet->Get(currentFrame);
+				auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
 				CameraData* cameraData = currentCameraBuffer->Map<CameraData>();
 
 				cameraData->proj = projection;
@@ -139,7 +175,7 @@ namespace Lamp
 
 			// Update object data
 			{
-				auto currentObjectBuffer = m_objectBufferSet->Get(currentFrame);
+				auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(1, 0)->Get(currentFrame);
 				ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
 
 				objectData[0].transform = transform;
@@ -147,15 +183,10 @@ namespace Lamp
 				currentObjectBuffer->Unmap();
 			}
 
-			m_renderPipeline->Bind(cmdBuffer);
-
-			for (size_t i = 0; i < m_frameDescriptorSets[currentFrame].size(); i++)
-			{
-				m_renderPipeline->BindDescriptorSet(cmdBuffer, m_frameDescriptorSets[currentFrame][i], (uint32_t)i);
-			}
 
 			// Draw
 			{
+				m_materialInstance->Bind(cmdBuffer, currentFrame);
 				m_mesh->GetVertexBuffer()->Bind(cmdBuffer);
 				m_mesh->GetIndexBuffer()->Bind(cmdBuffer);
 
@@ -200,116 +231,11 @@ namespace Lamp
 	{
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
-		FramebufferSpecification framebufferSpec{};
-		framebufferSpec.width = 1280;
-		framebufferSpec.height = 720;
-		framebufferSpec.attachments =
-		{
-			ImageFormat::RGBA,
-			ImageFormat::DEPTH32F
-		};
+		m_renderPipeline = RenderPipelineRegistry::Get("trimesh");
 
-		m_framebuffer = Framebuffer::Create(framebufferSpec);
+		m_material = Material::Create("Mat", 0, m_renderPipeline);
+		m_material->SetTexture(0, m_texture);
 
-		RenderPipelineSpecification renderSpec{};
-		renderSpec.shader = m_shader;
-		renderSpec.framebuffer = m_framebuffer;
-		renderSpec.vertexLayout =
-		{
-			{ ElementType::Float3, "a_position" },
-			{ ElementType::Float3, "a_normal" },
-			{ ElementType::Float3, "a_tangent" },
-			{ ElementType::Float3, "a_bitangent" },
-			{ ElementType::Float2, "a_texCoords" }
-		};
-
-		m_renderPipeline = RenderPipeline::Create(renderSpec);
-	}
-
-	void Application::CreateDescriptors()
-	{
-		const uint32_t framesInFlight = m_window->GetSwapchain().GetFramesInFlight();
-		m_uniformBufferSet = UniformBufferSet::Create(sizeof(CameraData), framesInFlight);
-
-		constexpr uint32_t MAX_OBJECT_COUNT = 10000;
-		m_objectBufferSet = ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight);
-
-		// Create descriptor pool
-		{
-			std::vector<VkDescriptorPoolSize> sizes =
-			{
-				{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 },
-				{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 10 },
-				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 }
-			};
-
-			VkDescriptorPoolCreateInfo poolInfo{};
-			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			poolInfo.flags = 0;
-			poolInfo.maxSets = 10;
-			poolInfo.poolSizeCount = (uint32_t)sizes.size();
-			poolInfo.pPoolSizes = sizes.data();
-
-			vkCreateDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), &poolInfo, nullptr, &m_descriptorPool);
-
-			VulkanDeletionQueue::Push([&]()
-				{
-					vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, nullptr);
-				});
-		}
-
-		m_shaderResources = m_shader->GetResources();
-
-		// Allocate descriptor sets
-		{
-			m_frameDescriptorSets.resize(framesInFlight);
-			for (uint32_t i = 0; i < m_frameDescriptorSets.size(); i++)
-			{
-				auto& sets = m_frameDescriptorSets[i];
-
-				VkDescriptorSetAllocateInfo allocInfo = m_shader->GetResources().setAllocInfo;
-				allocInfo.descriptorPool = m_descriptorPool;
-				sets.resize(allocInfo.descriptorSetCount);
-
-				vkAllocateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), &allocInfo, sets.data());
-
-				std::vector<VkWriteDescriptorSet> writeDescriptors;
-
-				for (auto& [set, bindings] : m_shaderResources.writeDescriptors)
-				{
-					for (auto& [binding, write] : bindings)
-					{
-						if (m_shaderResources.uniformBuffersInfos[set].find(binding) != m_shaderResources.uniformBuffersInfos[set].end())
-						{
-							write.pBufferInfo = &m_shaderResources.uniformBuffersInfos[set][binding];
-						}
-						else if (m_shaderResources.storageBuffersInfos[set].find(binding) != m_shaderResources.storageBuffersInfos[set].end())
-						{
-							write.pBufferInfo = &m_shaderResources.storageBuffersInfos[set][binding];
-						}
-						else if (m_shaderResources.imageInfos[set].find(binding) != m_shaderResources.imageInfos[set].end())
-						{
-							write.pImageInfo = &m_shaderResources.imageInfos[set][binding];
-						}
-					}
-				}
-				m_shaderResources.uniformBuffersInfos[0][0].buffer = m_uniformBufferSet->Get(i)->GetHandle();
-				m_shaderResources.writeDescriptors[0][0].dstSet = sets[0];
-
-				m_shaderResources.storageBuffersInfos[1][0].buffer = m_objectBufferSet->Get(i)->GetHandle();
-				m_shaderResources.storageBuffersInfos[1][0].range = sizeof(ObjectData) * MAX_OBJECT_COUNT;
-				m_shaderResources.writeDescriptors[1][0].dstSet = sets[1];
-
-				m_shaderResources.imageInfos[2][0].imageView = m_texture->GetImage()->GetView();
-				m_shaderResources.imageInfos[2][0].sampler = m_texture->GetImage()->GetSampler();
-				m_shaderResources.writeDescriptors[2][0].dstSet = sets[2];
-
-				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[0][0]);
-				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[1][0]);
-				writeDescriptors.emplace_back(m_shaderResources.writeDescriptors[2][0]);
-
-				vkUpdateDescriptorSets(GraphicsContext::GetDevice()->GetHandle(), (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
-			}
-		}
+		m_materialInstance = MaterialInstance::Create(m_material);
 	}
 }

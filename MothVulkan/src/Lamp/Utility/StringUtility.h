@@ -6,7 +6,7 @@
 
 namespace Utility
 {
-	std::string ToLower(const std::string& str)
+	inline std::string ToLower(const std::string& str)
 	{
 		std::string newStr(str);
 		std::transform(str.begin(), str.end(), newStr.begin(), ::tolower);

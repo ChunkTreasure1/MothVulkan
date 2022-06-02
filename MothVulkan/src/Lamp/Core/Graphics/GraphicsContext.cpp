@@ -6,7 +6,6 @@
 
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 #include "Lamp/Core/Graphics/VulkanAllocator.h"
-#include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -80,15 +79,6 @@ namespace Lamp
 		CreateVulkanInstance();
 		SetupDebugCallback();
 
-		VulkanDeletionQueue::Push([this]()
-			{
-				#ifdef LP_ENABLE_VALIDATION
-				Utility::DestroyDebugUtilsMessengerEXT(m_vulkanInstance, m_debugMessenger, nullptr);
-				#endif
-
-				vkDestroyInstance(m_vulkanInstance, nullptr);
-			});
-
 		m_physicalDevice = PhysicalGraphicsDevice::Create(m_vulkanInstance);
 		
 		VkPhysicalDeviceFeatures enabledFeatures{};
@@ -103,6 +93,12 @@ namespace Lamp
 		
 		m_device = nullptr;
 		m_physicalDevice = nullptr;
+
+#ifdef LP_ENABLE_VALIDATION
+		Utility::DestroyDebugUtilsMessengerEXT(m_vulkanInstance, m_debugMessenger, nullptr);
+#endif
+
+		vkDestroyInstance(m_vulkanInstance, nullptr);
 	}
 
 	GraphicsContext& GraphicsContext::Get()

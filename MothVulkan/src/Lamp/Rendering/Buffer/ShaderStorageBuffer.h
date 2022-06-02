@@ -13,6 +13,7 @@ namespace Lamp
 		void Resize(uint64_t newSize);
 
 		inline const VkBuffer GetHandle() const { return m_buffer; }
+		inline const uint64_t GetSize() const { return m_size; }
 
 		template<typename T>
 		T* Map();

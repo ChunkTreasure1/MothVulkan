@@ -4,8 +4,6 @@
 #include "Lamp/Log/Log.h"
 #include "Lamp/Core/Base.h"
 
-#include "Lamp/Core/Graphics//VulkanDeletionQueue.h"
-
 namespace Lamp
 {
 	PhysicalGraphicsDevice::PhysicalGraphicsDevice(VkInstance instance)
@@ -137,18 +135,18 @@ namespace Lamp
 		
 			LP_VK_CHECK(vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &m_graphicsCommandPool));
 		}
+	}
 
-		VulkanDeletionQueue::Push([this]()
+	GraphicsDevice::~GraphicsDevice()
+	{
+		for (auto& it : m_commandPoolMap)
 		{
-			for (auto& it : m_commandPoolMap)
-			{
-				vkDestroyCommandPool(m_device, it.second, nullptr);
-			}
-			m_commandPoolMap.clear();
+			vkDestroyCommandPool(m_device, it.second, nullptr);
+		}
+		m_commandPoolMap.clear();
 
-			vkDestroyCommandPool(m_device, m_graphicsCommandPool, nullptr);
-			vkDestroyDevice(m_device, nullptr);
-		});
+		vkDestroyCommandPool(m_device, m_graphicsCommandPool, nullptr);
+		vkDestroyDevice(m_device, nullptr);
 	}
 
 	VkCommandBuffer GraphicsDevice::GetThreadSafeCommandBuffer(bool begin)

@@ -1,5 +1,5 @@
 RenderPipeline: 
-  debugName: "TriMesh"
+  name: "TriMesh"
   shader: "trimesh"
   renderPass: "forward"
   topology: "TriangleList"
@@ -7,10 +7,10 @@ RenderPipeline:
   fillMode: "Solid"
   depthMode: "ReadWrite"
   depthTest: true
-  depthWrite: false
+  depthWrite: true
   lineWidth: 1.0
   tessellationControlPoints: 4
-  bufferLayout:
+  vertexLayout:
     - type: "Float3"
       name: "a_position"
     - type: "Float3"

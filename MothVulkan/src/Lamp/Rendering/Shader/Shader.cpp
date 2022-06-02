@@ -6,6 +6,10 @@
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 
+#include "Lamp/Core/Application.h"
+#include "Lamp/Core/Window.h"
+#include "Lamp/Core/Graphics/Swapchain.h"
+
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
 
 #include <shaderc/shaderc.hpp>
@@ -20,12 +24,13 @@ namespace Lamp
 	/////ShaderResources/////
 	void Shader::ShaderResources::Clear()
 	{
-		for (const auto& set : setLayouts)
+		for (const auto& set : paddedSetLayouts)
 		{
 			vkDestroyDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), set, nullptr);
 		}
 
-		setLayouts.clear();
+		paddedSetLayouts.clear();
+		realSetLayouts.clear();
 		pushConstantRanges.clear();
 		uniformBuffersInfos.clear();
 		storageBuffersInfos.clear();
@@ -277,6 +282,8 @@ namespace Lamp
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+				m_uboCount++;
 			}
 			else
 			{
@@ -311,6 +318,8 @@ namespace Lamp
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+				m_ssboCount++;
 			}
 			else
 			{
@@ -346,6 +355,8 @@ namespace Lamp
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+				m_imageCount++;
 			}
 			else
 			{
@@ -356,21 +367,45 @@ namespace Lamp
 
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
 	{
+		uint32_t lastSet = 0;
+
 		for (const auto& [set, bindings] : setLayoutBindings)
 		{
+			if (set > lastSet + 1)
+			{
+				VkDescriptorSetLayoutCreateInfo layoutInfo{};
+				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+				layoutInfo.pNext = nullptr;
+				layoutInfo.bindingCount = 0;
+				layoutInfo.pBindings = nullptr;
+
+				vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutInfo, nullptr, &m_resources.paddedSetLayouts.emplace_back());
+			}
+
 			VkDescriptorSetLayoutCreateInfo layoutInfo{};
 			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			layoutInfo.pNext = nullptr;
 			layoutInfo.bindingCount = (uint32_t)bindings.size();
 			layoutInfo.pBindings = bindings.data();
 
-			vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutInfo, nullptr, &m_resources.setLayouts.emplace_back());
+			vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutInfo, nullptr, &m_resources.paddedSetLayouts.emplace_back());
+			m_resources.realSetLayouts.emplace_back(m_resources.paddedSetLayouts.back());
+			lastSet = set;
 		}
 
 		VkDescriptorSetAllocateInfo& allocInfo = m_resources.setAllocInfo;
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorSetCount = (uint32_t)m_resources.setLayouts.size();
-		allocInfo.pSetLayouts = m_resources.setLayouts.data();
+		allocInfo.descriptorSetCount = (uint32_t)m_resources.realSetLayouts.size();
+		allocInfo.pSetLayouts = m_resources.realSetLayouts.data();
 		allocInfo.pNext = nullptr;
+		
+		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
+
+		m_resources.poolSizes =
+		{
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uboCount * framesInFlight },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_ssboCount * framesInFlight },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight }
+		};
 	}
 }

@@ -3,7 +3,6 @@
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
-#include "Lamp/Core/Graphics/VulkanDeletionQueue.h"
 
 #include "Lamp/Log/Log.h"
 
@@ -21,15 +20,18 @@ namespace Lamp
 		LP_CORE_ASSERT(supportsPresentation == VK_TRUE, "No queue with presentation support found!");
 
 		// TODO: Query capabilities
-
-		VulkanDeletionQueue::Push([this]()
-			{
-				Release();
-			});
+		auto device = GraphicsContext::GetDevice();
+		m_vulkanDevice = device->GetHandle();
+		m_vulkanInstance = GraphicsContext::Get().GetInstance();
 	}
 
 	Swapchain::~Swapchain()
-	{}
+	{
+		Release();
+
+		m_vulkanInstance = nullptr;
+		m_vulkanDevice = nullptr;
+	}
 
 	void Swapchain::Invalidate(uint32_t width, uint32_t height, bool useVSync)
 	{
@@ -52,30 +54,28 @@ namespace Lamp
 			return;
 		}
 
-		auto device = GraphicsContext::GetDevice();
-		
 		for (size_t i = 0; i < m_commandPools.size(); i++)
 		{
-			vkDestroyCommandPool(device->GetHandle(), m_commandPools[i], nullptr);
+			vkDestroyCommandPool(m_vulkanDevice, m_commandPools[i], nullptr);
 		}
 
 		for (uint32_t i = 0; i < m_presentSemaphores.size(); i++)
 		{
-			vkDestroySemaphore(device->GetHandle(), m_presentSemaphores[i], nullptr);
-			vkDestroySemaphore(device->GetHandle(), m_renderSemaphores[i], nullptr);
-			vkDestroyFence(device->GetHandle(), m_renderFences[i], nullptr);
+			vkDestroySemaphore(m_vulkanDevice, m_presentSemaphores[i], nullptr);
+			vkDestroySemaphore(m_vulkanDevice, m_renderSemaphores[i], nullptr);
+			vkDestroyFence(m_vulkanDevice, m_renderFences[i], nullptr);
 		}
 
-		vkDestroyRenderPass(device->GetHandle(), m_renderPass, nullptr);
+		vkDestroyRenderPass(m_vulkanDevice, m_renderPass, nullptr);
 
 		for (uint32_t i = 0; i < m_imageViews.size(); i++)
 		{
-			vkDestroyFramebuffer(device->GetHandle(), m_framebuffers[i], nullptr);
-			vkDestroyImageView(device->GetHandle(), m_imageViews[i], nullptr);
+			vkDestroyFramebuffer(m_vulkanDevice, m_framebuffers[i], nullptr);
+			vkDestroyImageView(m_vulkanDevice, m_imageViews[i], nullptr);
 		}
 
-		vkDestroySwapchainKHR(device->GetHandle(), m_swapchain, nullptr);
-		vkDestroySurfaceKHR(GraphicsContext::Get().GetInstance(), m_surface, nullptr);
+		vkDestroySwapchainKHR(m_vulkanDevice, m_swapchain, nullptr);
+		vkDestroySurfaceKHR(m_vulkanInstance, m_surface, nullptr);
 	}
 
 	void Swapchain::BeginFrame()

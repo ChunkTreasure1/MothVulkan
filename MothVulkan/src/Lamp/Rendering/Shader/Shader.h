@@ -9,18 +9,34 @@
 
 namespace Lamp
 {
+	// Descriptor sets:
+	// 0 - Per frame
+	// 1 - Per pass
+	// 2 - Per object
+	// 3 - Per material
+
+	enum class DescriptorSetType : uint32_t
+	{
+		PerFrame = 0,
+		PerPass = 1,
+		PerObject = 2,
+		PerMaterial = 3
+	};
+
 	class Shader : public Asset
 	{
 	public:
 		struct ShaderResources
 		{
-			std::vector<VkDescriptorSetLayout> setLayouts;
+			std::vector<VkDescriptorSetLayout> paddedSetLayouts;
+			std::vector<VkDescriptorSetLayout> realSetLayouts;
+
 			std::vector<VkPushConstantRange> pushConstantRanges;
+			std::vector<VkDescriptorPoolSize> poolSizes;
 			
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> infos
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> storageBuffersInfos; // set -> infos
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> imageInfos; // set -> infos
-			
+			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> storageBuffersInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 
 			VkDescriptorSetAllocateInfo setAllocInfo{};
@@ -37,6 +53,7 @@ namespace Lamp
 	
 		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_pipelineShaderStageInfos; }
 		inline const ShaderResources& GetResources() const { return m_resources; }
+		inline const std::string& GetName() const { return m_name; }
 
 		static AssetType GetStaticType() { return AssetType::Shader; }
 		AssetType GetType() override { return GetStaticType(); }
@@ -61,5 +78,9 @@ namespace Lamp
 
 		ShaderResources m_resources;
 		std::string m_name;
+
+		uint32_t m_uboCount = 0;
+		uint32_t m_ssboCount = 0;
+		uint32_t m_imageCount = 0;
 	};
 }

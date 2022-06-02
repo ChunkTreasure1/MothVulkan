@@ -134,8 +134,8 @@ namespace Lamp
 
 			VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			pipelineLayoutInfo.setLayoutCount = (uint32_t)resources.setLayouts.size();
-			pipelineLayoutInfo.pSetLayouts = resources.setLayouts.data();
+			pipelineLayoutInfo.setLayoutCount = (uint32_t)resources.paddedSetLayouts.size();
+			pipelineLayoutInfo.pSetLayouts = resources.paddedSetLayouts.data();
 			pipelineLayoutInfo.pushConstantRangeCount = (uint32_t)resources.pushConstantRanges.size();
 			pipelineLayoutInfo.pPushConstantRanges = resources.pushConstantRanges.data();
 

@@ -5,6 +5,7 @@
 #include "Lamp/Asset/Importers/MeshImporter.h"
 #include "Lamp/Asset/Importers/TextureImporter.h"
 #include "Lamp/Asset/Importers/MeshSourceImporter.h"
+#include "Lamp/Asset/Importers/RenderPipelineImporter.h"
 
 #include "Lamp/Core/Base.h"
 #include "Lamp/Log/Log.h"
@@ -39,6 +40,7 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::MeshSource, CreateScope<MeshSourceImporter>());
 		m_assetImporters.emplace(AssetType::Texture, CreateScope<TextureSourceImporter>());
 		m_assetImporters.emplace(AssetType::Shader, CreateScope<ShaderImporter>());
+		m_assetImporters.emplace(AssetType::RenderPipeline, CreateScope<RenderPipelineImporter>());
 		LoadAssetRegistry();
 	}
 

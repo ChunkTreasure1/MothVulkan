@@ -57,7 +57,7 @@ namespace Lamp
 
 		BufferLayout vertexLayout;
 		BufferLayout instanceLayout;
-		std::string debugName;
+		std::string name;
 	};
 
 	class RenderPipeline : public Asset

@@ -36,17 +36,17 @@ namespace Lamp
 		allocator.DestroyBuffer(m_buffer, m_bufferAllocation);
 	}
 
-	void UniformBuffer::SetData(const void* data, uint32_t size)
+	void UniformBuffer::SetData(const void* data, uint32_t dataSize)
 	{
-		LP_CORE_ASSERT(m_size >= size, "Unable to set data of larger size!");
+		LP_CORE_ASSERT(m_size >= dataSize, "Unable to set data of larger size than buffer!");
 
 		auto device = GraphicsContext::GetDevice();
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = dataSize;
 
 		VulkanAllocator allocator{ "UniformBuffer - SetData" };
 
 		void* bufferData = allocator.MapMemory<void*>(m_bufferAllocation);
-		memcpy_s(bufferData, m_size, data, size);
+		memcpy_s(bufferData, m_size, data, dataSize);
 		allocator.UnmapMemory(m_bufferAllocation);
 	}
 

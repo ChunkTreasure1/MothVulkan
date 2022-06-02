@@ -17,12 +17,12 @@ namespace Lamp
 		UInt2,
 		UInt3,
 		UInt4,
-		
+
 		Float,
 		Float2,
 		Float3,
 		Float4,
-	
+
 		Mat3,
 		Mat4
 	};
@@ -126,8 +126,9 @@ namespace Lamp
 	struct BufferElement
 	{
 		BufferElement(ElementType aElementType, const std::string& aName)
-			: name(aName), type(aElementType), size(GetSizeFromType(aElementType))
-		{ }
+			: name(aName), type(aElementType), size(GetSizeFromType(aElementType)), offset(0)
+		{
+		}
 
 		uint32_t GetComponentCount(ElementType elementType)
 		{

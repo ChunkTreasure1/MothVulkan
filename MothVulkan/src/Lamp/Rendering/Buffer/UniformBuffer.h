@@ -11,6 +11,7 @@ namespace Lamp
 		~UniformBuffer();
 
 		inline const VkBuffer GetHandle() const { return m_buffer; }
+		inline const uint32_t GetSize() const { return m_size; }
 
 		void SetData(const void* data, uint32_t size);
 		

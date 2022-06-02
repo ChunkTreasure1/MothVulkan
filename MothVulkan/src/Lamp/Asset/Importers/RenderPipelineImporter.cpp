@@ -2,10 +2,18 @@
 #include "RenderPipelineImporter.h"
 
 #include "Lamp/Log/Log.h"
+
 #include "Lamp/Rendering/RenderPipeline.h"
+#include "Lamp/Rendering/Vertex.h"
+#include "Lamp/Rendering/Shader/ShaderRegistry.h"
 
 #include "Lamp/Utility/YAMLSerializationHelpers.h"
 #include "Lamp/Utility/SerializationMacros.h"
+
+
+
+#include "Lamp/Core/Application.h"
+
 
 namespace Lamp
 {
@@ -121,17 +129,17 @@ namespace Lamp
 		}
 
 		RenderPipelineSpecification pipelineSpec{};
-		LP_DESERIALIZE_PROPERTY(debugName, pipelineSpec.debugName, pipelineNode, std::string());
+		LP_DESERIALIZE_PROPERTY(name, pipelineSpec.name, pipelineNode, std::string());
 
 		// Data
 		{
 			std::string shaderName;
 			LP_DESERIALIZE_PROPERTY(shader, shaderName, pipelineNode, std::string());
-			// TODO: fetch shader from library
+			pipelineSpec.shader = ShaderRegistry::Get(shaderName);
 
 			std::string renderPassName;
 			LP_DESERIALIZE_PROPERTY(renderPass, renderPassName, pipelineNode, std::string());
-			// TODO: fetch render pass from library
+			pipelineSpec.framebuffer = Application::s_framebuffer; // TODO: change to renderpass
 
 			std::string topologyName;
 			LP_DESERIALIZE_PROPERTY(topology, topologyName, pipelineNode, std::string());
@@ -154,23 +162,47 @@ namespace Lamp
 			LP_DESERIALIZE_PROPERTY(lineWidth, pipelineSpec.lineWidth, pipelineNode, 1.f);
 			LP_DESERIALIZE_PROPERTY(tessellationControlPoints, pipelineSpec.tessellationControlPoints, pipelineNode, 4);
 
-			std::vector<BufferElement> bufferElements;
-
-			YAML::Node bufferLayoutNode = pipelineNode["bufferLayout"];
-			for (const auto& element : bufferLayoutNode)
+			if (pipelineNode["vertexLayout"])
 			{
-				std::string typeName;
-				LP_DESERIALIZE_PROPERTY(type, typeName, element, std::string());
+				std::vector<BufferElement> bufferElements;
+				
+				YAML::Node bufferLayoutNode = pipelineNode["vertexLayout"];
+				for (const auto& element : bufferLayoutNode)
+				{
+					std::string typeName;
+					LP_DESERIALIZE_PROPERTY(type, typeName, element, std::string());
 
-				std::string elementName;
-				LP_DESERIALIZE_PROPERTY(name, elementName, element, std::string());
-			
-				auto& elem = bufferElements.emplace_back();
-				elem.name = elementName;
-				elem.type = GetTypeFromString(typeName);
+					std::string elementName;
+					LP_DESERIALIZE_PROPERTY(name, elementName, element, std::string());
+
+					bufferElements.emplace_back(GetTypeFromString(typeName), elementName);
+				}
+
+				pipelineSpec.vertexLayout = BufferLayout(bufferElements);
+			}
+			else
+			{
+				pipelineSpec.vertexLayout = Vertex::GetLayout();
 			}
 
-			pipelineSpec.vertexLayout = BufferLayout(bufferElements);
+			if (pipelineNode["instanceLayout"])
+			{
+				std::vector<BufferElement> bufferElements;
+
+				YAML::Node bufferLayoutNode = pipelineNode["instanceLayout"];
+				for (const auto& element : bufferLayoutNode)
+				{
+					std::string typeName;
+					LP_DESERIALIZE_PROPERTY(type, typeName, element, std::string());
+
+					std::string elementName;
+					LP_DESERIALIZE_PROPERTY(name, elementName, element, std::string());
+
+					bufferElements.emplace_back(GetTypeFromString(typeName), elementName);
+				}
+
+				pipelineSpec.instanceLayout = BufferLayout(bufferElements);
+			}
 		}
 
 		Ref<RenderPipeline> renderPipeline = RenderPipeline::Create(pipelineSpec);

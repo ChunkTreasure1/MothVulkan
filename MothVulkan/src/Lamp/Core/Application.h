@@ -53,6 +53,8 @@ namespace Lamp
 	class RenderPipeline;
 	class Framebuffer;
 	class AssetManager;
+	class Material;
+	class MaterialInstance;
 
 	class Application
 	{
@@ -63,11 +65,13 @@ namespace Lamp
 		void Run();
 		void Shutdown();
 
+		inline const Ref<Window> GetWindow() const { return m_window; }
+
 		inline static Application& Get() { return *s_instance; }
+		inline static Ref<Framebuffer> s_framebuffer;
 
 	private:
 		void CreatePipeline();
-		void CreateDescriptors();
 
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -79,7 +83,6 @@ namespace Lamp
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;
 
-
 		//////Pipeline/////
 		uint32_t m_frameNumber = 0;
 		///////////////////
@@ -87,20 +90,10 @@ namespace Lamp
 		/////Assets/////
 		Ref<Mesh> m_mesh;
 		Ref<Texture2D> m_texture;
-		Ref<Shader> m_shader;
-		Ref<RenderPipeline> m_renderPipeline;
-		Ref<Framebuffer> m_framebuffer;
-
-		Shader::ShaderResources m_shaderResources;
-		////////////////
 		
-		/////Descriptors/////
-		VkDescriptorPool m_descriptorPool;
-		std::vector<std::vector<VkDescriptorSet>> m_frameDescriptorSets; // frame -> set
-
-		Ref<UniformBufferSet> m_uniformBufferSet;
-		Ref<ShaderStorageBufferSet> m_objectBufferSet;
-		/////////////////////
+		Ref<Material> m_material;
+		Ref<MaterialInstance> m_materialInstance;
+		Ref<RenderPipeline> m_renderPipeline;
 	};
 
 	static Application* CreateApplication();

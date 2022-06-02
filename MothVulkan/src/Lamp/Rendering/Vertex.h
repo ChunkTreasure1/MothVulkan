@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Lamp/Rendering/Buffer/BufferLayout.h"
+
 #include <glm/glm.hpp>
 
 namespace Lamp
@@ -28,11 +30,16 @@ namespace Lamp
 			: position(position), textureCoords(texCoords)
 		{}
 
-		glm::vec3 position = glm::vec3(0.f);
-		glm::vec3 normal = glm::vec3(0.f);
-		glm::vec3 tangent = glm::vec3(0.f);
-		glm::vec3 bitangent = glm::vec3(0.f);
-		glm::vec2 textureCoords = glm::vec2(0.f);
+		static BufferLayout GetLayout()
+		{
+			return BufferLayout({
+				{ ElementType::Float3, "a_position" },
+				{ ElementType::Float3, "a_normal" },
+				{ ElementType::Float3, "a_tangent" },
+				{ ElementType::Float3, "a_bitangent" },
+				{ ElementType::Float2, "a_texCoord" },
+			});
+		}
 
 		bool operator==(const Vertex& aVert) const
 		{
@@ -41,6 +48,13 @@ namespace Lamp
 			bool bTex = AbsEqualVector(textureCoords, aVert.textureCoords);
 
 			return bPos && bNorm && bTex;
-		}
+		}	
+		
+		glm::vec3 position = glm::vec3(0.f);
+		glm::vec3 normal = glm::vec3(0.f);
+		glm::vec3 tangent = glm::vec3(0.f);
+		glm::vec3 bitangent = glm::vec3(0.f);
+		glm::vec2 textureCoords = glm::vec2(0.f);
+
 	};
 }

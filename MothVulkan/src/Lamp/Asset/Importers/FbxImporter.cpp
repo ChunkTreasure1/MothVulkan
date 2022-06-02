@@ -6,6 +6,8 @@
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
 
+#include "Lamp/Rendering/RenderPipelineRegistry.h"
+
 namespace Lamp
 {
 	Ref<Mesh> FbxImporter::ImportMeshImpl(const std::filesystem::path& path)
@@ -95,7 +97,7 @@ namespace Lamp
 					}
 					else
 					{
-						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex);
+						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("trimesh"));
 					}
 					matIndex = sceneMatIndex;
 				}

@@ -1,5 +1,5 @@
 #include "lppch.h"
-#include "ShaderStorageBuffer.h";
+#include "ShaderStorageBuffer.h"
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 
@@ -17,11 +17,10 @@ namespace Lamp
 
 	void ShaderStorageBuffer::Resize(uint64_t newSize)
 	{
-		Release();
-
-		// Create buffer
 		if (newSize > m_size)
 		{
+			Release();
+			
 			m_size = newSize;
 			auto device = GraphicsContext::GetDevice();
 			const VkDeviceSize bufferSize = newSize;

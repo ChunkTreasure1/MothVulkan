@@ -65,5 +65,8 @@ namespace Lamp
 		VkRenderPass m_renderPass = nullptr;
 		VkSwapchainKHR m_swapchain = nullptr;
 		VkSurfaceKHR m_surface = nullptr;
+
+		VkDevice m_vulkanDevice = nullptr;
+		VkInstance m_vulkanInstance = nullptr;
 	};
 }
