@@ -2,12 +2,14 @@
 #include "RenderPipeline.h"
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
-#include "Lamp/Utility/ImageUtility.h"
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Rendering/Vertex.h"
 #include "Lamp/Rendering/Framebuffer.h"
 #include "Lamp/Rendering/Shader/Shader.h"
+#include "Lamp/Rendering/Shader/ShaderUtility.h"
+
+#include "Lamp/Utility/ImageUtility.h"
 
 namespace Lamp
 {
@@ -61,6 +63,7 @@ namespace Lamp
 		LP_CORE_ASSERT(m_specification.shader, "Shader must be specified!");
 
 		Invalidate();
+		GenerateHash();
 	}
 
 	RenderPipeline::~RenderPipeline()
@@ -119,6 +122,18 @@ namespace Lamp
 				numAttributes++;
 			}
 		}
+	}
+
+	void RenderPipeline::GenerateHash()
+	{
+		size_t hash = m_specification.shader->GetHash();
+		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.topology));
+		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.cullMode));
+		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.fillMode));
+		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.depthMode));
+		hash = Utility::HashCombine(hash, std::hash<std::string>()(m_specification.name));
+		
+		m_hash = hash;
 	}
 
 	void RenderPipeline::Invalidate()

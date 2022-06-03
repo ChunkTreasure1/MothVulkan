@@ -19,6 +19,15 @@ namespace Lamp
 	class Renderer
 	{
 	public:
+		struct DefaultData
+		{
+			Ref<Texture2D> whiteTexture;
+			Ref<Texture2D> blackCubeTexture;
+		};
+
+		struct Capabilities
+		{};
+
 		static void Initialize();
 		static void Shutdowm();
 
@@ -30,8 +39,12 @@ namespace Lamp
 
 		static void Draw(); // WILL BE REMOVED
 
+		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }
+
 	private:
 		Renderer() = delete;
+		
+		static void CreateDefaultData();
 
 		struct RendererData
 		{
@@ -48,6 +61,7 @@ namespace Lamp
 
 		};
 
+		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
 	};
 }

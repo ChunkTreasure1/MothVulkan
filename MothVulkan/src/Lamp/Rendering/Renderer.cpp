@@ -17,6 +17,8 @@
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
 
+#include "Lamp/Rendering/Texture/Texture2D.h"
+
 
 
 
@@ -33,9 +35,12 @@ namespace Lamp
 	void Renderer::Initialize()
 	{
 		s_rendererData = CreateScope<RendererData>();
+		s_defaultData = CreateScope<DefaultData>();
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
+
+		CreateDefaultData();
 
 		/////TESTING//////
 		s_rendererData->mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
@@ -52,6 +57,7 @@ namespace Lamp
 	void Renderer::Shutdowm()
 	{
 		s_rendererData = nullptr;
+		s_defaultData = nullptr;
 	}
 
 	void Renderer::Begin()
@@ -145,6 +151,18 @@ namespace Lamp
 			{
 				vkCmdDrawIndexed(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), submesh.indexCount, 1, submesh.indexStartOffset, submesh.vertexStartOffset, 0);
 			}
+		}
+	}
+
+	void Renderer::CreateDefaultData()
+	{
+		// Default textures
+		{
+			//uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+			//s_defaultData->blackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
+
+			uint32_t whiteTextureData = 0xffffffff;
+			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 		}
 	}
 }

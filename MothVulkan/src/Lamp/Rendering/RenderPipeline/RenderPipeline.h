@@ -83,6 +83,7 @@ namespace Lamp
 	private:
 		void Release();
 		void SetVertexLayout();
+		void GenerateHash();
 
 		std::vector<VkVertexInputBindingDescription> m_vertexBindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> m_vertexAttributeDescriptions;

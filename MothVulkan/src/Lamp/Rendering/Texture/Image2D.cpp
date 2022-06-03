@@ -15,7 +15,7 @@ namespace Lamp
 	{
 		Invalidate(data);
 	}
-	
+
 	Image2D::~Image2D()
 	{
 		Release();
@@ -77,6 +77,37 @@ namespace Lamp
 
 		m_bufferAllocation = allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_image);
 
+		if (data)
+		{
+			auto device = GraphicsContext::GetDevice();
+
+			VkBuffer stagingBuffer;
+			VmaAllocation stagingBufferAllocation;
+
+			VkDeviceSize bufferSize = m_specification.width * m_specification.height * Utility::PerPixelSizeFromFormat(m_specification.format);
+
+			// Staging buffer
+			{
+				VkBufferCreateInfo bufferInfo{};
+				bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				bufferInfo.size = bufferSize;
+				bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+				bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				stagingBufferAllocation = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+
+				void* mappedData = allocator.MapMemory<void>(stagingBufferAllocation);
+				memcpy_s(mappedData, bufferSize, data, bufferSize);
+				allocator.UnmapMemory(stagingBufferAllocation);
+
+				Utility::TransitionImageLayout(m_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+				Utility::CopyBufferToImage(stagingBuffer, m_image, m_specification.width, m_specification.height);
+				Utility::TransitionImageLayout(m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+				allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
+			}
+		}
+
 		VkImageViewCreateInfo imageViewInfo{};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewInfo.viewType = m_specification.layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
@@ -90,7 +121,7 @@ namespace Lamp
 		imageViewInfo.image = m_image;
 
 		LP_VK_CHECK(vkCreateImageView(device->GetHandle(), &imageViewInfo, nullptr, &m_imageViews[0]));
-	
+
 		///////////////////////MOVE TO ANOTHER PLACE/////////////////////////////
 		VkSamplerCreateInfo samplerCreateInfo{};
 		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;

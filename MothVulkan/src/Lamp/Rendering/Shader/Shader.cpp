@@ -43,6 +43,7 @@ namespace Lamp
 		: m_shaderPaths(paths), m_name(name)
 	{
 		Reload(forceCompile);
+		GenerateHash();
 	}
 
 	Shader::Shader(const std::string& name, std::vector<std::filesystem::path> paths, bool forceCompile)
@@ -240,6 +241,7 @@ namespace Lamp
 		m_resources.Clear();
 		std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>> setLayoutBindings; // set -> bindings
 
+		LP_CORE_INFO("Shader - Reflecting {0}", m_name.c_str());
 		for (const auto& [stage, data] : shaderData)
 		{
 			ReflectStage(stage, data, setLayoutBindings);
@@ -251,6 +253,8 @@ namespace Lamp
 	void Shader::ReflectStage(VkShaderStageFlagBits stage, const std::vector<uint32_t>& data, std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& outSetLayoutBindings)
 	{
 		auto device = GraphicsContext::GetDevice();
+
+		LP_CORE_INFO("	Reflecting stage {0}", Utility::StageToString(stage).c_str());
 
 		spirv_cross::Compiler compiler(data);
 		const auto resources = compiler.get_shader_resources();
@@ -363,6 +367,10 @@ namespace Lamp
 				it->stageFlags |= stage;
 			}
 		}
+
+		LP_CORE_INFO("		Uniform Buffers: {0}", m_uboCount);
+		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_ssboCount);
+		LP_CORE_INFO("		Images: {0}", m_imageCount);
 	}
 
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
@@ -407,5 +415,17 @@ namespace Lamp
 			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_ssboCount * framesInFlight },
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight }
 		};
+	}
+	
+	void Shader::GenerateHash()
+	{
+		size_t hash = std::hash<std::string>()(m_name);
+		for (const auto& path : m_shaderPaths)
+		{
+			size_t pathHash = std::filesystem::hash_value(path);
+			hash = Utility::HashCombine(hash, pathHash);
+		}
+
+		m_hash = hash;
 	}
 }

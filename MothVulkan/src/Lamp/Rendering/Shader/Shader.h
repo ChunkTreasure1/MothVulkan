@@ -54,6 +54,7 @@ namespace Lamp
 		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_pipelineShaderStageInfos; }
 		inline const ShaderResources& GetResources() const { return m_resources; }
 		inline const std::string& GetName() const { return m_name; }
+		inline const size_t GetHash() const { return m_hash; }
 
 		static AssetType GetStaticType() { return AssetType::Shader; }
 		AssetType GetType() override { return GetStaticType(); }
@@ -62,6 +63,7 @@ namespace Lamp
 		static Ref<Shader> Create(const std::string& name, std::vector<std::filesystem::path> paths, bool forceCompile = false);
 	
 	private:
+		void GenerateHash();
 		void LoadShaderFromFiles();
 		void Release();
 
@@ -82,5 +84,7 @@ namespace Lamp
 		uint32_t m_uboCount = 0;
 		uint32_t m_ssboCount = 0;
 		uint32_t m_imageCount = 0;
+
+		size_t m_hash;
 	};
 }

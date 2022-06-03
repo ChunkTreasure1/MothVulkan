@@ -355,5 +355,27 @@ namespace Lamp
 			}
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;			
 		}
+
+		inline uint32_t PerPixelSizeFromFormat(ImageFormat format)
+		{
+			switch (format)
+			{
+				case ImageFormat::None: return 0;
+				case ImageFormat::R32F: return 1 * 4;
+				case ImageFormat::R32SI: return 1 * 4;
+				case ImageFormat::R32UI: return 1 * 4;
+				case ImageFormat::RGB: return 3 * 1;
+				case ImageFormat::RGBA: return 4 * 1;
+				case ImageFormat::RGBA16F: return 4 * 2;
+				case ImageFormat::RGBA32F: return 4 * 4;
+				case ImageFormat::RG16F: return 2 * 2;
+				case ImageFormat::RG32F: return 2 * 4;
+				case ImageFormat::SRGB: return 3 * 1;
+				case ImageFormat::DEPTH32F: return 1 * 4;
+				case ImageFormat::DEPTH24STENCIL8: return 4;
+			}
+
+			return 0;
+		}
 	}
 }

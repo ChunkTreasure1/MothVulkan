@@ -110,5 +110,25 @@ namespace Lamp
 			LP_CORE_ASSERT(false, "Stage not supported!");
 			return (shaderc_shader_kind)0;
 		}
+
+		inline std::string StageToString(VkShaderStageFlagBits stage)
+		{
+			switch (stage)
+			{
+				case VK_SHADER_STAGE_VERTEX_BIT: return "Vertex";
+				case VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT: return "Tessellation Control";
+				case VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT: return "Tessellation Evaluation";
+				case VK_SHADER_STAGE_GEOMETRY_BIT: return "Geometry";
+				case VK_SHADER_STAGE_FRAGMENT_BIT: return "Fragment";
+				case VK_SHADER_STAGE_COMPUTE_BIT: return "Compute";
+			}
+
+			return "Unsupported";
+		}
+
+		inline size_t HashCombine(size_t lhs, size_t rhs)
+		{
+			return lhs ^ (rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2));
+		}
 	}
 }
