@@ -3,6 +3,7 @@
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Log/Log.h"
+#include "Lamp/Asset/Mesh/Material.h"
 
 #include "Lamp/Rendering/Vertex.h"
 #include "Lamp/Rendering/Framebuffer.h"
@@ -62,6 +63,8 @@ namespace Lamp
 		LP_CORE_ASSERT(m_specification.framebuffer, "Framebuffer must be specified!");
 		LP_CORE_ASSERT(m_specification.shader, "Shader must be specified!");
 
+		m_specification.shader->AddReference(this);
+
 		Invalidate();
 		GenerateHash();
 	}
@@ -69,6 +72,13 @@ namespace Lamp
 	RenderPipeline::~RenderPipeline()
 	{
 		Release();
+
+		if (m_specification.shader)
+		{
+			m_specification.shader->RemoveReference(this);
+		}
+		
+		m_materialReferences.clear();
 	}
 
 	Ref<RenderPipeline> RenderPipeline::Create(const RenderPipelineSpecification& pipelineSpec)
@@ -132,13 +142,17 @@ namespace Lamp
 		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.fillMode));
 		hash = Utility::HashCombine(hash, std::hash<uint32_t>()((uint32_t)m_specification.depthMode));
 		hash = Utility::HashCombine(hash, std::hash<std::string>()(m_specification.name));
-		
+
 		m_hash = hash;
 	}
 
 	void RenderPipeline::Invalidate()
 	{
 		Release();
+
+		m_vertexAttributeDescriptions.clear();
+		m_vertexBindingDescriptions.clear();
+
 		SetVertexLayout();
 
 		auto device = GraphicsContext::GetDevice();
@@ -288,6 +302,11 @@ namespace Lamp
 			pipelineInfo.pNext = &pipelineRenderingInfo;
 			LP_VK_CHECK(vkCreateGraphicsPipelines(device->GetHandle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline));
 		}
+
+		for (const auto& mat : m_materialReferences)
+		{
+			mat->Invalidate();
+		}
 	}
 
 	void RenderPipeline::Bind(VkCommandBuffer cmdBuffer)
@@ -314,6 +333,29 @@ namespace Lamp
 	void RenderPipeline::BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const
 	{
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, 0, nullptr);
+	}
+
+	void RenderPipeline::AddReference(Material* material)
+	{
+		if (auto it = std::find(m_materialReferences.begin(), m_materialReferences.end(), material); it != m_materialReferences.end())
+		{
+			LP_CORE_ERROR("Render pipeline {0} already has a reference to material {1}!", m_specification.name.c_str(), material->GetName().c_str());
+			return;
+		}
+
+		m_materialReferences.emplace_back(material);
+	}
+
+	void RenderPipeline::RemoveReference(Material* material)
+	{
+		auto it = std::find(m_materialReferences.begin(), m_materialReferences.end(), material);
+		if (it == m_materialReferences.end())
+		{
+			LP_CORE_ERROR("Material reference to material {0} was not found in render pipeline {1}!", material->GetName().c_str(), m_specification.name.c_str());
+			return;
+		}
+
+		m_materialReferences.erase(it);
 	}
 
 	void RenderPipeline::Release()

@@ -16,6 +16,8 @@
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferRegistry.h"
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
 
+#include "Lamp/Rendering/Renderer.h"
+
 #include "Lamp/Rendering/Texture/Image2D.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
 
@@ -24,7 +26,16 @@ namespace Lamp
 	Material::Material(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline)
 		: m_name(name), m_index(index), m_renderPipeline(renderPipeline)
 	{
+		m_renderPipeline->AddReference(this);
 		SetupMaterialFromPipeline();
+	}
+
+	Material::~Material()
+	{
+		if (m_renderPipeline)
+		{
+			m_renderPipeline->RemoveReference(this);
+		}
 	}
 
 	void Material::SetTexture(uint32_t binding, Ref<Texture2D> texture)
@@ -48,6 +59,17 @@ namespace Lamp
 		else
 		{
 			LP_CORE_ERROR("Material instance not found in material instance references");
+		}
+	}
+
+	void Material::Invalidate()
+	{
+		m_shaderResources.clear();
+		SetupMaterialFromPipeline();
+
+		for (const auto& materialInstance : m_materialInstanceReferences)
+		{
+			materialInstance->Invalidate();
 		}
 	}
 
@@ -77,7 +99,7 @@ namespace Lamp
 					info.range = ubo->GetSize();
 				}
 			}
-			
+
 			for (auto& [set, bindings] : m_shaderResources[i].storageBuffersInfos)
 			{
 				for (auto& [binding, info] : bindings)
@@ -88,15 +110,17 @@ namespace Lamp
 					info.range = ssb->GetSize();
 				}
 			}
-		}
 
-		// TODO: setup engine images and framebuffer inputs
+			// TODO: setup framebuffer inputs
 
-		if (m_shaderResources[0].imageInfos.find((uint32_t)DescriptorSetType::PerMaterial) != m_shaderResources[0].imageInfos.end())
-		{
-			for (auto& [binding, imageInfo] : m_shaderResources[0].imageInfos[(uint32_t)DescriptorSetType::PerMaterial])
+			if (m_shaderResources[i].imageInfos.find((uint32_t)DescriptorSetType::PerMaterial) != m_shaderResources[i].imageInfos.end())
 			{
-				// TODO: add default texture view and sampler
+				for (auto& [binding, imageInfo] : m_shaderResources[i].imageInfos[(uint32_t)DescriptorSetType::PerMaterial])
+				{
+					auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
+					imageInfo.imageView = defaultTexture->GetImage()->GetView();
+					imageInfo.sampler = defaultTexture->GetImage()->GetSampler();
+				}
 			}
 		}
 	}
@@ -111,7 +135,7 @@ namespace Lamp
 
 		for (auto ref : m_materialInstanceReferences)
 		{
-			ref->ReconstructMaterial();
+			ref->Invalidate();
 		}
 	}
 }

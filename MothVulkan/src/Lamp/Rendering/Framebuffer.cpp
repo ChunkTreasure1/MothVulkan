@@ -3,6 +3,9 @@
 
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
+#include "Lamp/Log/Log.h"
+
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Utility/ImageUtility.h"
 
@@ -235,6 +238,29 @@ namespace Lamp
 		m_height = height;
 
 		Invalidate();
+	}
+
+	void Framebuffer::AddReference(RenderPipeline* renderPipeline)
+	{
+		if (auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline); it != m_renderPipelineReferences.end())
+		{
+			LP_CORE_ERROR("Framebuffer already has a reference to render pipeline {0}", renderPipeline->GetSpecification().name);
+			return;
+		}
+
+		m_renderPipelineReferences.emplace_back(renderPipeline);
+	}
+
+	void Framebuffer::RemoveReference(RenderPipeline* renderPipeline)
+	{
+		auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline);
+		if (it == m_renderPipelineReferences.end())
+		{
+			LP_CORE_ERROR("Reference to render pipeline {0} not found in framebuffer!", renderPipeline->GetSpecification().name.c_str());
+			return;
+		}
+
+		m_renderPipelineReferences.erase(it);
 	}
 
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& specification)

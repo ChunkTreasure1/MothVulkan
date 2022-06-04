@@ -5,6 +5,7 @@
 namespace Lamp
 {
 	class Image2D;
+	class RenderPipeline;
 
 	enum class ClearMode : uint32_t
 	{
@@ -66,8 +67,10 @@ namespace Lamp
 
 		void Bind(VkCommandBuffer cmdBuffer) const;
 		void Unbind(VkCommandBuffer cmdBuffer) const;
-		
 		void Resize(uint32_t width, uint32_t height);
+
+		void AddReference(RenderPipeline* renderPipeline);
+		void RemoveReference(RenderPipeline* renderPipeline);
 
 		inline const Ref<Image2D> GetDepthAttachment() const { return m_depthAttachmentImage; }
 		inline const Ref<Image2D> GetColorAttachment(uint32_t index) const { return m_colorAttachmentImages[index]; }
@@ -101,5 +104,7 @@ namespace Lamp
 
 		std::vector<VkRenderingAttachmentInfo> m_colorAttachmentInfos;
 		VkRenderingAttachmentInfo m_depthAttachmentInfo;
+
+		std::vector<RenderPipeline*> m_renderPipelineReferences;
 	};
 }

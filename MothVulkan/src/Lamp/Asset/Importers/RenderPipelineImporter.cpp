@@ -137,7 +137,13 @@ namespace Lamp
 
 			std::string renderPassName;
 			LP_DESERIALIZE_PROPERTY(renderPass, renderPassName, pipelineNode, std::string());
-			Ref<Framebuffer> framebuffer = RenderPassRegistry::Get(renderPassName)->framebuffer;
+			
+			Ref<Framebuffer> framebuffer;
+
+			if (auto renderPass = RenderPassRegistry::Get(renderPassName))
+			{
+				framebuffer = renderPass->framebuffer;
+			}
 			
 			if (!framebuffer)
 			{
@@ -168,6 +174,39 @@ namespace Lamp
 			LP_DESERIALIZE_PROPERTY(depthWrite, pipelineSpec.depthWrite, pipelineNode, true);
 			LP_DESERIALIZE_PROPERTY(lineWidth, pipelineSpec.lineWidth, pipelineNode, 1.f);
 			LP_DESERIALIZE_PROPERTY(tessellationControlPoints, pipelineSpec.tessellationControlPoints, pipelineNode, 4);
+
+			if (pipelineNode["framebufferInputs"])
+			{
+				std::vector<FramebufferInput> framebufferInputs;
+				for (const auto& node : pipelineNode["framebufferInputs"])
+				{
+					std::string renderPassInputName;
+					LP_DESERIALIZE_PROPERTY(renderPass, renderPassInputName, node, std::string());
+				
+					uint32_t attachmentIndex;
+					LP_DESERIALIZE_PROPERTY(attachment, attachmentIndex, node, 0);
+
+					uint32_t shaderBinding;
+					LP_DESERIALIZE_PROPERTY(binding, shaderBinding, node, 0);
+
+					if (renderPassInputName.empty())
+					{
+						LP_CORE_ERROR("Render pass was empty! This is not valid! Setting default texture!");
+						continue;
+					}
+
+					Ref<RenderPass> renderPass = RenderPassRegistry::Get(renderPassName);
+					if (!renderPass)
+					{
+						LP_CORE_ERROR("Render pass with name {0} not found! Using default texture!", renderPassName.c_str());
+						continue;
+					}
+					
+					framebufferInputs.emplace_back(FramebufferInput{ renderPass->framebuffer, attachmentIndex, shaderBinding });
+				}
+
+				pipelineSpec.framebufferInputs = framebufferInputs;
+			}
 
 			if (pipelineNode["vertexLayout"])
 			{

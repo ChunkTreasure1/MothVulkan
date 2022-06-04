@@ -14,7 +14,7 @@ namespace Lamp
 		~MaterialInstance();
 
 		void Bind(VkCommandBuffer cmdBuffer, uint32_t frame);
-		void ReconstructMaterial();
+		void Invalidate();
 
 		inline static Ref<MaterialInstance> Create(Ref<Material> sharedMaterial) { return CreateRef<MaterialInstance>(sharedMaterial); }
 

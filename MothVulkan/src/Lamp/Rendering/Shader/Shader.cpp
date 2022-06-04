@@ -11,6 +11,7 @@
 #include "Lamp/Core/Graphics/Swapchain.h"
 
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include <shaderc/shaderc.hpp>
 #include <file_includer.h>
@@ -55,19 +56,51 @@ namespace Lamp
 	Shader::~Shader()
 	{
 		Release();
+		m_renderPipelineReferences.clear();
 	}
 
 	void Shader::Reload(bool forceCompile)
 	{
 		Utility::CreateCacheDirectoryIfNeeded();
-
 		Release();
+		
+		m_shaderSources.clear();
+		m_pipelineShaderStageInfos.clear();
+
 		LoadShaderFromFiles();
 
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> shaderData;
 		CompileOrGetBinary(shaderData, forceCompile);
 		LoadAndCreateShaders(shaderData);
 		ReflectAllStages(shaderData);
+
+		for (const auto& pipeline : m_renderPipelineReferences)
+		{
+			pipeline->Invalidate();
+		}
+	}
+
+	void Shader::AddReference(RenderPipeline* renderPipeline)
+	{
+		if (auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline); it != m_renderPipelineReferences.end())
+		{
+			LP_CORE_ERROR("Shader {0} already has a reference to render pipeline {1}!", m_name.c_str(), renderPipeline->GetSpecification().name.c_str());
+			return;
+		}
+
+		m_renderPipelineReferences.emplace_back(renderPipeline);
+	}
+
+	void Shader::RemoveReference(RenderPipeline* renderPipeline)
+	{
+		auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline);
+		if (it == m_renderPipelineReferences.end())
+		{
+			LP_CORE_ERROR("Reference to render pipeline {0} not found in shader {1}!", renderPipeline->GetSpecification().name.c_str(), m_name.c_str());
+			return;
+		}
+
+		m_renderPipelineReferences.erase(it);
 	}
 
 	Ref<Shader> Shader::Create(const std::string& name, std::initializer_list<std::filesystem::path> paths, bool forceCompile)
@@ -107,6 +140,9 @@ namespace Lamp
 		}
 
 		m_pipelineShaderStageInfos.clear();
+		m_uboCount = 0;
+		m_ssboCount = 0;
+		m_imageCount = 0;
 	}
 
 	void Shader::CompileOrGetBinary(std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& outShaderData, bool forceCompile)

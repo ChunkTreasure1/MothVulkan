@@ -3,6 +3,7 @@
 #include "Lamp/Core/Base.h"
 
 #include <vulkan/vulkan.h>
+#include <functional>
 
 namespace Lamp
 {
@@ -38,6 +39,7 @@ namespace Lamp
 		static void EndPass();
 
 		static void Draw(); // WILL BE REMOVED
+		static void TEST_RecompileShader();
 
 		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }
 

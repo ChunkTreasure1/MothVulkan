@@ -45,7 +45,7 @@ namespace Lamp
 		auto it = s_registry.find(lowName);
 		if (it == s_registry.end())
 		{
-			LP_CORE_ERROR("Unable to find shader {0}!", name.c_str());
+			LP_CORE_ERROR("Unable to find render pass {0}!", name.c_str());
 			return nullptr;
 		}
 

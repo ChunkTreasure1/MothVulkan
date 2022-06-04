@@ -15,7 +15,7 @@ namespace std
 	{
 		size_t operator()(const std::filesystem::path& aPath) const
 		{
-			return hash<std::string>()(aPath.string());
+			return std::filesystem::hash_value(aPath.string());
 		}
 	};
 }

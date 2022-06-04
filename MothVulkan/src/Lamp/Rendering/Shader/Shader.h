@@ -12,8 +12,8 @@ namespace Lamp
 	// Descriptor sets:
 	// 0 - Per frame
 	// 1 - Per pass
-	// 2 - Per object
-	// 3 - Per material
+	// 2 - Per object -- Unused for now
+	// 3 - Per material -- All textures for now
 
 	enum class DescriptorSetType : uint32_t
 	{
@@ -23,6 +23,7 @@ namespace Lamp
 		PerMaterial = 3
 	};
 
+	class RenderPipeline;
 	class Shader : public Asset
 	{
 	public:
@@ -50,6 +51,8 @@ namespace Lamp
 		~Shader();
 
 		void Reload(bool forceCompile);
+		void AddReference(RenderPipeline* renderPipeline);
+		void RemoveReference(RenderPipeline* renderPipeline);
 	
 		inline const std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() const { return m_pipelineShaderStageInfos; }
 		inline const ShaderResources& GetResources() const { return m_resources; }
@@ -77,6 +80,7 @@ namespace Lamp
 		std::unordered_map<VkShaderStageFlagBits, std::string> m_shaderSources;
 		std::vector<VkPipelineShaderStageCreateInfo> m_pipelineShaderStageInfos;
 		std::vector<std::filesystem::path> m_shaderPaths;
+		std::vector<RenderPipeline*> m_renderPipelineReferences;
 
 		ShaderResources m_resources;
 		std::string m_name;

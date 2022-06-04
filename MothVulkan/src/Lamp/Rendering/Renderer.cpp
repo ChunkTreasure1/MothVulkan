@@ -27,6 +27,7 @@
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 
@@ -49,8 +50,6 @@ namespace Lamp
 		s_rendererData->renderPipeline = RenderPipelineRegistry::Get("trimesh");
 
 		s_rendererData->material = Material::Create("Mat", 0, s_rendererData->renderPipeline);
-		s_rendererData->material->SetTexture(0, s_rendererData->texture);
-
 		s_rendererData->materialInstance = MaterialInstance::Create(s_rendererData->material);
 	}
 
@@ -152,6 +151,11 @@ namespace Lamp
 				vkCmdDrawIndexed(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), submesh.indexCount, 1, submesh.indexStartOffset, submesh.vertexStartOffset, 0);
 			}
 		}
+	}
+
+	void Renderer::TEST_RecompileShader()
+	{
+		s_rendererData->renderPipeline->GetSpecification().shader->Reload(false);
 	}
 
 	void Renderer::CreateDefaultData()

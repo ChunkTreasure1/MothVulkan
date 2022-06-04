@@ -12,6 +12,7 @@
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+#include "Lamp/Rendering/Renderer.h"
 
 namespace Lamp
 {
@@ -45,9 +46,10 @@ namespace Lamp
 		}
 	}
 
-	void MaterialInstance::ReconstructMaterial()
+	void MaterialInstance::Invalidate()
 	{
 		vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, 0);
+
 		m_descriptorSetBindings.clear();
 		m_frameDescriptorSets.clear();
 		m_writeDescriptors.clear();

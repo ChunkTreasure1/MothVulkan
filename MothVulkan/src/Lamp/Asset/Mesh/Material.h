@@ -13,12 +13,17 @@ namespace Lamp
 	class Material : public Asset
 	{
 	public:
+		Material() = default;
 		Material(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline);
+		~Material();
 
 		void SetTexture(uint32_t binding, Ref<Texture2D> texture);
-
 		void AddReference(MaterialInstance* materialInstance);
 		void RemoveReference(MaterialInstance* materialInstance);
+
+		void Invalidate();
+
+		inline const std::string& GetName() const { return m_name; }
 
 		static AssetType GetStaticType() { return AssetType::Material; }
 		AssetType GetType() override { return GetStaticType(); }

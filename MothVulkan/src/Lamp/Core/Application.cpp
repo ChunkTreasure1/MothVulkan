@@ -70,7 +70,7 @@ namespace Lamp
 		RenderPassRegistry::SetupOverrides();
 
 		Renderer::Initialize();
-	
+
 		m_renderPass = AssetManager::GetAsset<RenderPass>("Engine/RenderPasses/forward.lprp");
 	}
 
@@ -103,20 +103,28 @@ namespace Lamp
 
 			Renderer::Begin();
 			Renderer::BeginPass(m_renderPass);
+
 			Renderer::Draw();
+			
 			Renderer::EndPass();
+
+			if (glfwGetKey(m_window->GetNativeWindow(), GLFW_KEY_R) == GLFW_PRESS)
+			{
+				Renderer::TEST_RecompileShader();
+			}
+
 			Renderer::End();
-
-			VkCommandBuffer cmdBuffer = m_window->GetSwapchain().GetCurrentCommandBuffer();
-			uint32_t currentFrame = m_window->GetSwapchain().GetCurrentFrame();
-
-			VkCommandBufferBeginInfo cmdBufferBegin{};
-			cmdBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			cmdBufferBegin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-			LP_VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBufferBegin));
 
 			// Swapchain
 			{
+				VkCommandBuffer cmdBuffer = m_window->GetSwapchain().GetCurrentCommandBuffer();
+				uint32_t currentFrame = m_window->GetSwapchain().GetCurrentFrame();
+
+				VkCommandBufferBeginInfo cmdBufferBegin{};
+				cmdBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+				cmdBufferBegin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+				LP_VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBufferBegin));
+
 				VkClearValue clearValue{};
 				clearValue.color = { { 1.f, 0.f, 1.f, 1.f } };
 				VkRenderPassBeginInfo renderPassBegin{};
@@ -129,9 +137,8 @@ namespace Lamp
 				renderPassBegin.renderArea.offset = { 0, 0 };
 				vkCmdBeginRenderPass(cmdBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdEndRenderPass(cmdBuffer);
+				LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 			}
-
-			LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 			m_window->Present();
 		}

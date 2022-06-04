@@ -9,6 +9,7 @@ namespace Lamp
 {
 	class Shader;
 	class Framebuffer;
+	class Material;
 
 	enum class Topology : uint32_t
 	{
@@ -40,6 +41,13 @@ namespace Lamp
 		None
 	};
 
+	struct FramebufferInput
+	{
+		Ref<Framebuffer> framebuffer;
+		uint32_t attachmentIndex = 0;
+		uint32_t binding = 0;
+	};
+
 	struct RenderPipelineSpecification
 	{
 		Ref<Framebuffer> framebuffer;
@@ -58,6 +66,8 @@ namespace Lamp
 		BufferLayout vertexLayout;
 		BufferLayout instanceLayout;
 		std::string name;
+
+		std::vector<FramebufferInput> framebufferInputs;
 	};
 
 	class RenderPipeline : public Asset
@@ -69,9 +79,11 @@ namespace Lamp
 
 		void Invalidate();
 		void Bind(VkCommandBuffer cmdBuffer);
-
 		void BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const;
-		
+
+		void AddReference(Material* material);
+		void RemoveReference(Material* material);
+
 		inline const size_t GetHash() const { return m_hash; }
 		inline const RenderPipelineSpecification& GetSpecification() const { return m_specification; }
 
@@ -87,6 +99,7 @@ namespace Lamp
 
 		std::vector<VkVertexInputBindingDescription> m_vertexBindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> m_vertexAttributeDescriptions;
+		std::vector<Material*> m_materialReferences;
 
 		VkPipelineLayout m_pipelineLayout = nullptr;
 		VkPipeline m_pipeline = nullptr;
