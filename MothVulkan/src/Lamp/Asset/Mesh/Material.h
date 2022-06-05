@@ -8,7 +8,6 @@ namespace Lamp
 {
 	class RenderPipeline;
 	class Texture2D;
-	class MaterialInstance;
 
 	class Material : public Asset
 	{
@@ -17,10 +16,8 @@ namespace Lamp
 		Material(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline);
 		~Material();
 
+		void Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const;
 		void SetTexture(uint32_t binding, Ref<Texture2D> texture);
-		void AddReference(MaterialInstance* materialInstance);
-		void RemoveReference(MaterialInstance* materialInstance);
-
 		void Invalidate();
 
 		inline const std::string& GetName() const { return m_name; }
@@ -31,17 +28,22 @@ namespace Lamp
 		static Ref<Material> Create(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline);
 
 	private:
-		friend class MaterialInstance;
+
+		void CreateDescriptorPool();
+		void AllocateAndSetupDescriptorSets();
 
 		void SetupMaterialFromPipeline();
 		void UpdateTextureWriteDescriptor(uint32_t binding);
 
 		Ref<RenderPipeline> m_renderPipeline;
 
-		std::vector<Shader::ShaderResources> m_shaderResources;
-		std::vector<MaterialInstance*> m_materialInstanceReferences;
-
 		std::map<uint32_t, Ref<Texture2D>> m_textures; // binding -> texture
+		std::vector<Shader::ShaderResources> m_shaderResources;
+		std::vector<std::vector<uint32_t>> m_descriptorSetBindings; // maps descriptor set vector index to descriptor set binding
+		std::vector<std::vector<VkDescriptorSet>> m_frameDescriptorSets; // frame -> index -> descriptor set
+		std::vector<std::vector<VkWriteDescriptorSet>> m_writeDescriptors;
+
+		VkDescriptorPool m_descriptorPool = nullptr;
 
 		std::string m_name;
 		uint32_t m_index;

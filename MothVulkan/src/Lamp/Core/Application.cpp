@@ -12,7 +12,6 @@
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
-#include "Lamp/Asset/Mesh/MaterialInstance.h"
 
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"

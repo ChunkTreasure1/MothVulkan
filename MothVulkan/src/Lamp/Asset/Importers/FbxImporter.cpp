@@ -98,6 +98,7 @@ namespace Lamp
 					else
 					{
 						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("trimesh"));
+						mesh->m_materials[sceneMatIndex] = material;
 					}
 					matIndex = sceneMatIndex;
 				}

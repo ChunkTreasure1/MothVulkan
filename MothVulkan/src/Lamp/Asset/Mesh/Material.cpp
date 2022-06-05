@@ -5,8 +5,10 @@
 #include "Lamp/Core/Window.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
 
+#include "Lamp/Core/Graphics/GraphicsContext.h"
+#include "Lamp/Core/Graphics/GraphicsDevice.h"
+
 #include "Lamp/Log/Log.h"
-#include "Lamp/Asset/Mesh/MaterialInstance.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
@@ -29,13 +31,32 @@ namespace Lamp
 	{
 		m_renderPipeline->AddReference(this);
 		SetupMaterialFromPipeline();
+
+		CreateDescriptorPool();
+		AllocateAndSetupDescriptorSets();
 	}
 
 	Material::~Material()
 	{
+		vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, nullptr);
+		m_descriptorPool = nullptr;
+
 		if (m_renderPipeline)
 		{
 			m_renderPipeline->RemoveReference(this);
+		}
+	}
+
+	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const
+	{
+		auto device = GraphicsContext::GetDevice();
+		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
+		
+		m_renderPipeline->Bind(commandBuffer);
+		
+		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
+		{
+			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex][i]);
 		}
 	}
 
@@ -45,38 +66,86 @@ namespace Lamp
 		UpdateTextureWriteDescriptor(binding);
 	}
 
-	void Material::AddReference(MaterialInstance* materialInstance)
-	{
-		m_materialInstanceReferences.emplace_back(materialInstance);
-	}
-
-	void Material::RemoveReference(MaterialInstance* materialInstance)
-	{
-		auto it = std::find(m_materialInstanceReferences.begin(), m_materialInstanceReferences.end(), materialInstance);
-		if (it != m_materialInstanceReferences.end())
-		{
-			m_materialInstanceReferences.erase(it);
-		}
-		else
-		{
-			LP_CORE_ERROR("Material instance not found in material instance references");
-		}
-	}
-
 	void Material::Invalidate()
 	{
+		if (m_descriptorPool)
+		{
+			vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, 0);
+		}
+
+		m_descriptorSetBindings.clear();
+		m_frameDescriptorSets.clear();
+		m_writeDescriptors.clear();
+
 		m_shaderResources.clear();
 		SetupMaterialFromPipeline();
-
-		for (const auto& materialInstance : m_materialInstanceReferences)
-		{
-			materialInstance->Invalidate();
-		}
+		AllocateAndSetupDescriptorSets();
 	}
 
 	Ref<Material> Material::Create(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline)
 	{
 		return CreateRef<Material>(name, index, renderPipeline);
+	}
+
+	void Material::CreateDescriptorPool()
+	{
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = 0;
+		poolInfo.maxSets = 10; // TODO: Make this dynamic
+		poolInfo.poolSizeCount = (uint32_t)m_shaderResources[0].poolSizes.size();
+		poolInfo.pPoolSizes = m_shaderResources[0].poolSizes.data();
+
+		LP_VK_CHECK(vkCreateDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), &poolInfo, nullptr, &m_descriptorPool));
+	}
+
+	void Material::AllocateAndSetupDescriptorSets()
+	{
+		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
+		auto device = GraphicsContext::GetDevice();
+
+		m_frameDescriptorSets.resize(framesInFlight);
+		m_descriptorSetBindings.resize(framesInFlight);
+		m_writeDescriptors.resize(framesInFlight);
+
+		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets.size(); i++)
+		{
+			auto& sets = m_frameDescriptorSets[i];
+			auto& shaderResources = m_shaderResources[i];
+
+			VkDescriptorSetAllocateInfo allocInfo = shaderResources.setAllocInfo;
+			allocInfo.descriptorPool = m_descriptorPool;
+			sets.resize(allocInfo.descriptorSetCount);
+
+			vkAllocateDescriptorSets(device->GetHandle(), &allocInfo, sets.data());
+
+			uint32_t index = 0;
+			for (auto& [set, bindings] : shaderResources.writeDescriptors)
+			{
+				for (auto& [binding, write] : bindings)
+				{
+					auto& writeDescriptor = m_writeDescriptors[i].emplace_back(write);
+
+					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
+					{
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set][binding];
+					}
+					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
+					{
+						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set][binding];
+					}
+					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
+					{
+						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set][binding];
+					}
+
+					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];
+					m_descriptorSetBindings[i].emplace_back(set);
+				}
+
+				index++;
+			}
+		}
 	}
 
 	void Material::SetupMaterialFromPipeline()
@@ -140,9 +209,6 @@ namespace Lamp
 			m_shaderResources[i].imageInfos[(uint32_t)DescriptorSetType::PerMaterial][binding].sampler = m_textures[binding]->GetImage()->GetSampler();
 		}
 
-		for (auto ref : m_materialInstanceReferences)
-		{
-			ref->Invalidate();
-		}
+		Invalidate();
 	}
 }

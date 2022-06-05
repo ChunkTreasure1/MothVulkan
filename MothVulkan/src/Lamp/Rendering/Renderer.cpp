@@ -23,7 +23,6 @@
 
 
 #include "Lamp/Asset/AssetManager.h"
-#include "Lamp/Asset/Mesh/MaterialInstance.h"
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
@@ -50,9 +49,6 @@ namespace Lamp
 		s_rendererData->texture = AssetManager::GetAsset<Texture2D>("Assets/Textures/peter_lambert.png");
 
 		s_rendererData->renderPipeline = RenderPipelineRegistry::Get("trimesh");
-
-		s_rendererData->material = Material::Create("Mat", 0, s_rendererData->renderPipeline);
-		s_rendererData->materialInstance = MaterialInstance::Create(s_rendererData->material);
 	}
 
 	void Renderer::Shutdowm()
@@ -115,7 +111,7 @@ namespace Lamp
 		{
 			auto& cmd = s_rendererData->renderCommands.emplace_back();
 			cmd.mesh = mesh;
-			cmd.material = material;
+			cmd.material = mesh->GetMaterials().at(subMesh.materialIndex);
 			cmd.subMesh = subMesh;
 		}
 	}
@@ -168,16 +164,23 @@ namespace Lamp
 				drawCommands[i].firstInstance = i;
 			}
 
-			for (IndirectBatch& draw : draws)
-			{
-				draw.material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
-				draw.mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-				draw.mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
 
-				VkDeviceSize drawOffset = draw.first * sizeof(VkDrawIndexedIndirectCommand);
+			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+			for (uint32_t i = 0; i < draws.size(); i++)
+			{
+				if (i > 0 && draws[i].material != draws[i - 1].material)
+				{
+					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+				}
+
+				draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+				draws[i].mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+
+				VkDeviceSize drawOffset = draws[i].first * sizeof(VkDrawIndexedIndirectCommand);
 				uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
 
-				vkCmdDrawIndexedIndirect(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->indirectDrawBuffer->Get(currentFrame)->GetHandle(), drawOffset, draw.count, drawStride);
+				vkCmdDrawIndexedIndirect(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->indirectDrawBuffer->Get(currentFrame)->GetHandle(), drawOffset, draws[i].count, drawStride);
 			}
 		}
 	}
@@ -210,11 +213,11 @@ namespace Lamp
 		firstDraw.first = 0;
 		firstDraw.count = 1;
 
-		for (uint32_t i = 0; i < renderCommands.size(); i++)
+ 		for (uint32_t i = 1; i < renderCommands.size(); i++)
 		{
 			bool sameMesh = (renderCommands[i].mesh == draws.back().mesh);
 			bool sameSubMesh = (renderCommands[i].subMesh == draws.back().subMesh);
-			bool sameMaterial = (renderCommands[i].material->GetSharedMaterial() == draws.back().material->GetSharedMaterial());
+			bool sameMaterial = (renderCommands[i].material == draws.back().material);
 
 			if (sameMesh && sameMaterial && sameSubMesh)
 			{
@@ -230,6 +233,11 @@ namespace Lamp
 				newDraw.count = 1;
 			}
 		}
+
+		std::sort(draws.begin(), draws.end(), [](const IndirectBatch& lhs, const IndirectBatch& rhs) 
+			{
+				return lhs.material < rhs.material;
+			});
 
 		return draws;
 	}

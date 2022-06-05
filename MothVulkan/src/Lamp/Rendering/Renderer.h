@@ -16,21 +16,20 @@ namespace Lamp
 	class Mesh;
 	class Texture2D;
 	class Material;
-	class MaterialInstance;
 	class RenderPipeline;
 
 	struct RenderCommand
 	{
 		Ref<Mesh> mesh;
 		SubMesh subMesh;
-		Ref<MaterialInstance> material;
+		Ref<Material> material;
 	};
 
 	struct IndirectBatch
 	{
 		Ref<Mesh> mesh;
 		SubMesh subMesh;
-		Ref<MaterialInstance> material;
+		Ref<Material> material;
 		uint32_t first;
 		uint32_t count;
 	};
@@ -82,7 +81,6 @@ namespace Lamp
 			Ref<Texture2D> texture;
 
 			Ref<Material> material;
-			Ref<MaterialInstance> materialInstance;
 			Ref<RenderPipeline> renderPipeline;
 		};
 
