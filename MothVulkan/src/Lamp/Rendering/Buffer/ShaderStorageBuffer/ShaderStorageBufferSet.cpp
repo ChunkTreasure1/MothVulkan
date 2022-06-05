@@ -3,12 +3,12 @@
 
 namespace Lamp
 {
-	ShaderStorageBufferSet::ShaderStorageBufferSet(uint64_t size, uint32_t count)
+	ShaderStorageBufferSet::ShaderStorageBufferSet(uint64_t size, uint32_t count, bool indirectBuffer)
 	{
 		m_storageBuffers.reserve(count);
 		for (uint32_t i = 0; i < count; i++)
 		{
-			m_storageBuffers.emplace_back(ShaderStorageBuffer::Create(size));
+			m_storageBuffers.emplace_back(ShaderStorageBuffer::Create(size, indirectBuffer));
 		}
 	}
 
@@ -17,8 +17,8 @@ namespace Lamp
 		m_storageBuffers.clear();
 	}
 
-	Ref<ShaderStorageBufferSet> ShaderStorageBufferSet::Create(uint64_t size, uint32_t count)
+	Ref<ShaderStorageBufferSet> ShaderStorageBufferSet::Create(uint64_t size, uint32_t count, bool indirectBuffer)
 	{
-		return CreateRef<ShaderStorageBufferSet>(size, count);
+		return CreateRef<ShaderStorageBufferSet>(size, count, indirectBuffer);
 	}
 }

@@ -17,6 +17,7 @@
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
 
 #include "Lamp/Rendering/Renderer.h"
+#include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Rendering/Texture/Image2D.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
@@ -111,7 +112,13 @@ namespace Lamp
 				}
 			}
 
-			// TODO: setup framebuffer inputs
+			// TODO: add support for cubic textures
+			for (auto& input : m_renderPipeline->GetSpecification().framebufferInputs)
+			{
+				auto& imageInfo = m_shaderResources[i].imageInfos[input.set][input.binding];
+				imageInfo.imageView = m_renderPipeline->GetSpecification().framebuffer->GetColorAttachment(input.attachmentIndex)->GetView();
+				imageInfo.sampler = m_renderPipeline->GetSpecification().framebuffer->GetColorAttachment(input.attachmentIndex)->GetSampler();
+			}
 
 			if (m_shaderResources[i].imageInfos.find((uint32_t)DescriptorSetType::PerMaterial) != m_shaderResources[i].imageInfos.end())
 			{

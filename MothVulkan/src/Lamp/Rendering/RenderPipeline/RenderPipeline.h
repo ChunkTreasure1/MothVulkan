@@ -45,6 +45,7 @@ namespace Lamp
 	{
 		Ref<Framebuffer> framebuffer;
 		uint32_t attachmentIndex = 0;
+		uint32_t set = 0;
 		uint32_t binding = 0;
 	};
 
@@ -78,6 +79,8 @@ namespace Lamp
 		~RenderPipeline();
 
 		void Invalidate();
+		void InvalidateMaterials();
+
 		void Bind(VkCommandBuffer cmdBuffer);
 		void BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const;
 

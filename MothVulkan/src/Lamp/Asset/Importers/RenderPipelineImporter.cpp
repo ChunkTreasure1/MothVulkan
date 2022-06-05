@@ -186,6 +186,9 @@ namespace Lamp
 					uint32_t attachmentIndex;
 					LP_DESERIALIZE_PROPERTY(attachment, attachmentIndex, node, 0);
 
+					uint32_t shaderSet;
+					LP_DESERIALIZE_PROPERTY(set, shaderSet, node, 0);
+
 					uint32_t shaderBinding;
 					LP_DESERIALIZE_PROPERTY(binding, shaderBinding, node, 0);
 
@@ -202,7 +205,7 @@ namespace Lamp
 						continue;
 					}
 					
-					framebufferInputs.emplace_back(FramebufferInput{ renderPass->framebuffer, attachmentIndex, shaderBinding });
+					framebufferInputs.emplace_back(FramebufferInput{ renderPass->framebuffer, attachmentIndex, shaderSet, shaderBinding });
 				}
 
 				pipelineSpec.framebufferInputs = framebufferInputs;

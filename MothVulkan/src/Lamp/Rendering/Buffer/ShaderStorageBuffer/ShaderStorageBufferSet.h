@@ -12,12 +12,12 @@ namespace Lamp
 	class ShaderStorageBufferSet
 	{
 	public:
-		ShaderStorageBufferSet(uint64_t size, uint32_t count);
+		ShaderStorageBufferSet(uint64_t size, uint32_t count, bool indirectBuffer);
 		~ShaderStorageBufferSet();
 
 		inline const Ref<ShaderStorageBuffer> Get(uint32_t index) const { return m_storageBuffers[index]; }
 
-		static Ref<ShaderStorageBufferSet> Create(uint64_t size, uint32_t count);
+		static Ref<ShaderStorageBufferSet> Create(uint64_t size, uint32_t count, bool indirectBuffer = false);
 
 	private:
 		std::vector<Ref<ShaderStorageBuffer>> m_storageBuffers;

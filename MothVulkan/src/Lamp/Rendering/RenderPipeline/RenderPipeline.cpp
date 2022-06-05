@@ -64,6 +64,7 @@ namespace Lamp
 		LP_CORE_ASSERT(m_specification.shader, "Shader must be specified!");
 
 		m_specification.shader->AddReference(this);
+		m_specification.framebuffer->AddReference(this);
 
 		Invalidate();
 		GenerateHash();
@@ -76,6 +77,11 @@ namespace Lamp
 		if (m_specification.shader)
 		{
 			m_specification.shader->RemoveReference(this);
+		}
+
+		if (m_specification.framebuffer)
+		{
+			m_specification.framebuffer->RemoveReference(this);
 		}
 		
 		m_materialReferences.clear();
@@ -303,6 +309,11 @@ namespace Lamp
 			LP_VK_CHECK(vkCreateGraphicsPipelines(device->GetHandle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline));
 		}
 
+		InvalidateMaterials();
+	}
+
+	void RenderPipeline::InvalidateMaterials()
+	{
 		for (const auto& mat : m_materialReferences)
 		{
 			mat->Invalidate();

@@ -41,6 +41,8 @@ namespace Lamp
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
 
+		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(VkDrawIndexedIndirectCommand) * 100, framesInFlight, true);
+
 		CreateDefaultData();
 
 		/////TESTING//////
@@ -61,12 +63,14 @@ namespace Lamp
 
 	void Renderer::Begin()
 	{
+		Submit(s_rendererData->mesh);
 		s_rendererData->commandBuffer->Begin();
 	}
 
 	void Renderer::End()
 	{
 		s_rendererData->commandBuffer->End();
+		s_rendererData->renderCommands.clear();
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass)
@@ -94,7 +98,6 @@ namespace Lamp
 				renderingInfo.pDepthAttachment = nullptr;
 			}
 			renderingInfo.pStencilAttachment = nullptr;
-
 			vkCmdBeginRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), &renderingInfo);
 		}
 	}
@@ -104,6 +107,17 @@ namespace Lamp
 		vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		s_rendererData->currentFramebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		s_rendererData->currentFramebuffer = nullptr;
+	}
+
+	void Renderer::Submit(Ref<Mesh> mesh)
+	{
+		for (const auto& subMesh : mesh->GetSubMeshes())
+		{
+			auto& cmd = s_rendererData->renderCommands.emplace_back();
+			cmd.mesh = mesh;
+			cmd.material = material;
+			cmd.subMesh = subMesh;
+		}
 	}
 
 	void Renderer::Draw()
@@ -142,13 +156,28 @@ namespace Lamp
 
 		// Draw
 		{
-			s_rendererData->materialInstance->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
-			s_rendererData->mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-			s_rendererData->mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
 
-			for (auto& submesh : s_rendererData->mesh->GetSubMeshes())
+			VkDrawIndexedIndirectCommand* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<VkDrawIndexedIndirectCommand>();
+			for (uint32_t i = 0; i < draws.size(); i++)
 			{
-				vkCmdDrawIndexed(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), submesh.indexCount, 1, submesh.indexStartOffset, submesh.vertexStartOffset, 0);
+				drawCommands[i].indexCount = draws[i].subMesh.indexCount;
+				drawCommands[i].firstIndex = draws[i].subMesh.indexStartOffset;
+				drawCommands[i].vertexOffset = draws[i].subMesh.vertexStartOffset;
+				drawCommands[i].instanceCount = 1;
+				drawCommands[i].firstInstance = i;
+			}
+
+			for (IndirectBatch& draw : draws)
+			{
+				draw.material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+				draw.mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+				draw.mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+
+				VkDeviceSize drawOffset = draw.first * sizeof(VkDrawIndexedIndirectCommand);
+				uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
+
+				vkCmdDrawIndexedIndirect(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->indirectDrawBuffer->Get(currentFrame)->GetHandle(), drawOffset, draw.count, drawStride);
 			}
 		}
 	}
@@ -168,5 +197,40 @@ namespace Lamp
 			uint32_t whiteTextureData = 0xffffffff;
 			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 		}
+	}
+
+	std::vector<IndirectBatch> Renderer::PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands)
+	{
+		std::vector<IndirectBatch> draws;
+
+		IndirectBatch& firstDraw = draws.emplace_back();
+		firstDraw.mesh = renderCommands[0].mesh;
+		firstDraw.material = renderCommands[0].material;
+		firstDraw.subMesh = renderCommands[0].subMesh;
+		firstDraw.first = 0;
+		firstDraw.count = 1;
+
+		for (uint32_t i = 0; i < renderCommands.size(); i++)
+		{
+			bool sameMesh = (renderCommands[i].mesh == draws.back().mesh);
+			bool sameSubMesh = (renderCommands[i].subMesh == draws.back().subMesh);
+			bool sameMaterial = (renderCommands[i].material->GetSharedMaterial() == draws.back().material->GetSharedMaterial());
+
+			if (sameMesh && sameMaterial && sameSubMesh)
+			{
+				draws.back().count++;
+			}
+			else
+			{
+				IndirectBatch& newDraw = draws.emplace_back();
+				newDraw.mesh = renderCommands[i].mesh;
+				newDraw.material = renderCommands[i].material;
+				newDraw.subMesh = renderCommands[i].subMesh;
+				newDraw.first = i;
+				newDraw.count = 1;
+			}
+		}
+
+		return draws;
 	}
 }

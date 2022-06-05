@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Lamp/Asset/Asset.h"
-#include "Lamp/Asset/SubMesh.h"
+#include "Lamp/Asset/Mesh/SubMesh.h"
 
 #include "Lamp/Rendering/Vertex.h"
 

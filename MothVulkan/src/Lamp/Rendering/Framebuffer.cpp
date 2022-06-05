@@ -75,6 +75,8 @@ namespace Lamp
 
 	Framebuffer::~Framebuffer()
 	{
+		m_renderPipelineReferences.clear();
+		Release();
 	}
 
 	void Framebuffer::Invalidate()
@@ -171,11 +173,15 @@ namespace Lamp
 			attachments.emplace_back(m_depthAttachmentImage->GetView());
 			LP_CORE_ASSERT(attachments.back(), "Image view was nullptr!");
 		}
+
+		for (const auto& pipeline : m_renderPipelineReferences)
+		{
+			pipeline->InvalidateMaterials();
+		}
 	}
 
 	void Framebuffer::Bind(VkCommandBuffer cmdBuffer) const
 	{
-
 		for (auto& attachment : m_colorAttachmentImages)
 		{
 			const VkImageLayout oldLayout = m_firstBind ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -244,7 +250,7 @@ namespace Lamp
 	{
 		if (auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline); it != m_renderPipelineReferences.end())
 		{
-			LP_CORE_ERROR("Framebuffer already has a reference to render pipeline {0}", renderPipeline->GetSpecification().name);
+			LP_CORE_ERROR("Framebuffer already has a reference to render pipeline {0}", renderPipeline->GetSpecification().name.c_str());
 			return;
 		}
 
