@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Event/ApplicationEvent.h"
 
 #include "Lamp/Rendering/Shader/Shader.h"
 
@@ -47,7 +48,6 @@ namespace Lamp
 
 	class Window;
 	class AssetManager;
-	
 	class RenderPass;
 
 	class Application
@@ -57,15 +57,17 @@ namespace Lamp
 		virtual ~Application();
 
 		void Run();
-		void Shutdown();
+		void OnEvent(Event& event);
 
 		inline const Ref<Window> GetWindow() const { return m_window; }
 
 		inline static Application& Get() { return *s_instance; }
 
 	private:
-		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
+		bool OnWindowCloseEvent(WindowCloseEvent& e);
+		bool OnWindowResizeEvent(WindowResizeEvent& e);
 
+		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 		bool m_isRunning = true;
 
 		Ref<Window> m_window;

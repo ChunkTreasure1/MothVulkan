@@ -1,7 +1,7 @@
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-project "MothVulkan"
+project "Lamp"
 	location "."
 	kind "StaticLib"
 	language "C++"

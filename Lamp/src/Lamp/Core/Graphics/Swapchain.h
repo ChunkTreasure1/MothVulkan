@@ -49,8 +49,8 @@ namespace Lamp
 
 		const uint32_t m_framesInFlight = 2;
 
-		uint32_t m_width = 0;
-		uint32_t m_height = 0;
+		uint32_t m_width = 1280;
+		uint32_t m_height = 720;
 
 		std::vector<VkImage> m_images;
 		std::vector<VkImageView> m_imageViews;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Event/Event.h"
 
 #include <string>
 
@@ -34,6 +35,8 @@ namespace Lamp
 	class Window
 	{
 	public:
+		using EventCallbackFn = std::function<void(Event&)>;
+
 		Window(const WindowProperties& properties);
 		~Window();
 		
@@ -45,16 +48,17 @@ namespace Lamp
 		void BeginFrame();
 		void Present();
 
+		void SetEventCallback(const EventCallbackFn& callback);
 		void SetWindowMode(WindowMode windowMode);
 		void Resize(uint32_t width, uint32_t height);
 
 		void Maximize();
 		void ShowCursor(bool show);
 
-		inline const uint32_t GetWidth() const { return m_properties.width; }
-		inline const uint32_t GetHeight() const { return m_properties.height; }
-		inline const bool IsVSync() const { return m_properties.vsync; }
-		inline const WindowMode GetWindowMode() const { return m_properties.windowMode; }
+		inline const uint32_t GetWidth() const { return m_data.width; }
+		inline const uint32_t GetHeight() const { return m_data.height; }
+		inline const bool IsVSync() const { return m_data.vsync; }
+		inline const WindowMode GetWindowMode() const { return m_data.windowMode; }
 		inline GLFWwindow* GetNativeWindow() const { return m_window; }
 
 		inline const GraphicsContext& GetGraphicsContext() const { return *m_graphicsContext; }
@@ -64,7 +68,19 @@ namespace Lamp
 
 	private:
 		GLFWwindow* m_window = nullptr;
-		WindowProperties m_properties;
+
+		struct WindowData
+		{
+			std::string title;
+			uint32_t width;
+			uint32_t height;
+			bool vsync;
+			WindowMode windowMode;
+
+			EventCallbackFn eventCallback;
+			
+		} m_data;
+
 		bool m_hasBeenInitialized = false;
 		
 		Ref<GraphicsContext> m_graphicsContext;

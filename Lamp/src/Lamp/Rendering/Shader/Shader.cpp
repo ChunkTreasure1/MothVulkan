@@ -63,7 +63,7 @@ namespace Lamp
 	{
 		Utility::CreateCacheDirectoryIfNeeded();
 		Release();
-		
+
 		m_shaderSources.clear();
 		m_pipelineShaderStageInfos.clear();
 
@@ -167,10 +167,9 @@ namespace Lamp
 				}
 			}
 
+			auto cachedPath = cacheDirectory / (currentStagePath.filename().string() + extension);
 			if (!forceCompile)
 			{
-				auto cachedPath = cacheDirectory / (currentStagePath.filename().string() + extension);
-
 				std::ifstream file(cachedPath.string(), std::ios::binary | std::ios::in | std::ios::ate);
 				if (file.is_open())
 				{
@@ -182,67 +181,66 @@ namespace Lamp
 					file.read((char*)data.data(), size);
 					file.close();
 				}
+			}
 
-				if (data.empty())
-				{
-					shaderc::Compiler compiler;
-					shaderc::CompileOptions compileOptions;
+			if (data.empty())
+			{
+				shaderc::Compiler compiler;
+				shaderc::CompileOptions compileOptions;
 
-					shaderc_util::FileFinder fileFinder;
-					fileFinder.search_path().emplace_back("Engine/Shaders/");
+				shaderc_util::FileFinder fileFinder;
+				fileFinder.search_path().emplace_back("Engine/Shaders/");
 
-					compileOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
-					compileOptions.SetWarningsAsErrors();
-					compileOptions.SetIncluder(std::make_unique<glslc::FileIncluder>(&fileFinder));
-					compileOptions.SetOptimizationLevel(shaderc_optimization_level_performance);
+				compileOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
+				compileOptions.SetWarningsAsErrors();
+				compileOptions.SetIncluder(std::make_unique<glslc::FileIncluder>(&fileFinder));
+				compileOptions.SetOptimizationLevel(shaderc_optimization_level_performance);
 
 #ifdef LP_ENABLE_SHADER_DEBUG
-					compileOptions.SetGenerateDebugInfo();
+				compileOptions.SetGenerateDebugInfo();
 #endif
 
-					const auto& currentPath = m_shaderPaths[index];
+				const auto& currentPath = m_shaderPaths[index];
 
-					shaderc::PreprocessedSourceCompilationResult preProcessResult = compiler.PreprocessGlsl(source, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str(), compileOptions);
-					if (preProcessResult.GetCompilationStatus() != shaderc_compilation_status_success)
-					{
-						LP_CORE_ERROR("Failed to preprocess shader {0}!", currentPath.string().c_str());
-						LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
-						LP_CORE_ASSERT(false, "Failed to preprocess shader!");
-					}
-
-					std::string proccessedSource = std::string(preProcessResult.cbegin(), preProcessResult.cend());
-
-					// Compile shader
-					{
-						shaderc::SpvCompilationResult compileResult = compiler.CompileGlslToSpv(proccessedSource, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str());
-						if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success)
-						{
-							LP_CORE_ERROR("Failed to compile shader {0}!", currentPath.string().c_str());
-							LP_CORE_ERROR(compileResult.GetErrorMessage().c_str());
-							LP_CORE_ASSERT(false, "Shader compilation failed!");
-						}
-
-						const uint8_t* begin = (const uint8_t*)compileResult.cbegin();
-						const uint8_t* end = (const uint8_t*)compileResult.cend();
-						const ptrdiff_t size = end - begin;
-
-						data = std::vector<uint32_t>(compileResult.cbegin(), compileResult.cend());
-					}
-
-					// Cache shader
-					{
-						std::ofstream output(cachedPath, std::ios::binary | std::ios::out);
-						if (!output.is_open())
-						{
-							LP_CORE_ERROR("Failed to open file {0} for writing!", cachedPath.string().c_str());
-							LP_CORE_ASSERT(false, "Failed to open file for writing!");
-						}
-
-						output.write((const char*)data.data(), data.size() * sizeof(uint32_t));
-						output.close();
-					}
+				shaderc::PreprocessedSourceCompilationResult preProcessResult = compiler.PreprocessGlsl(source, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str(), compileOptions);
+				if (preProcessResult.GetCompilationStatus() != shaderc_compilation_status_success)
+				{
+					LP_CORE_ERROR("Failed to preprocess shader {0}!", currentPath.string().c_str());
+					LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
+					LP_CORE_ASSERT(false, "Failed to preprocess shader!");
 				}
 
+				std::string proccessedSource = std::string(preProcessResult.cbegin(), preProcessResult.cend());
+
+				// Compile shader
+				{
+					shaderc::SpvCompilationResult compileResult = compiler.CompileGlslToSpv(proccessedSource, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str());
+					if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success)
+					{
+						LP_CORE_ERROR("Failed to compile shader {0}!", currentPath.string().c_str());
+						LP_CORE_ERROR(compileResult.GetErrorMessage().c_str());
+						LP_CORE_ASSERT(false, "Shader compilation failed!");
+					}
+
+					const uint8_t* begin = (const uint8_t*)compileResult.cbegin();
+					const uint8_t* end = (const uint8_t*)compileResult.cend();
+					const ptrdiff_t size = end - begin;
+
+					data = std::vector<uint32_t>(compileResult.cbegin(), compileResult.cend());
+				}
+
+				// Cache shader
+				{
+					std::ofstream output(cachedPath, std::ios::binary | std::ios::out);
+					if (!output.is_open())
+					{
+						LP_CORE_ERROR("Failed to open file {0} for writing!", cachedPath.string().c_str());
+						LP_CORE_ASSERT(false, "Failed to open file for writing!");
+					}
+
+					output.write((const char*)data.data(), data.size() * sizeof(uint32_t));
+					output.close();
+				}
 			}
 
 			index++;
@@ -347,7 +345,7 @@ namespace Lamp
 				layoutBinding.descriptorCount = 1;
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				layoutBinding.stageFlags = stage;
-			
+
 				VkDescriptorBufferInfo& bufferInfo = m_resources.storageBuffersInfos[set][binding];
 				bufferInfo.offset = 0;
 				bufferInfo.range = size;
@@ -442,7 +440,7 @@ namespace Lamp
 		allocInfo.descriptorSetCount = (uint32_t)m_resources.realSetLayouts.size();
 		allocInfo.pSetLayouts = m_resources.realSetLayouts.data();
 		allocInfo.pNext = nullptr;
-		
+
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 
 		m_resources.poolSizes =
@@ -452,7 +450,7 @@ namespace Lamp
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight }
 		};
 	}
-	
+
 	void Shader::GenerateHash()
 	{
 		size_t hash = std::hash<std::string>()(m_name);

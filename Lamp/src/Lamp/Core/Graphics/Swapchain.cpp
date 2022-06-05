@@ -23,6 +23,8 @@ namespace Lamp
 		auto device = GraphicsContext::GetDevice();
 		m_vulkanDevice = device->GetHandle();
 		m_vulkanInstance = GraphicsContext::Get().GetInstance();
+
+		Invalidate(m_width, m_height, true);
 	}
 
 	Swapchain::~Swapchain()
@@ -130,9 +132,17 @@ namespace Lamp
 
 	void Swapchain::Resize(uint32_t width, uint32_t height, bool useVSync)
 	{
+		if (!m_swapchain)
+		{
+			return;
+		}
+
 		m_width = width;
 		m_height = height;
-		Invalidate(width, height, useVSync);
+		
+		CreateSwapchain(width, height, useVSync);
+		CreateImageViews();
+		CreateFramebuffers();
 	}
 
 	Ref<Swapchain> Swapchain::Create(GLFWwindow* window)
@@ -163,6 +173,8 @@ namespace Lamp
 			m_imageCount = surfaceCapabilities.maxImageCount;
 		}
 
+		VkSwapchainKHR oldSwapchain = m_swapchain;
+
 		VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 		swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapchainCreateInfo.surface = m_surface;
@@ -177,7 +189,7 @@ namespace Lamp
 		swapchainCreateInfo.presentMode = presentMode;
 		swapchainCreateInfo.clipped = VK_TRUE;
 		swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchainCreateInfo.oldSwapchain = m_swapchain;
+		swapchainCreateInfo.oldSwapchain = oldSwapchain;
 
 		// Set sharing mode based on queues
 		{
@@ -196,10 +208,28 @@ namespace Lamp
 		auto device = GraphicsContext::GetDevice();
 		LP_VK_CHECK(vkCreateSwapchainKHR(device->GetHandle(), &swapchainCreateInfo, nullptr, &m_swapchain));
 
+		if (oldSwapchain != VK_NULL_HANDLE)
+		{
+			vkDestroySwapchainKHR(m_vulkanDevice, oldSwapchain, nullptr);
+		
+			for (auto& view : m_imageViews)
+			{
+				vkDestroyImageView(m_vulkanDevice, view, nullptr);
+			}
+
+			for (auto& framebuffer : m_framebuffers)
+			{
+				vkDestroyFramebuffer(m_vulkanDevice, framebuffer, nullptr);
+			}
+
+			m_imageViews.clear();
+			m_framebuffers.clear();
+		}
+		
 		LP_VK_CHECK(vkGetSwapchainImagesKHR(device->GetHandle(), m_swapchain, &m_imageCount, nullptr));
 		m_images.resize(m_imageCount);
 		LP_VK_CHECK(vkGetSwapchainImagesKHR(device->GetHandle(), m_swapchain, &m_imageCount, m_images.data()));
-
+		
 		m_format = surfaceFormat.format;
 	}
 	

@@ -118,6 +118,11 @@ namespace Lamp
 
 	void Renderer::Draw()
 	{
+		if (s_rendererData->renderCommands.empty())
+		{
+			return;
+		}
+
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
 		const glm::vec3 camPos = { 0.f, 0.f, -2.f };
@@ -169,7 +174,7 @@ namespace Lamp
 			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
-				if (i > 0 && draws[i].material != draws[i - 1].material)
+  				if (i > 0 && draws[i].material != draws[i - 1].material)
 				{
 					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 				}
@@ -187,7 +192,7 @@ namespace Lamp
 
 	void Renderer::TEST_RecompileShader()
 	{
-		s_rendererData->renderPipeline->GetSpecification().shader->Reload(false);
+		s_rendererData->renderPipeline->GetSpecification().shader->Reload(true);
 	}
 
 	void Renderer::CreateDefaultData()

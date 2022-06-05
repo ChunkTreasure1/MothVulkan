@@ -1,6 +1,6 @@
-workspace "MothVulkan"
+workspace "Lamp"
 	architecture "x64"
-	startproject "Launcher"
+	startproject "Sandbox"
 
 	configurations
 	{
@@ -19,11 +19,11 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 include "Dependencies.lua"
 
 group "Dependencies"
-include "MothVulkan/vendor/glfw"
-
+include "Lamp/vendor/glfw"
 
 group "Core"
-include "MothVulkan"
+include "Lamp"
 
 group ""
 include "Launcher"
+include "Sandbox"

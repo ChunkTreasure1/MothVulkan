@@ -29,6 +29,8 @@ const char* VKResultToString(int32_t result);
 	#define LP_CORE_ASSERT(x, ...)
 #endif
 
+#define LP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
 template<typename T>
 using Scope = std::unique_ptr<T>;
 

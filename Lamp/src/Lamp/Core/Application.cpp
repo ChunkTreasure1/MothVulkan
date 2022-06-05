@@ -52,6 +52,8 @@ namespace Lamp
 		windowProperties.title = info.title;
 
 		m_window = Window::Create(windowProperties);
+		m_window->SetEventCallback(LP_BIND_EVENT_FN(Application::OnEvent));
+
 		m_assetManager = CreateRef<AssetManager>();
 
 		UniformBufferRegistry::Initialize();
@@ -132,7 +134,7 @@ namespace Lamp
 				renderPassBegin.pClearValues = &clearValue;
 				renderPassBegin.framebuffer = m_window->GetSwapchain().GetCurrentFramebuffer();
 				renderPassBegin.renderPass = m_window->GetSwapchain().GetRenderPass();
-				renderPassBegin.renderArea.extent = { m_applicationInfo.width, m_applicationInfo.height };
+				renderPassBegin.renderArea.extent = { m_window->GetWidth(), m_window->GetHeight() };
 				renderPassBegin.renderArea.offset = { 0, 0 };
 				vkCmdBeginRenderPass(cmdBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdEndRenderPass(cmdBuffer);
@@ -143,8 +145,27 @@ namespace Lamp
 		}
 	}
 
-	void Application::Shutdown()
+	void Application::OnEvent(Event& event)
+	{
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<WindowCloseEvent>(LP_BIND_EVENT_FN(Application::OnWindowCloseEvent));
+		dispatcher.Dispatch<WindowResizeEvent>(LP_BIND_EVENT_FN(Application::OnWindowResizeEvent));
+	}
+
+	bool Application::OnWindowCloseEvent(WindowCloseEvent& e)
 	{
 		m_isRunning = false;
+		return true;
+	}
+
+	bool Application::OnWindowResizeEvent(WindowResizeEvent& e)
+	{
+		if (e.GetWidth() == 0 || e.GetHeight() == 0)
+		{
+			return false;
+		}
+
+		m_window->Resize(e.GetWidth(), e.GetHeight());
+		return false;
 	}
 }

@@ -1,21 +1,21 @@
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
-IncludeDir["GLFW"] = "%{wks.location}/MothVulkan/vendor/GLFW/include"
-IncludeDir["spdlog"] = "%{wks.location}/MothVulkan/vendor/spdlog/include"
-IncludeDir["vma"] = "%{wks.location}/MothVulkan/vendor/vma"
+IncludeDir["GLFW"] = "%{wks.location}/Lamp/vendor/GLFW/include"
+IncludeDir["spdlog"] = "%{wks.location}/Lamp/vendor/spdlog/include"
+IncludeDir["vma"] = "%{wks.location}/Lamp/vendor/vma"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["glm"] = "%{wks.location}/MothVulkan/vendor/glm"
-IncludeDir["yaml"] = "%{wks.location}/MothVulkan/vendor/yaml-cpp/include"
-IncludeDir["fbxsdk"] = "%{wks.location}/MothVulkan/vendor/fbxsdk/include"
-IncludeDir["stb"] = "%{wks.location}/MothVulkan/vendor/stb"
-IncludeDir["shaderc_utils"] = "%{wks.location}/MothVulkan/vendor/shaderc/libshaderc_util/include"
-IncludeDir["shaderc_glslc"] = "%{wks.location}/MothVulkan/vendor/shaderc/glslc"
+IncludeDir["glm"] = "%{wks.location}/Lamp/vendor/glm"
+IncludeDir["yaml"] = "%{wks.location}/Lamp/vendor/yaml-cpp/include"
+IncludeDir["fbxsdk"] = "%{wks.location}/Lamp/vendor/fbxsdk/include"
+IncludeDir["stb"] = "%{wks.location}/Lamp/vendor/stb"
+IncludeDir["shaderc_utils"] = "%{wks.location}/Lamp/vendor/shaderc/libshaderc_util/include"
+IncludeDir["shaderc_glslc"] = "%{wks.location}/Lamp/vendor/shaderc/glslc"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] = "%{VULKAN_SDK}/Lib"
-LibraryDir["fbxsdk"] = "%{wks.location}/MothVulkan/vendor/fbxsdk/lib/%{cfg.buildcfg}"
+LibraryDir["fbxsdk"] = "%{wks.location}/Lamp/vendor/fbxsdk/lib/%{cfg.buildcfg}"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"

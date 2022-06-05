@@ -1,7 +1,7 @@
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-project "Launcher"
+project "Sandbox"
 	location "."
 	kind "ConsoleApp"
 	language "C++"
