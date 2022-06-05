@@ -92,7 +92,7 @@ namespace Lamp
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.flags = 0;
-		poolInfo.maxSets = 10; // TODO: Make this dynamic
+		poolInfo.maxSets = 100; // TODO: Make this dynamic
 		poolInfo.poolSizeCount = (uint32_t)m_shaderResources[0].poolSizes.size();
 		poolInfo.pPoolSizes = m_shaderResources[0].poolSizes.data();
 
