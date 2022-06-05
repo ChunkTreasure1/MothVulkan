@@ -25,6 +25,7 @@ namespace Lamp
 		std::string overridePipelineName;
 
 		DrawType drawType = DrawType::Opaque;
+		int32_t priority = 0;
 
 		static AssetType GetStaticType() { return AssetType::RenderPass; }
 		AssetType GetType() override { return GetStaticType(); }

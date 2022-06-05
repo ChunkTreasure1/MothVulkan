@@ -180,6 +180,9 @@ namespace Lamp
 		std::string drawTypeString;
 		LP_DESERIALIZE_PROPERTY(drawType, drawTypeString, pipelineNode, std::string());
 
+		int32_t priority;
+		LP_DESERIALIZE_PROPERTY(priority, priority, pipelineNode, 0);
+
 		if (!pipelineNode["framebuffer"])
 		{
 			LP_CORE_ERROR("RenderPass has no framebuffer! This is required!");
@@ -244,6 +247,7 @@ namespace Lamp
 		renderPass->framebuffer = Framebuffer::Create(spec);
 		renderPass->name = nameString;
 		renderPass->overridePipelineName = overridePipelineString;
+		renderPass->priority = priority;
 
 		asset = renderPass;
 		asset->path = path;

@@ -2,6 +2,7 @@ RenderPass:
   name: "forward"
   overridePipeline: ""
   drawType: "Opaque"
+  priority: 0
   framebuffer:
     width: 1280
     height: 720
