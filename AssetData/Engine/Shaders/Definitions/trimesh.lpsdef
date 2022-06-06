@@ -1,4 +1,4 @@
 name: "trimesh"
 paths:
-    - "Engine/Shaders/tri_mesh.vert"
-    - "Engine/Shaders/tri_mesh.frag"
+    - "Engine/Shaders/tri_mesh_vs.glsl"
+    - "Engine/Shaders/tri_mesh_fs.glsl"

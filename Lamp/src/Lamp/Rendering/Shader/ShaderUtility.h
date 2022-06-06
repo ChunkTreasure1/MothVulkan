@@ -55,25 +55,25 @@ namespace Lamp
 			return result;
 		}
 
-		inline VkShaderStageFlagBits GetShaderStageFromExtension(const std::string& extension)
+		inline VkShaderStageFlagBits GetShaderStageFromFilename(const std::string& filename)
 		{
-			if (extension == ".frag")
+			if (filename.find("_fs.glsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_FRAGMENT_BIT;
 			}
-			else if (extension == ".vert")
+			else if (filename.find("_vs.glsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_VERTEX_BIT;
 			}
-			else if (extension == ".comp")
+			else if (filename.find("_cs.glsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_COMPUTE_BIT;
 			}
-			else if (extension == ".tessEval")
+			else if (filename.find("_te.glsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
 			}
-			else if (extension == ".tessControl")
+			else if (filename.find("_tc.glsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 			}

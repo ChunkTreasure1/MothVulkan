@@ -117,7 +117,7 @@ namespace Lamp
 	{
 		for (const auto& path : m_shaderPaths)
 		{
-			VkShaderStageFlagBits stage = Utility::GetShaderStageFromExtension(path.extension().string());
+			VkShaderStageFlagBits stage = Utility::GetShaderStageFromFilename(path.filename().string());
 			std::string source = Utility::ReadStringFromFile(path);
 
 			if (m_shaderSources.find(stage) != m_shaderSources.end())
@@ -160,7 +160,7 @@ namespace Lamp
 			std::filesystem::path currentStagePath;
 			for (const auto& shaderPath : m_shaderPaths)
 			{
-				if (stage == Utility::GetShaderStageFromExtension(shaderPath.extension().string()))
+				if (stage == Utility::GetShaderStageFromFilename(shaderPath.filename().string()))
 				{
 					currentStagePath = shaderPath;
 					break;
