@@ -8,5 +8,5 @@ layout(set = 3, binding = 0) uniform sampler2D u_albedo;
 void main()
 {
     vec3 color = texture(u_albedo, v_texCoords).xyz;
-    o_color = vec4(color, 1.f);
+    o_color = vec4(1.f, 0.f, 1.f, 1.f);
 }

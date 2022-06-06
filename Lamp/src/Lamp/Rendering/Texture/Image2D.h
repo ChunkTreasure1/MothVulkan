@@ -101,6 +101,7 @@ namespace Lamp
 
 		inline const VkImageView GetView(uint32_t index = 0) const { return m_imageViews.at(index); }
 		inline const VkSampler GetSampler() const { return m_sampler; }
+		inline const VkImageLayout GetLayout() const { return m_imageLayout; }
 
 		static Ref<Image2D> Create(const ImageSpecification& specification, const void* data = nullptr);
 

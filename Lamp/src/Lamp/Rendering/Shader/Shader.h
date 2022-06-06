@@ -37,6 +37,7 @@ namespace Lamp
 			
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> storageBuffersInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> storageImagesInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 
@@ -87,6 +88,7 @@ namespace Lamp
 
 		uint32_t m_uboCount = 0;
 		uint32_t m_ssboCount = 0;
+		uint32_t m_storageImageCount = 0;
 		uint32_t m_imageCount = 0;
 
 		size_t m_hash;

@@ -128,15 +128,15 @@ namespace Lamp
 
 					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set][binding];
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding);
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set][binding];
+						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set].at(binding);
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
-						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set][binding];
+						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding);
 					}
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];

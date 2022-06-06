@@ -370,6 +370,38 @@ namespace Lamp
 			auto& bufferType = compiler.get_type(pushConst.base_type_id);
 		}
 
+		for (const auto& image : resources.storage_images)
+		{
+			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+
+			auto it = std::find_if(outSetLayoutBindings[set].begin(), outSetLayoutBindings[set].end(), [binding](const VkDescriptorSetLayoutBinding& layoutBinding) { return layoutBinding.binding == binding; });
+			if (it == outSetLayoutBindings[set].end())
+			{
+				VkDescriptorSetLayoutBinding& layoutBinding = outSetLayoutBindings[set].emplace_back();
+				layoutBinding.binding = binding;
+				layoutBinding.descriptorCount = 1;
+				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+				layoutBinding.stageFlags = stage;
+
+				VkDescriptorImageInfo& imageInfo = m_resources.storageImagesInfos[set][binding];
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+				
+				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
+				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				writeDescriptor.pNext = nullptr;
+				writeDescriptor.dstBinding = binding;
+				writeDescriptor.descriptorCount = 1;
+				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+				m_storageImageCount++;
+			}
+			else
+			{
+				it->stageFlags |= stage;
+			}
+		}
+
 		for (const auto& image : resources.sampled_images)
 		{
 			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
@@ -404,7 +436,8 @@ namespace Lamp
 
 		LP_CORE_INFO("		Uniform Buffers: {0}", m_uboCount);
 		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_ssboCount);
-		LP_CORE_INFO("		Images: {0}", m_imageCount);
+		LP_CORE_INFO("		Sampled Images: {0}", m_imageCount);
+		LP_CORE_INFO("		Storage Images: {0}", m_storageImageCount);
 	}
 
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
@@ -443,12 +476,25 @@ namespace Lamp
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 
-		m_resources.poolSizes =
+		if (m_uboCount > 0)
 		{
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uboCount * framesInFlight },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_ssboCount * framesInFlight },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight }
-		};
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uboCount * framesInFlight);
+		}
+
+		if (m_ssboCount > 0)
+		{
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_ssboCount * framesInFlight);
+		}
+
+		if (m_storageImageCount > 0)
+		{
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_storageImageCount * framesInFlight);
+		}
+
+		if (m_imageCount > 0)
+		{
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight);
+		}
 	}
 
 	void Shader::GenerateHash()
