@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Core/Layer/LayerStack.h"
 #include "Lamp/Event/ApplicationEvent.h"
 
 #include "Lamp/Rendering/Shader/Shader.h"
@@ -58,14 +59,11 @@ namespace Lamp
 		virtual ~Application();
 
 		void Run();
-		void OnEventBase(Event& event);
+		void OnEvent(Event& event);
 
-		virtual void OnAttach() {};
-		virtual void OnDetach() {};
-		virtual void OnEvent(Event& event) = 0;
+		void PushLayer(Layer* layer);
 		
 		inline const Ref<Window> GetWindow() const { return m_window; }
-
 		inline static Application& Get() { return *s_instance; }
 
 	private:
@@ -78,6 +76,8 @@ namespace Lamp
 		Ref<Window> m_window;
 		Ref<AssetManager> m_assetManager;
 		Scope<ImGuiImplementation> m_imguiImplementation;
+		
+		LayerStack m_layerStack;
 
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;

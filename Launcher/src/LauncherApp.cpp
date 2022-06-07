@@ -8,10 +8,6 @@ public:
 		: Lamp::Application(appInfo)
 	{ }
 
-	void OnEvent(Lamp::Event& event) override {}
-	void OnAttach() override {}
-	void OnDetach() override {}
-
 private:
 };
 

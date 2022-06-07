@@ -216,6 +216,7 @@ namespace Lamp
 	{
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
 		vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, nullptr);
+		ImGui_ImplVulkan_Shutdown();
 	}
 
 	void ImGuiImplementation::Begin()

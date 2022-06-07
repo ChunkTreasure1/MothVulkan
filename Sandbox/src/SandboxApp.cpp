@@ -12,14 +12,8 @@ public:
 	SandboxApp(const Lamp::ApplicationInfo& appInfo)
 		: Lamp::Application(appInfo)
 	{
+		PushLayer(new Sandbox());
 	}
-	
-	void OnEvent(Lamp::Event& event) override
-	{
-	}
-
-private:
-	Sandbox* m_sandbox = nullptr;
 };
 
 Lamp::Application* Lamp::CreateApplication()
