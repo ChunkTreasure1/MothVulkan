@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Lamp/Core/Base.h"
+
 #include <cstdint>
 #include <string>
 
@@ -9,7 +11,7 @@ namespace Lamp
 	{
 		None = 0,
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDragDrop,
-		AppUpdate, AppRender, AppLog,
+		AppUpdate, AppRender, AppLog, AppImGuiUpdate,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
 	};

@@ -94,6 +94,22 @@ namespace Lamp
 		std::string m_severity;
 	};
 
+	class AppImGuiUpdateEvent : public Event
+	{
+	public:
+		AppImGuiUpdateEvent() = default;
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "AppImGuiUpdateEvent" << std::endl;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(AppImGuiUpdate);
+		EVENT_CLASS_CATEGORY(EventCategoryApplication);
+	};
+
 	class WindowDragDropEvent : public Event
 	{
 	public:

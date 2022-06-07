@@ -81,11 +81,15 @@ namespace Lamp
 		m_imguiImplementation = ImGuiImplementation::Create();
 
 		m_renderPass = AssetManager::GetAsset<RenderPass>("Engine/RenderPasses/forward.lprp");
+		
+		OnAttach();
 	}
 
 	Application::~Application()
 	{
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
+		
+		OnDetach();
 
 		Renderer::Shutdowm();
 
@@ -191,7 +195,10 @@ namespace Lamp
 			//}
 			
 			m_imguiImplementation->Begin();
-			ImGui::ShowDemoWindow();
+			
+			AppImGuiUpdateEvent imguiEvent{};
+			OnEventBase(imguiEvent);
+			
 			m_imguiImplementation->End();
 
 			m_window->Present();

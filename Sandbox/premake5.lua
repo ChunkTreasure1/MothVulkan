@@ -11,6 +11,9 @@ project "Sandbox"
 	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
 
+	pchheader "sbpch.h"
+	pchsource "src/sbpch.cpp"
+
 	disablewarnings
 	{
 		"4005"

@@ -59,8 +59,11 @@ namespace Lamp
 
 		void Run();
 		void OnEventBase(Event& event);
-		virtual void OnEvent(Event& event) = 0;
 
+		virtual void OnAttach() {};
+		virtual void OnDetach() {};
+		virtual void OnEvent(Event& event) = 0;
+		
 		inline const Ref<Window> GetWindow() const { return m_window; }
 
 		inline static Application& Get() { return *s_instance; }
