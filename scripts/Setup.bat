@@ -1,3 +1,3 @@
 @echo off
 
-call python Setup.py
+call python data/Setup.py
