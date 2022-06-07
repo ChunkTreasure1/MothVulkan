@@ -15,6 +15,7 @@ RenderPass:
         borderColor: [ 1.0, 1.0, 1.0, 1.0 ]
         clearColor: [ 1.0, 1.0, 1.0, 1.0 ]
         debugName: ""
+        copyable: true
       - format: "DEPTH32F"
         filter: "Linear"
     existingImages:

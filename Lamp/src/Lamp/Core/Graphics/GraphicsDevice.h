@@ -54,6 +54,7 @@ namespace Lamp
 
 		VkCommandBuffer GetThreadSafeCommandBuffer(bool begin);
 		VkCommandBuffer GetCommandBuffer(bool begin);
+		VkCommandBuffer CreateSecondaryCommandBuffer();
 
 		void FlushThreadSafeCommandBuffer(VkCommandBuffer cmdBuffer);
 		void FlushThreadSafeCommandBuffer(VkCommandBuffer cmdBuffer, VkQueue queue);

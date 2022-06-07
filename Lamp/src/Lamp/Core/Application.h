@@ -49,6 +49,7 @@ namespace Lamp
 	class Window;
 	class AssetManager;
 	class RenderPass;
+	class ImGuiImplementation;
 
 	class Application
 	{
@@ -57,7 +58,8 @@ namespace Lamp
 		virtual ~Application();
 
 		void Run();
-		void OnEvent(Event& event);
+		void OnEventBase(Event& event);
+		virtual void OnEvent(Event& event) = 0;
 
 		inline const Ref<Window> GetWindow() const { return m_window; }
 
@@ -72,6 +74,7 @@ namespace Lamp
 
 		Ref<Window> m_window;
 		Ref<AssetManager> m_assetManager;
+		Scope<ImGuiImplementation> m_imguiImplementation;
 
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;

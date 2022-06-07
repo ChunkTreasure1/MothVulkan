@@ -63,7 +63,8 @@ project "Lamp"
 		"%{IncludeDir.fbxsdk}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.shaderc_glslc}",
-		"%{IncludeDir.shaderc_utils}"
+		"%{IncludeDir.shaderc_utils}",
+		"%{IncludeDir.ImGui}"
 	}
 
 	defines

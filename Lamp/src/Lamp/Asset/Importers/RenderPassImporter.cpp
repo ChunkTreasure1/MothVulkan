@@ -229,6 +229,9 @@ namespace Lamp
 			std::string debugNameString;
 			LP_DESERIALIZE_PROPERTY(debugName, debugNameString, attachment, std::string());
 
+			bool copyableVal;
+			LP_DESERIALIZE_PROPERTY(copyable, copyableVal, attachment, false);
+
 			auto& framebufferAtt = spec.attachments.emplace_back();
 			framebufferAtt.format = Utility::FormatFromString(formatString);
 			framebufferAtt.filterMode = Utility::FilterFromString(filterString);
@@ -238,6 +241,7 @@ namespace Lamp
 			framebufferAtt.borderColor = borderColorVal;
 			framebufferAtt.clearColor = clearColorVal;
 			framebufferAtt.debugName = debugNameString;
+			framebufferAtt.copyable = copyableVal;
 		}
 
 		// TODO: existing images

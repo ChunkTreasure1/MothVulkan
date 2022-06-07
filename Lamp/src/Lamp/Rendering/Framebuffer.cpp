@@ -53,6 +53,7 @@ namespace Lamp
 				spec.usage = ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
+				spec.copyable = attachment.copyable;
 
 				m_depthAttachmentImage = Image2D::Create(spec);
 			}
@@ -63,6 +64,7 @@ namespace Lamp
 				spec.usage = ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
+				spec.copyable = attachment.copyable;
 
 				m_colorAttachmentImages.emplace_back(Image2D::Create(spec));
 			}
@@ -101,6 +103,7 @@ namespace Lamp
 				auto& imageSpec = const_cast<ImageSpecification&>(m_depthAttachmentImage->GetSpecification());
 				imageSpec.width = m_width;
 				imageSpec.height = m_height;
+				imageSpec.copyable = attachment.copyable;
 
 				m_depthAttachmentImage->Invalidate();
 
@@ -131,6 +134,7 @@ namespace Lamp
 						spec.usage = ImageUsage::Attachment;
 						spec.width = m_width;
 						spec.height = m_height;
+						spec.copyable = attachment.copyable;
 
 						colorAttachment = m_colorAttachmentImages.emplace_back(Image2D::Create(spec));
 					}
@@ -141,6 +145,7 @@ namespace Lamp
 
 						spec.width = m_width;
 						spec.height = m_height;
+						spec.copyable = attachment.copyable;
 
 						colorAttachment = image;
 						colorAttachment->Invalidate(nullptr);

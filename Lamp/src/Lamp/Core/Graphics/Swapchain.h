@@ -25,6 +25,7 @@ namespace Lamp
 
 		inline VkRenderPass GetRenderPass() const { return m_renderPass; }
 		inline VkFramebuffer GetCurrentFramebuffer() const { return m_framebuffers[m_currentImage]; }
+		inline VkImage GetCurrentImage() const { return m_images[m_currentImage]; }
 		inline VkCommandBuffer GetCurrentCommandBuffer() const { return m_commandBuffers[m_currentFrame]; }
 		inline VkCommandBuffer GetCommandBuffer(uint32_t index) const { return m_commandBuffers[index]; }
 		inline VkCommandPool GetCommandPool(uint32_t index) const { return m_commandPools[index]; }
@@ -33,7 +34,7 @@ namespace Lamp
 
 	private:
 		void Invalidate(uint32_t width, uint32_t height, bool useVSync);
-		
+
 		void CreateSwapchain(uint32_t width, uint32_t height, bool useVSync);
 		void CreateImageViews();
 		void CreateRenderPass();

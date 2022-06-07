@@ -1,3 +1,6 @@
 [submodule "Lamp/vendor/glfw"]
 	path = Lamp/vendor/glfw
 	url = https://github.com/ChunkTreasure1/glfw
+[submodule "Lamp/vendor/imgui"]
+	path = Lamp/vendor/imgui
+	url = https://github.com/ChunkTreasure1/imgui

@@ -1,9 +1,0 @@
-RenderPipeline:
-  name: "CopyToSwapchain"
-  shader: "copyToSwapchain"
-  renderPass: "swapchain"
-  framebufferInputs:
-    - renderPass: "forward"
-      attachment: 0
-      binding: 0
-      set: 0

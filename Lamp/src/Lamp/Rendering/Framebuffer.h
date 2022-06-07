@@ -46,6 +46,7 @@ namespace Lamp
 		glm::vec4 clearColor = { 1.f, 1.f, 1.f, 1.f };
 		
 		std::string debugName;
+		bool copyable = false;
 	};
 
 	struct FramebufferSpecification

@@ -46,7 +46,8 @@ project "Launcher"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.fbxsdk}",
-		"%{IncludeDir.stb}"
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}"
 	}
 
     links
@@ -54,6 +55,7 @@ project "Launcher"
         "Lamp",
 
 		"GLFW",
+		"ImGui",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",

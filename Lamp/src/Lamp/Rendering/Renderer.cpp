@@ -80,7 +80,7 @@ namespace Lamp
 
 			VkRenderingInfo renderingInfo{};
 			renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-			renderingInfo.renderArea = { 0, 0, framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
+			renderingInfo.renderArea = { 0, 0, framebuffer->GetWidth(), framebuffer->GetHeight() };
 			renderingInfo.layerCount = 1;
 			renderingInfo.colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentInfos().size();
 			renderingInfo.pColorAttachments = framebuffer->GetColorAttachmentInfos().data();
@@ -150,6 +150,7 @@ namespace Lamp
 			ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
 
 			objectData[0].transform = transform;
+			objectData[1].transform = transform;
 
 			currentObjectBuffer->Unmap();
 		}

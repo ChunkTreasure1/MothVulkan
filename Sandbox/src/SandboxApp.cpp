@@ -9,6 +9,10 @@ public:
 	{
 	}
 
+	void OnEvent(Lamp::Event& event) override
+	{
+	}
+
 private:
 };
 

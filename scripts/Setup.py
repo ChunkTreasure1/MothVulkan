@@ -74,7 +74,7 @@ def InstallVulkan():
 
 def GenerateProjects():
     while(True):
-        inputString = input(Fore.WHITE + "Please enter Visual Studio version [2019/2022]:")
+        inputString = input("Please enter Visual Studio version [2019/2022]:")
         if(inputString == "2019" or inputString == "2022"):
             break 
 
@@ -85,7 +85,7 @@ def GenerateProjects():
 
 vulkanPath = str(os.getenv("VULKAN_SDK"))
 
-if (vulkanPath != "None"):
+if (vulkanPath == "None"):
     print(Fore.RED + "Vulkan SDK not installed! Installing!")
     InstallVulkan()
 
@@ -97,5 +97,5 @@ else:
     print(Fore.GREEN + "Correct Vulkan version found!")
 
 
-sys.stdout.write(Fore.RESET)
+sys.stdout.write(Fore.WHITE)
 GenerateProjects()

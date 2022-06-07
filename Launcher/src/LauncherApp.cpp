@@ -8,6 +8,8 @@ public:
 		: Lamp::Application(appInfo)
 	{ }
 
+	void OnEvent(Lamp::Event& event) override {}
+
 private:
 };
 

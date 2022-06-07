@@ -46,7 +46,8 @@ project "Sandbox"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.fbxsdk}",
-		"%{IncludeDir.stb}"
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}"
 	}
 
     links
@@ -54,6 +55,7 @@ project "Sandbox"
         "Lamp",
 
 		"GLFW",
+		"ImGui",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",

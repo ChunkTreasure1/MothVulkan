@@ -206,6 +206,19 @@ namespace Lamp
 		return commandBuffer;
 	}
 
+	VkCommandBuffer GraphicsDevice::CreateSecondaryCommandBuffer()
+	{
+		VkCommandBuffer commandBuffer;
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_graphicsCommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+		allocInfo.commandBufferCount = 1;
+
+		LP_VK_CHECK(vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer));
+		return commandBuffer;
+	}
+
 	void GraphicsDevice::FlushThreadSafeCommandBuffer(VkCommandBuffer cmdBuffer)
 	{
 		FlushThreadSafeCommandBuffer(cmdBuffer, m_graphicsQueue);
