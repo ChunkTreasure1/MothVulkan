@@ -1,11 +1,8 @@
+from re import sub
 import sys
 import subprocess
-import colorama
 
-from SetupPremake import Premake
-from SetupVulkan import Vulkan
 from SetupPython import Python
-from colorama import Fore
 
 def GenerateProjects():
     while(True):
@@ -20,7 +17,17 @@ def GenerateProjects():
 
 
 Python.CheckPython()
+
+import colorama
+
+from colorama import Fore
+from SetupPremake import Premake
+from SetupVulkan import Vulkan
+
 colorama.init()
+
+subprocess.call(["git", "lfs", "pull"])
+subprocess.call(["git", "submodule", "update", "--init", "--recursive"])
 
 Vulkan.CheckVulkan()
 print("")
