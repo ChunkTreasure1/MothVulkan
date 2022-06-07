@@ -4,6 +4,7 @@ bin/
 bin-int/
 scripts/data/__pycache__
 scripts/data/premake5.exe
+scripts/VulkanSDK.exe
 
 *.sln
 *.vcxproj
