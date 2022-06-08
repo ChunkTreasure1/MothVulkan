@@ -8,6 +8,7 @@
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
+#include "Lamp/Core/Layer/Layer.h"
 
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
@@ -58,7 +59,7 @@ namespace Lamp
 		windowProperties.title = info.title;
 
 		m_window = Window::Create(windowProperties);
-		m_window->SetEventCallback(LP_BIND_EVENT_FN(Application::OnEventBase));
+		m_window->SetEventCallback(LP_BIND_EVENT_FN(Application::OnEvent));
 
 		m_assetManager = CreateRef<AssetManager>();
 
@@ -81,15 +82,14 @@ namespace Lamp
 		m_imguiImplementation = ImGuiImplementation::Create();
 
 		m_renderPass = AssetManager::GetAsset<RenderPass>("Engine/RenderPasses/forward.lprp");
-		
-		OnAttach();
 	}
 
 	Application::~Application()
 	{
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
 		
-		OnDetach();
+		m_layerStack.Clear();
+		m_imguiImplementation = nullptr;
 
 		Renderer::Shutdowm();
 
@@ -197,7 +197,7 @@ namespace Lamp
 			m_imguiImplementation->Begin();
 			
 			AppImGuiUpdateEvent imguiEvent{};
-			OnEventBase(imguiEvent);
+			OnEvent(imguiEvent);
 			
 			m_imguiImplementation->End();
 
@@ -205,13 +205,26 @@ namespace Lamp
 		}
 	}
 
-	void Application::OnEventBase(Event& event)
+	void Application::OnEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowCloseEvent>(LP_BIND_EVENT_FN(Application::OnWindowCloseEvent));
 		dispatcher.Dispatch<WindowResizeEvent>(LP_BIND_EVENT_FN(Application::OnWindowResizeEvent));
 
-		OnEvent(event);
+		//Handle rest of events
+		for (auto it = m_layerStack.end(); it != m_layerStack.begin(); )
+		{
+			(*--it)->OnEvent(event);
+			if (event.handled)
+			{
+				break;
+			}
+		}
+	}
+
+	void Application::PushLayer(Layer* layer)
+	{
+		m_layerStack.PushLayer(layer);
 	}
 
 	bool Application::OnWindowCloseEvent(WindowCloseEvent& e)

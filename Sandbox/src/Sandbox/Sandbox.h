@@ -1,13 +1,19 @@
 #pragma once
 
 #include <Lamp/Event/ApplicationEvent.h>
+#include <Lamp/Core/Layer/Layer.h>
 
-class Sandbox
+class EditorWindow;
+class Sandbox : public Lamp::Layer
 {
 public:
-	Sandbox();
+	Sandbox() = default;
+	~Sandbox() override = default;
 
-	void OnEvent(Lamp::Event& e);
+	void OnAttach() override;
+	void OnDetach() override;
+
+	void OnEvent(Lamp::Event& e) override;
 
 private:
 	bool OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e);
@@ -15,4 +21,6 @@ private:
 	/////ImGui/////
 	void UpdateDockSpace();
 	///////////////
+
+	std::vector<Ref<EditorWindow>> m_editorWindows;
 };
