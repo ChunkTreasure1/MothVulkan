@@ -87,7 +87,7 @@ namespace Lamp
 	Application::~Application()
 	{
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
-		
+
 		m_layerStack.Clear();
 		m_imguiImplementation = nullptr;
 
@@ -113,6 +113,15 @@ namespace Lamp
 		while (m_isRunning)
 		{
 			m_window->BeginFrame();
+
+			float time = (float)glfwGetTime();
+			m_currentFrameTime = time - m_lastFrameTime;
+			m_lastFrameTime = time;
+
+			{
+				AppUpdateEvent updateEvent(m_currentFrameTime);
+				OnEvent(updateEvent);
+			}
 
 			Renderer::Begin();
 			Renderer::BeginPass(m_renderPass);
@@ -193,12 +202,12 @@ namespace Lamp
 			//	LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 			//}
-			
+
 			m_imguiImplementation->Begin();
-			
+
 			AppImGuiUpdateEvent imguiEvent{};
 			OnEvent(imguiEvent);
-			
+
 			m_imguiImplementation->End();
 
 			m_window->Present();

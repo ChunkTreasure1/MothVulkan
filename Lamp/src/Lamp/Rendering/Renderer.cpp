@@ -59,7 +59,7 @@ namespace Lamp
 
 	void Renderer::Begin()
 	{
-		Submit(s_rendererData->mesh);
+		Submit(s_rendererData->mesh, glm::mat4(1.f));
 		s_rendererData->commandBuffer->Begin();
 	}
 
@@ -105,7 +105,7 @@ namespace Lamp
 		s_rendererData->currentFramebuffer = nullptr;
 	}
 
-	void Renderer::Submit(Ref<Mesh> mesh)
+	void Renderer::Submit(Ref<Mesh> mesh, const glm::mat4& transform)
 	{
 		for (const auto& subMesh : mesh->GetSubMeshes())
 		{
@@ -113,6 +113,7 @@ namespace Lamp
 			cmd.mesh = mesh;
 			cmd.material = mesh->GetMaterials().at(subMesh.materialIndex);
 			cmd.subMesh = subMesh;
+			cmd.transform = transform;
 		}
 	}
 
@@ -149,8 +150,10 @@ namespace Lamp
 			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(1, 0)->Get(currentFrame);
 			ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
 
-			objectData[0].transform = transform;
-			objectData[1].transform = transform;
+			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++) // TODO: change to single memcpy
+			{
+				objectData[i].transform = s_rendererData->renderCommands[i].transform;
+			}
 
 			currentObjectBuffer->Unmap();
 		}

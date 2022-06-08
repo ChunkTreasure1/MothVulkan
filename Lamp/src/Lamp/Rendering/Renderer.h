@@ -21,15 +21,17 @@ namespace Lamp
 	struct RenderCommand
 	{
 		Ref<Mesh> mesh;
-		SubMesh subMesh;
 		Ref<Material> material;
+		SubMesh subMesh;
+		glm::mat4 transform;
 	};
 
 	struct IndirectBatch
 	{
 		Ref<Mesh> mesh;
-		SubMesh subMesh;
 		Ref<Material> material;
+		SubMesh subMesh;
+		glm::mat4 transform;
 		uint32_t first;
 		uint32_t count;
 	};
@@ -55,7 +57,7 @@ namespace Lamp
 		static void BeginPass(Ref<RenderPass> renderPass);
 		static void EndPass();
 
-		static void Submit(Ref<Mesh> mesh);
+		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 
 		static void Draw(); // WILL BE REMOVED
 		static void TEST_RecompileShader();

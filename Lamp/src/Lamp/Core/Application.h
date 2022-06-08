@@ -73,6 +73,9 @@ namespace Lamp
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 		bool m_isRunning = true;
 
+		float m_lastFrameTime = 0.f;
+		float m_currentFrameTime = 0.f;
+
 		Ref<Window> m_window;
 		Ref<AssetManager> m_assetManager;
 		Scope<ImGuiImplementation> m_imguiImplementation;
