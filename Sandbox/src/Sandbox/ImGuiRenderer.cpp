@@ -42,5 +42,16 @@ void Sandbox::UpdateDockSpace()
 	if (opt_fullscreen)
 		ImGui::PopStyleVar(2);
 
+	// DockSpace
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+	}
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowMinSize.x = 300.f;
+
 	ImGui::End();
 }

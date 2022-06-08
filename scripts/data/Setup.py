@@ -33,8 +33,5 @@ Vulkan.CheckVulkan()
 print("")
 Premake.CheckPremake()
 
-subprocess.call(["git", "submodule", "update", "--init", "--recursive"])
-subprocess.call(["git", "lfs", "pull"])
-
 sys.stdout.write(Fore.WHITE)
 GenerateProjects()

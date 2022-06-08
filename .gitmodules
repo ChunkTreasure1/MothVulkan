@@ -4,3 +4,6 @@
 [submodule "Lamp/vendor/imgui"]
 	path = Lamp/vendor/imgui
 	url = https://github.com/ChunkTreasure1/imgui
+[submodule "Lamp/vendor/Wire"]
+	path = Lamp/vendor/Wire
+	url = https://github.com/ChunkTreasure1/Wire

@@ -4,8 +4,10 @@
 ViewportPanel::ViewportPanel()
 	: EditorWindow("Viewport")
 {
+	m_isOpen = true;
 }
 
 void ViewportPanel::UpdateContent()
 {
+		
 }
