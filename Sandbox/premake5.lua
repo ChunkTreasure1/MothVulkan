@@ -50,7 +50,8 @@ project "Sandbox"
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.fbxsdk}",
 		"%{IncludeDir.stb}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Wire}"
 	}
 
     links
@@ -59,6 +60,7 @@ project "Sandbox"
 
 		"GLFW",
 		"ImGui",
+		"Wire",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",

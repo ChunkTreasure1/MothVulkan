@@ -64,7 +64,8 @@ project "Lamp"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.shaderc_glslc}",
 		"%{IncludeDir.shaderc_utils}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Wire}"
 	}
 
 	defines

@@ -21,6 +21,7 @@ include "Dependencies.lua"
 group "Dependencies"
 include "Lamp/vendor/glfw"
 include "Lamp/vendor/imgui"
+include "Lamp/vendor/Wire/Wire"
 
 group "Core"
 include "Lamp"

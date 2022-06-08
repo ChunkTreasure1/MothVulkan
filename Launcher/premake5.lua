@@ -47,7 +47,8 @@ project "Launcher"
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.fbxsdk}",
 		"%{IncludeDir.stb}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Wire}"
 	}
 
     links
@@ -56,6 +57,7 @@ project "Launcher"
 
 		"GLFW",
 		"ImGui",
+		"Wire",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",
