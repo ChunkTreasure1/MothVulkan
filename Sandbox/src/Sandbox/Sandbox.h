@@ -6,11 +6,11 @@
 namespace Lamp
 {
 	class SceneRenderer;
+	class EditorCameraController;
 }
 
 class Scene;
 class EditorWindow;
-class EditorCameraController;
 
 class Sandbox : public Lamp::Layer
 {
@@ -33,6 +33,6 @@ private:
 	std::vector<Ref<EditorWindow>> m_editorWindows;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;
+	Ref<Lamp::EditorCameraController> m_editorCameraController;
 	Ref<Scene> m_editorScene;
-	Ref<EditorCameraController> m_editorCameraController;
 };

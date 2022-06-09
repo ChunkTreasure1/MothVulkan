@@ -2,16 +2,16 @@
 #include "Sandbox.h"
 
 #include "Sandbox/Window/ViewportPanel.h"
-#include "Sandbox/Editor/EditorCameraController.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
+#include <Lamp/Rendering/Camera/EditorCameraController.h>
 #include <Wire/SceneSystem/Scene.h>
 
 #include <imgui.h>
 
 void Sandbox::OnAttach()
 {
-	m_editorCameraController = CreateRef<EditorCameraController>(60.f, 0.1f, 100.f);
+	m_editorCameraController = CreateRef<Lamp::EditorCameraController>(60.f, 0.1f, 100.f);
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene);
 

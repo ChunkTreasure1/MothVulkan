@@ -14,7 +14,7 @@
 
 namespace Lamp
 {
-	SceneRenderer::SceneRenderer(Ref<Scene> scene)
+	SceneRenderer::SceneRenderer(Ref<Scene> scene, const std::filesystem::path& renderGraphPath)
 		: m_scene(scene)
 	{
 	}

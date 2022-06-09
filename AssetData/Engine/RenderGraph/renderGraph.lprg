@@ -1,0 +1,5 @@
+RenderGraph:
+  name: "Main"
+  renderPasses:
+    - pass: "forward"
+      priority: 0

@@ -23,7 +23,8 @@ project "Sandbox"
 	{
 		"/ignore:4006",
 		"/ignore:4099",
-		"/ignore:4098"
+		"/ignore:4098",
+		"/WHOLEARCHIVE:Lamp"
 	}
 
     defines
