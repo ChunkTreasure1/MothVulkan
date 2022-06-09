@@ -11,9 +11,12 @@ namespace Lamp
 	{
 	public:
 		EditorCameraController(float fov, float nearPlane, float farPlane);
+		~EditorCameraController();
 
 		void UpdateProjection(uint32_t width, uint32_t height);
 		void OnEvent(Lamp::Event& e);
+
+		inline Ref<Lamp::Camera> GetCamera() { return m_camera; }
 
 	private:
 		bool OnUpdateEvent(Lamp::AppUpdateEvent& e);
@@ -32,7 +35,7 @@ namespace Lamp
 		float m_scrollTranslationSpeed = 30.f;
 
 		float m_maxTranslationSpeed = 40.f;
-		float m_sensitivity = 0.15f;
+		float m_sensitivity = 0.12f;
 
 		bool m_lastRightUp = false;
 	};

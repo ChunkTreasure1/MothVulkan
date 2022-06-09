@@ -17,6 +17,7 @@ namespace Lamp
 		RenderGraph() = default;
 
 		inline const std::string& GetName() const { return m_name; }
+		inline const std::vector<RenderPassContainer>& GetRenderPasses() { return m_renderPasses; };
 		
 		static AssetType GetStaticType() { return AssetType::RenderGraph; }
 		AssetType GetType() override { return GetStaticType(); }

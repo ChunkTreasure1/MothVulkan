@@ -6,12 +6,18 @@
 #include "Lamp/Input/MouseButtonCodes.h"
 #include "Lamp/Input/KeyCodes.h"
 
+#include "Lamp/Log/Log.h"
+
 namespace Lamp
 {
 	EditorCameraController::EditorCameraController(float fov, float nearPlane, float farPlane)
 		: m_fov(fov), m_nearPlane(nearPlane), m_farPlane(farPlane)
 	{
 		m_camera = CreateRef<Lamp::Camera>(fov, 16.f / 9.f, nearPlane, farPlane);
+	}
+
+	EditorCameraController::~EditorCameraController()
+	{
 	}
 
 	void EditorCameraController::UpdateProjection(uint32_t width, uint32_t height)
@@ -37,12 +43,14 @@ namespace Lamp
 			m_lastMousePosition = mousePos;
 		}
 
-		if (Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_RIGHT) && !Lamp::Input::IsMouseButtonReleased(LP_MOUSE_BUTTON_MIDDLE))
+		if (Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_RIGHT))
 		{
 			m_lastRightUp = false;
 
 			float xOffset = mousePos.x - m_lastMousePosition.x;
 			float yOffset = m_lastMousePosition.y - mousePos.y;
+
+			m_lastMousePosition = mousePos;
 
 			xOffset *= m_sensitivity;
 			yOffset *= m_sensitivity;
@@ -53,22 +61,16 @@ namespace Lamp
 			rot.x += xOffset;
 			rot.y -= yOffset;
 
+			if (rot.y > 89.f)
+			{
+				rot.y = 89.f;
+			}
+			else if (rot.y < -89.f)
+			{
+				rot.y = -89.f;
+			}
+
 			m_camera->SetRotation(rot);
-
-			if (m_camera->GetRotation().x > glm::radians(89.f))
-			{
-				glm::vec3 currRot = m_camera->GetRotation();
-				currRot.x = glm::radians(89.f);
-
-				m_camera->SetRotation(currRot);
-			}
-			else if (m_camera->GetRotation().x < glm::radians(-89.f))
-			{
-				glm::vec3 currRot = m_camera->GetRotation();
-				currRot.x = glm::radians(-89.f);
-
-				m_camera->SetRotation(currRot);
-			}
 
 			if (Lamp::Input::IsKeyPressed(LP_KEY_W))
 			{

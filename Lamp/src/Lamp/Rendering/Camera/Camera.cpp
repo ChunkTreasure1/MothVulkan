@@ -51,4 +51,12 @@ namespace Lamp
 	{
 		return glm::quat(glm::vec3(glm::radians(-m_rotation.y), glm::radians(-m_rotation.x), 0.f));
 	}
+	
+	void Camera::RecalculateViewMatrix()
+	{
+		const float yawSign = GetUp().y < 0 ? -1.0f : 1.0f;
+
+		const glm::vec3 lookAt = m_position + GetForward();
+		m_viewMatrix = glm::lookAt(m_position, lookAt, glm::vec3(0.f, yawSign, 0.f));
+	}
 }

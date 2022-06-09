@@ -16,7 +16,7 @@ class Sandbox : public Lamp::Layer
 {
 public:
 	Sandbox() = default;
-	~Sandbox() override = default;
+	~Sandbox() override;
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -25,6 +25,7 @@ public:
 
 private:
 	bool OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e);
+	bool OnRenderEvent(Lamp::AppRenderEvent& e);
 
 	/////ImGui/////
 	void UpdateDockSpace();
@@ -33,6 +34,6 @@ private:
 	std::vector<Ref<EditorWindow>> m_editorWindows;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;
-	Ref<Lamp::EditorCameraController> m_editorCameraController;
+	Lamp::EditorCameraController* m_editorCameraController;
 	Ref<Scene> m_editorScene;
 };

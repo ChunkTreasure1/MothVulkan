@@ -52,7 +52,8 @@ project "Sandbox"
 		"%{IncludeDir.fbxsdk}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.Wire}"
+		"%{IncludeDir.Wire}",
+		"%{IncludeDir.vma}"
 	}
 
     links

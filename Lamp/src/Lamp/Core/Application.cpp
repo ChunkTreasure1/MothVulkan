@@ -123,20 +123,11 @@ namespace Lamp
 				OnEvent(updateEvent);
 			}
 
-			Renderer::Begin();
-			Renderer::BeginPass(m_renderPass);
-
-			Renderer::Draw();
-
-			Renderer::EndPass();
-
-			if (glfwGetKey(m_window->GetNativeWindow(), GLFW_KEY_R) == GLFW_PRESS)
 			{
-				Renderer::TEST_RecompileShader();
+				AppRenderEvent renderEvent{};
+				OnEvent(renderEvent);
 			}
-
-			Renderer::End();
-
+			
 			//// Swapchain
 			//{
 			//	VkCommandBuffer cmdBuffer = m_window->GetSwapchain().GetCurrentCommandBuffer();

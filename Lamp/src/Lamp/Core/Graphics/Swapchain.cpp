@@ -157,7 +157,7 @@ namespace Lamp
 		VkPresentModeKHR presentMode;
 		if (useVSync)
 		{
-			presentMode = VK_PRESENT_MODE_FIFO_KHR;
+			presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 		}
 		else
 		{

@@ -12,6 +12,7 @@ namespace Lamp
 	class CommandBuffer;
 	class Framebuffer;
 	class ShaderStorageBufferSet;
+	class Camera;
 
 	class Mesh;
 	class Texture2D;
@@ -31,7 +32,6 @@ namespace Lamp
 		Ref<Mesh> mesh;
 		Ref<Material> material;
 		SubMesh subMesh;
-		glm::mat4 transform;
 		uint32_t first;
 		uint32_t count;
 	};
@@ -54,7 +54,7 @@ namespace Lamp
 		static void Begin();
 		static void End();
 
-		static void BeginPass(Ref<RenderPass> renderPass);
+		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
 		static void EndPass();
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
@@ -62,13 +62,19 @@ namespace Lamp
 		static void Draw(); // WILL BE REMOVED
 		static void TEST_RecompileShader();
 
+		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
+
 		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }
 
 	private:
 		Renderer() = delete;
 		
 		static void CreateDefaultData();
+		static void CreateDescriptorPools();
 		static std::vector<IndirectBatch> PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands);
+
+		static void UpdatePerPassBuffers();
+		static void UpdatePerFrameBuffers();
 
 		struct RendererData
 		{
@@ -77,6 +83,10 @@ namespace Lamp
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
 			std::vector<RenderCommand> renderCommands;
+			std::vector<glm::mat4> renderTransforms;
+			Ref<Camera> passCamera;
+
+			std::vector<VkDescriptorPool> descriptorPools;
 
 			/////TESTING/////
 			Ref<Mesh> mesh;

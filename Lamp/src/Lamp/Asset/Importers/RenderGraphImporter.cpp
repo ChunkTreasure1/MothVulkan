@@ -47,7 +47,7 @@ namespace Lamp
 		}
 
 		std::string nameString;
-		LP_DESERIALIZE_PROPERTY(name, nameString, graphNode, "Null");
+		LP_DESERIALIZE_PROPERTY(name, nameString, graphNode, std::string("Null"));
 		
 		YAML::Node renderPassesNode = graphNode["renderPasses"];
 		if (renderPassesNode)
@@ -55,12 +55,12 @@ namespace Lamp
 			for (const auto& node : renderPassesNode)
 			{
 				std::string passName;
-				LP_DESERIALIZE_PROPERTY(pass, passName, node, "Null");
+				LP_DESERIALIZE_PROPERTY(pass, passName, node, std::string("Null"));
 				
 				int32_t passPriority;
 				LP_DESERIALIZE_PROPERTY(priority, passPriority, node, 0);
 
-				Ref<RenderPass> renderPass = RenderPassRegistry::Get(nameString);
+				Ref<RenderPass> renderPass = RenderPassRegistry::Get(passName);
 				if (!renderPass)
 				{
 					LP_CORE_WARN("Failed to find render pass: {0}! Continuing without it!", passName.c_str());
@@ -74,6 +74,8 @@ namespace Lamp
 				renderGraph->m_renderPasses.emplace_back(renderPassCont);
 			}
 		}
+
+		std::sort(renderGraph->m_renderPasses.begin(), renderGraph->m_renderPasses.end(), [](const RenderGraph::RenderPassContainer& a, const RenderGraph::RenderPassContainer& b) { return a.priority < b.priority; });
 
 		renderGraph->m_name = nameString;
 		renderGraph->path = path;

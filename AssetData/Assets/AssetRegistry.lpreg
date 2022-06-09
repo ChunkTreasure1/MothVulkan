@@ -11,3 +11,5 @@ Assets:
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6171269730112167638
     Path: Assets/SM_Particle_Chest.fbx
+  - Handle: 4056126216708790799
+    Path: Engine/RenderGraph/renderGraph.lprg

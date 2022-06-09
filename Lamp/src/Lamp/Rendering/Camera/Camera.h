@@ -16,8 +16,8 @@ namespace Lamp
 		void SetPerspectiveProjection(float fov, float aspect, float nearPlane, float farPlane);
 		void SetOrthographicProjection(float left, float right, float bottom, float top);
 
-		inline void SetPosition(const glm::vec3& pos) { m_position = pos; }
-		inline void SetRotation(const glm::vec3& rot) { m_rotation = rot; }
+		inline void SetPosition(const glm::vec3& pos) { m_position = pos; RecalculateViewMatrix(); }
+		inline void SetRotation(const glm::vec3& rot) { m_rotation = rot; RecalculateViewMatrix(); }
 
 		inline void SetNearPlane(float nearPlane) { m_nearPlane = nearPlane; }
 		inline void SetFarPlane(float farPlane) { m_farPlane = farPlane; }
@@ -38,6 +38,8 @@ namespace Lamp
 		glm::quat GetOrientation() const;
 
 	private:
+		void RecalculateViewMatrix();
+
 		glm::vec3 m_position = { 0.f, 0.f, 0.f };
 		glm::vec3 m_rotation = { 0.f, 0.f, 0.f };
 

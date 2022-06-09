@@ -52,7 +52,7 @@ namespace Lamp
 		{ ".lpsdef", AssetType::Shader },
 		{ ".lprpdef", AssetType::RenderPipeline },
 		{ ".lprp", AssetType::RenderPass },
-		{ "lprg", AssetType::RenderGraph }
+		{ ".lprg", AssetType::RenderGraph }
 	};
 
 	class Asset
