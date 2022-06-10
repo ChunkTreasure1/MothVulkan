@@ -31,25 +31,22 @@ namespace Lamp
 	{
 		auto& registry = m_scene->GetRegistry();
 
-		if (registry.HasComponentView<MeshComponent>())
+		for (auto& entity : registry.GetComponentView<MeshComponent>())
 		{
-			for (auto& entity : registry.GetComponentView<MeshComponent>())
+			if (registry.HasComponent<TransformComponent>(entity))
 			{
-				if (registry.HasComponent<TransformComponent>(entity))
-				{
-					const auto& meshComp = registry.GetComponent<MeshComponent>(entity);
-					const auto& transformComp = registry.GetComponent<TransformComponent>(entity);
+				const auto& meshComp = registry.GetComponent<MeshComponent>(entity);
+				const auto& transformComp = registry.GetComponent<TransformComponent>(entity);
 
-					auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
+				auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
 
-					const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
-						glm::scale(glm::mat4(1.f), transformComp.scale) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.x, glm::vec3(1, 0, 0)) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.y, glm::vec3(0, 1, 0)) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.z, glm::vec3(0, 0, 1));
+				const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
+					glm::scale(glm::mat4(1.f), transformComp.scale) *
+					glm::rotate(glm::mat4(1.f), transformComp.rotation.x, glm::vec3(1, 0, 0)) *
+					glm::rotate(glm::mat4(1.f), transformComp.rotation.y, glm::vec3(0, 1, 0)) *
+					glm::rotate(glm::mat4(1.f), transformComp.rotation.z, glm::vec3(0, 0, 1));
 
-					Renderer::Submit(mesh, transform);
-				}
+				Renderer::Submit(mesh, transform);
 			}
 		}
 
