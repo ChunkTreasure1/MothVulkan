@@ -65,14 +65,14 @@ project "Lamp"
 		"%{IncludeDir.shaderc_glslc}",
 		"%{IncludeDir.shaderc_utils}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.Wire}"
+		"%{IncludeDir.Wire}",
+		"%{IncludeDir.Optick}"
 	}
 
 	defines
 	{
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		"GLM_FORCE_SSE2",
-		"GLM_FORCE_ALIGNED"
+		"GLM_FORCE_SSE2"
 	}
 
 	filter "files:vendor/**.cpp"
@@ -90,9 +90,11 @@ project "Lamp"
 			{ 
 				"LP_DEBUG", 
 				"LP_ENABLE_ASSERTS",
-				"LP_ENABLE_VALIDATION"
+				"LP_ENABLE_VALIDATION",
+				"LP_ENABLE_PROFILING"
 			}
 			runtime "Debug"
+			optimize "off"
 			symbols "on"
 
 		filter "configurations:Release"
@@ -100,12 +102,16 @@ project "Lamp"
 			{ 
 				"LP_RELEASE", 
 				"LP_ENABLE_ASSERTS",
-				"LP_ENABLE_VALIDATION" 
+				"LP_ENABLE_VALIDATION",
+				"LP_ENABLE_PROFILING",
+				"NDEBUG"
 			}
 			runtime "Release"
 			optimize "on"
+			symbols "on"
 
 		filter "configurations:Dist"
 			defines { "LP_DIST", "NDEBUG" }
 			runtime "Release"
 			optimize "on"
+			symbols "off"

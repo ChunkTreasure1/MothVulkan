@@ -26,8 +26,14 @@ layout(set = 1, binding = 0) readonly buffer ObjectBuffer
     ObjectData objects[];
 } u_objectBuffer;
 
+
+layout(push_constant) uniform PushConstant
+{
+    uint meshIndex;
+} u_pushConstant;
+
 void main()
 {
     v_texCoords = a_texCoords;
-    gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[gl_BaseInstance].transform * vec4(a_position, 1.f);
+    gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[u_pushConstant.meshIndex + gl_InstanceIndex].transform * vec4(a_position, 1.f);
 }

@@ -5,7 +5,13 @@
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
+
+#include <Lamp/Components/Components.h>
+#include <Lamp/Asset/AssetManager.h>
+#include <Lamp/Asset/Mesh/Mesh.h>
+
 #include <Wire/SceneSystem/Scene.h>
+#include <Wire/SceneSystem/Entity.h>
 
 #include <imgui.h>
 
@@ -18,6 +24,25 @@ void Sandbox::OnAttach()
 	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 100.f);
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
+
+	{
+		auto entity = m_editorScene->CreateEntity();
+		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/SM_Particle_Chest.fbx");
+
+		auto& transform = entity.AddComponent<Lamp::TransformComponent>();
+		transform.scale = { 0.01f, 0.01f, 0.01f };
+	}
+
+	{
+		auto entity = m_editorScene->CreateEntity();
+		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/SM_Particle_Chest.fbx");
+
+		auto& transform = entity.AddComponent<Lamp::TransformComponent>();
+		transform.scale = { 0.01f, 0.01f, 0.01f };
+		transform.position = { 2.f, 0.f, 0.f };
+	}
 
 	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer->GetFinalFramebuffer()));
 }

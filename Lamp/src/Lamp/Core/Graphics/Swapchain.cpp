@@ -82,6 +82,7 @@ namespace Lamp
 
 	void Swapchain::BeginFrame()
 	{
+		LP_PROFILE_FUNCTION();
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
 		LP_VK_CHECK(vkWaitForFences(device, 1, &m_renderFences[m_currentFrame], VK_TRUE, 1000000000));
@@ -93,8 +94,12 @@ namespace Lamp
 
 	void Swapchain::Present()
 	{
+		LP_PROFILE_FUNCTION();
+
 		// Queue Submit
 		{
+			LP_PROFILE_SCOPE("Swapchain::QueueSubmit");
+
 			VkSubmitInfo submitInfo{};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			submitInfo.commandBufferCount = 1;
@@ -114,6 +119,8 @@ namespace Lamp
 
 		// Present to screen
 		{
+			LP_PROFILE_SCOPE("Swapchain::Present");
+			
 			VkPresentInfoKHR presentInfo{};
 			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
@@ -157,7 +164,7 @@ namespace Lamp
 		VkPresentModeKHR presentMode;
 		if (useVSync)
 		{
-			presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+			presentMode = VK_PRESENT_MODE_FIFO_KHR;
 		}
 		else
 		{

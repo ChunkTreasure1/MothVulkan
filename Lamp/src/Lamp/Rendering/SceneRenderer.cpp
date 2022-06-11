@@ -29,39 +29,51 @@ namespace Lamp
 
 	void SceneRenderer::OnRender(Ref<Camera> camera)
 	{
+		LP_PROFILE_FUNCTION();
+
 		auto& registry = m_scene->GetRegistry();
 
 		if (registry.HasComponentView<MeshComponent>())
 		{
 			for (auto& entity : registry.GetComponentView<MeshComponent>())
 			{
+				LP_PROFILE_SCOPE("SceneRenderer::SubmitDraws");
+
 				if (registry.HasComponent<TransformComponent>(entity))
 				{
 					const auto& meshComp = registry.GetComponent<MeshComponent>(entity);
 					const auto& transformComp = registry.GetComponent<TransformComponent>(entity);
 
-					auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
+					if (meshComp.handle != Asset::Null())
+					{
+						auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
 
-					const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
-						glm::scale(glm::mat4(1.f), transformComp.scale) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.x, glm::vec3(1, 0, 0)) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.y, glm::vec3(0, 1, 0)) *
-						glm::rotate(glm::mat4(1.f), transformComp.rotation.z, glm::vec3(0, 0, 1));
+						const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
+							glm::scale(glm::mat4(1.f), transformComp.scale) *
+							glm::rotate(glm::mat4(1.f), transformComp.rotation.x, glm::vec3(1, 0, 0)) *
+							glm::rotate(glm::mat4(1.f), transformComp.rotation.y, glm::vec3(0, 1, 0)) *
+							glm::rotate(glm::mat4(1.f), transformComp.rotation.z, glm::vec3(0, 0, 1));
 
-					Renderer::Submit(mesh, transform);
+						Renderer::Submit(mesh, transform);
+					}
+
 				}
 			}
 		}
 
-		Renderer::Begin();
-
-		for (const auto& pass : m_renderGraph->GetRenderPasses())
 		{
-			Renderer::BeginPass(pass.renderPass, camera);
-			Renderer::Draw();
-			Renderer::EndPass();
-		}
+			LP_PROFILE_SCOPE("SceneRenderer::Render");
+			
+			Renderer::Begin();
 
-		Renderer::End();
+			for (const auto& pass : m_renderGraph->GetRenderPasses())
+			{
+				Renderer::BeginPass(pass.renderPass, camera);
+				Renderer::Draw();
+				Renderer::EndPass();
+			}
+
+			Renderer::End();
+		}
 	}
 }

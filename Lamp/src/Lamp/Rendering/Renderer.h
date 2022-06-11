@@ -60,7 +60,6 @@ namespace Lamp
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 
 		static void Draw(); // WILL BE REMOVED
-		static void TEST_RecompileShader();
 
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 
@@ -71,10 +70,11 @@ namespace Lamp
 		
 		static void CreateDefaultData();
 		static void CreateDescriptorPools();
-		static std::vector<IndirectBatch> PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands);
+		static std::vector<IndirectBatch> PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
 		static void UpdatePerPassBuffers();
 		static void UpdatePerFrameBuffers();
+		static void SortRenderCommands();
 
 		struct RendererData
 		{
@@ -83,7 +83,6 @@ namespace Lamp
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
 			std::vector<RenderCommand> renderCommands;
-			std::vector<glm::mat4> renderTransforms;
 			Ref<Camera> passCamera;
 
 			std::vector<VkDescriptorPool> descriptorPools;

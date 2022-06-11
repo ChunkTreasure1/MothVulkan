@@ -13,6 +13,7 @@ IncludeDir["fbxsdk"] = "%{wks.location}/Lamp/vendor/fbxsdk/include"
 IncludeDir["stb"] = "%{wks.location}/Lamp/vendor/stb"
 IncludeDir["shaderc_utils"] = "%{wks.location}/Lamp/vendor/shaderc/libshaderc_util/include"
 IncludeDir["shaderc_glslc"] = "%{wks.location}/Lamp/vendor/shaderc/glslc"
+IncludeDir["Optick"] = "%{wks.location}/Lamp/vendor/Optick/src"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

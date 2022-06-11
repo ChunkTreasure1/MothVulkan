@@ -108,10 +108,14 @@ namespace Lamp
 
 	void Application::Run()
 	{
+		LP_PROFILE_THREAD("Main");
+
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
 		while (m_isRunning)
 		{
+			LP_PROFILE_FRAME("Frame");
+
 			m_window->BeginFrame();
 
 			float time = (float)glfwGetTime();
@@ -119,15 +123,19 @@ namespace Lamp
 			m_lastFrameTime = time;
 
 			{
+				LP_PROFILE_SCOPE("Application::Update");
+
 				AppUpdateEvent updateEvent(m_currentFrameTime);
 				OnEvent(updateEvent);
 			}
 
 			{
+				LP_PROFILE_SCOPE("Application::Render");
+
 				AppRenderEvent renderEvent{};
 				OnEvent(renderEvent);
 			}
-			
+
 			//// Swapchain
 			//{
 			//	VkCommandBuffer cmdBuffer = m_window->GetSwapchain().GetCurrentCommandBuffer();
@@ -194,12 +202,15 @@ namespace Lamp
 
 			//}
 
-			m_imguiImplementation->Begin();
+			{
+				LP_PROFILE_SCOPE("Application::ImGui")
+				m_imguiImplementation->Begin();
 
-			AppImGuiUpdateEvent imguiEvent{};
-			OnEvent(imguiEvent);
+				AppImGuiUpdateEvent imguiEvent{};
+				OnEvent(imguiEvent);
 
-			m_imguiImplementation->End();
+				m_imguiImplementation->End();
+			}
 
 			m_window->Present();
 		}

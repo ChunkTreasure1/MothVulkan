@@ -49,6 +49,8 @@ namespace Lamp
 
 	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const
 	{
+		LP_PROFILE_FUNCTION();
+
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
 		
@@ -58,6 +60,11 @@ namespace Lamp
 		{
 			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex][i]);
 		}
+	}
+
+	void Material::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	{
+		m_renderPipeline->SetPushConstant(cmdBuffer, offset, size, data);
 	}
 
 	void Material::SetTexture(uint32_t binding, Ref<Texture2D> texture)

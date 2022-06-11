@@ -27,6 +27,8 @@ project "Launcher"
     defines
     {
         "GLFW_INCLUDE_NONE",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
+		"GLM_FORCE_SSE2"
     }
 
 	files
@@ -49,7 +51,8 @@ project "Launcher"
 		"%{IncludeDir.fbxsdk}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.Wire}"
+		"%{IncludeDir.Wire}",
+		"%{IncludeDir.Optick}"
 	}
 
     links
@@ -59,6 +62,7 @@ project "Launcher"
 		"GLFW",
 		"ImGui",
 		"Wire",
+		"Optick",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",
@@ -73,6 +77,7 @@ project "Launcher"
 			defines { "LP_DEBUG" }
 			runtime "Debug"
 			symbols "on"
+			optimize "off"
 
             links
 			{
@@ -89,6 +94,7 @@ project "Launcher"
 			defines { "LP_RELEASE", "NDEBUG" }
 			runtime "Release"
 			optimize "on"
+			symbols "on"
 
             links
 			{
@@ -102,6 +108,7 @@ project "Launcher"
 			defines { "LP_DIST", "NDEBUG" }
 			runtime "Release"
 			optimize "on"
+			symbols "off"
 			kind "WindowedApp"
 
             links

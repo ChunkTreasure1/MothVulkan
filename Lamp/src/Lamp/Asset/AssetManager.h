@@ -47,6 +47,9 @@ namespace Lamp
 		static Ref<T> GetAsset(AssetHandle assetHandle);
 		
 		template<typename T>
+		static AssetHandle GetHandle(const std::filesystem::path& path);
+
+		template<typename T>
 		static Ref<T> GetAsset(const std::filesystem::path& path);
 
 	private:
@@ -67,6 +70,19 @@ namespace Lamp
 		Get().LoadAsset(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline AssetHandle AssetManager::GetHandle(const std::filesystem::path& path)
+	{
+		auto it = Get().m_assetRegistry.find(path);
+		if (it == Get().m_assetRegistry.end())
+		{
+			LP_CORE_ERROR("Unable to load asset {0}! It does not exist!", path.string().c_str());
+			return Asset::Null();
+		}
+
+		return it->second;
 	}
 
 	template<typename T>

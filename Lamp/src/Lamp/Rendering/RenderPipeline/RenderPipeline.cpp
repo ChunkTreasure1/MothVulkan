@@ -322,6 +322,8 @@ namespace Lamp
 
 	void RenderPipeline::Bind(VkCommandBuffer cmdBuffer)
 	{
+		LP_PROFILE_FUNCTION();
+
 		VkExtent2D extent{};
 		extent.width = m_specification.framebuffer->GetWidth();
 		extent.height = m_specification.framebuffer->GetHeight();
@@ -343,7 +345,14 @@ namespace Lamp
 
 	void RenderPipeline::BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const
 	{
+		LP_PROFILE_FUNCTION();
+
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, 0, nullptr);
+	}
+
+	void RenderPipeline::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	{
+		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, offset, size, data);
 	}
 
 	void RenderPipeline::AddReference(Material* material)

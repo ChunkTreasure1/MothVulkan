@@ -29,12 +29,6 @@ namespace Lamp
 		bool enableImGui;
 	};
 
-	struct MeshPushConstants
-	{
-		glm::vec4 data;
-		glm::mat4 transform;
-	};
-
 	struct CameraData
 	{
 		glm::mat4 view;

@@ -368,6 +368,25 @@ namespace Lamp
 		for (const auto& pushConst : resources.push_constant_buffers)
 		{
 			auto& bufferType = compiler.get_type(pushConst.base_type_id);
+			uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
+			uint32_t offset = compiler.get_decoration(pushConst.id, spv::DecorationOffset);
+
+			auto it = std::find_if(m_resources.pushConstantRanges.begin(), m_resources.pushConstantRanges.end(), [size, offset](const VkPushConstantRange& range)
+				{
+					return range.size == size && range.offset == offset;
+				});
+
+			if (it == m_resources.pushConstantRanges.end())
+			{
+				auto& pushConstantRange = m_resources.pushConstantRanges.emplace_back();
+				pushConstantRange.offset = offset;
+				pushConstantRange.size = size;
+				pushConstantRange.stageFlags = stage;
+			}
+			else
+			{
+				(*it).stageFlags |= stage;
+			}
 		}
 
 		for (const auto& image : resources.storage_images)
@@ -386,7 +405,7 @@ namespace Lamp
 
 				VkDescriptorImageInfo& imageInfo = m_resources.storageImagesInfos[set][binding];
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-				
+
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;

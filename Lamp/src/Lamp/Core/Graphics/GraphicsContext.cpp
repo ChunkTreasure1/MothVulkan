@@ -82,6 +82,7 @@ namespace Lamp
 		m_physicalDevice = PhysicalGraphicsDevice::Create(m_vulkanInstance);
 		
 		VkPhysicalDeviceFeatures enabledFeatures{};
+		enabledFeatures.multiDrawIndirect = VK_TRUE;
 		m_device = GraphicsDevice::Create(m_physicalDevice, enabledFeatures);
 
 		VulkanAllocator::Initialize(m_device);
@@ -158,7 +159,7 @@ namespace Lamp
 		#else
 		createInfo.pNext = nullptr;
 		createInfo.enabledLayerCount = 0;
-		createInfo.ppEnabledExtensionNames = nullptr;
+		createInfo.ppEnabledLayerNames = nullptr;
 		#endif
 
 		LP_VK_CHECK(vkCreateInstance(&createInfo, nullptr, &m_vulkanInstance));

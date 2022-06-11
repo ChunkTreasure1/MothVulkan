@@ -185,6 +185,7 @@ namespace Lamp
 			submesh.indexStartOffset = (uint32_t)preIndexCount;
 			submesh.vertexStartOffset = (uint32_t)preVertexCount;
 			submesh.materialIndex = matIndex;
+			submesh.GenerateHash();
 		}
 	}
 
