@@ -8,32 +8,27 @@ layout(location = 4) in vec2 a_texCoords;
 
 layout(location = 0) out vec2 v_texCoords;
 
+#include "common.glslh"
+
 struct ObjectData
 {
     mat4 transform;
 };
-
-layout(set = 0, binding = 0) uniform CameraBuffer
-{
-    mat4 view;
-    mat4 proj;
-    mat4 viewProj;
-
-} u_cameraBuffer;
 
 layout(set = 1, binding = 0) readonly buffer ObjectBuffer
 {
     ObjectData objects[];
 } u_objectBuffer;
 
-
-layout(push_constant) uniform PushConstant
+layout(set = 1, binding = 1) readonly buffer ObjectMapBuffer
 {
-    uint meshIndex;
-} u_pushConstant;
+	uint objectMap[];
+} u_objectMap;
 
 void main()
 {
+    uint meshIndex = u_objectMap.objectMap[gl_DrawID];
+
     v_texCoords = a_texCoords;
-    gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[u_pushConstant.meshIndex + gl_InstanceIndex].transform * vec4(a_position, 1.f);
+    gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[meshIndex].transform * vec4(a_position, 1.f);
 }

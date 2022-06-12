@@ -80,9 +80,26 @@ namespace Lamp
 		SetupDebugCallback();
 
 		m_physicalDevice = PhysicalGraphicsDevice::Create(m_vulkanInstance);
-		
-		VkPhysicalDeviceFeatures enabledFeatures{};
-		enabledFeatures.multiDrawIndirect = VK_TRUE;
+
+		VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
+		dynamicRendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+		dynamicRendering.dynamicRendering = VK_TRUE;
+
+		VkPhysicalDeviceVulkan11Features vulkan11Features{};
+		vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+		vulkan11Features.pNext = &dynamicRendering;		
+		vulkan11Features.shaderDrawParameters = VK_TRUE;
+
+		VkPhysicalDeviceVulkan12Features vk12Features{};
+		vk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		vk12Features.pNext = &vulkan11Features;
+		vk12Features.drawIndirectCount = VK_TRUE;
+
+		VkPhysicalDeviceFeatures2 enabledFeatures{};
+		enabledFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		enabledFeatures.features.multiDrawIndirect = VK_TRUE;
+		enabledFeatures.pNext = &vk12Features;
+
 		m_device = GraphicsDevice::Create(m_physicalDevice, enabledFeatures);
 
 		VulkanAllocator::Initialize(m_device);

@@ -1,4 +1,6 @@
 Assets:
+  - Handle: 11533325920728509549
+    Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
   - Handle: 10341899260545404044

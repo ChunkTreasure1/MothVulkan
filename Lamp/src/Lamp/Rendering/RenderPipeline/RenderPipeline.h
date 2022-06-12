@@ -83,6 +83,7 @@ namespace Lamp
 
 		void Bind(VkCommandBuffer cmdBuffer);
 		void BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const;
+		void BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t set) const;
 
 		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const;
 

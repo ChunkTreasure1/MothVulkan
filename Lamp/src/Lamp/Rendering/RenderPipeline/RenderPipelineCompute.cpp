@@ -25,20 +25,21 @@ namespace Lamp
 		AllocateAndSetupDescriptorsAndBarriers();
 	}
 
-	void RenderPipelineCompute::Begin(VkCommandBuffer commandBuffer, uint32_t frameIndex)
+	void RenderPipelineCompute::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex)
 	{
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline);
 	}
 
-	void RenderPipelineCompute::End(VkCommandBuffer commandBuffer, uint32_t frameIndex, VkPipelineStageFlags pipelineStage)
+	void RenderPipelineCompute::InsertBarrier(VkCommandBuffer commandBuffer, uint32_t frameIndex, VkPipelineStageFlags pipelineStage)
 	{
-		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, pipelineStage, 0, 0, nullptr, 
-			(uint32_t)m_bufferBarriers[frameIndex].size(), m_bufferBarriers[frameIndex].data(), 
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, pipelineStage, 0, 0, nullptr,
+			(uint32_t)m_bufferBarriers[frameIndex].size(), m_bufferBarriers[frameIndex].data(),
 			(uint32_t)m_imageBarriers[frameIndex].size(), m_imageBarriers[frameIndex].data());
 	}
 
-	void RenderPipelineCompute::Dispatch(VkCommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void RenderPipelineCompute::Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
+		WriteAndBindDescriptors(commandBuffer, index);
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
@@ -75,16 +76,21 @@ namespace Lamp
 			auto& info = m_shaderResources[i].storageBuffersInfos[set][binding];
 
 			Ref<ShaderStorageBuffer> ssbo = storageBuffer->Get(i);
-			info.buffer = ssbo->GetHandle();
-			info.range = ssbo->GetSize();
+			info.info.buffer = ssbo->GetHandle();
+			info.info.range = ssbo->GetSize();
 
 			auto it = std::find_if(m_bufferBarriers[i].begin(), m_bufferBarriers[i].end(), [this, set, binding, i, ssbo](const VkBufferMemoryBarrier& barrier)
 				{
-					auto oldSSBO = m_storageBufferSets[set][binding]->Get(i);
-					return barrier.buffer == oldSSBO->GetHandle() || barrier.buffer == VK_NULL_HANDLE || barrier.buffer == ssbo->GetHandle();
+					Ref<ShaderStorageBuffer> oldSSBO;
+					if (m_storageBufferSets[set].find(binding) != m_storageBufferSets[set].end())
+					{
+						oldSSBO = m_storageBufferSets[set][binding]->Get(i);
+					}
+
+					return (oldSSBO && barrier.buffer == oldSSBO->GetHandle()) || barrier.buffer == VK_NULL_HANDLE || barrier.buffer == ssbo->GetHandle();
 				});
 
-			if (it != m_bufferBarriers[i].end())
+			if (it != m_bufferBarriers[i].end() && info.writeable)
 			{
 				it->buffer = ssbo->GetHandle();
 				it->size = ssbo->GetSize();
@@ -128,16 +134,21 @@ namespace Lamp
 		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
 		{
 			auto& info = m_shaderResources[i].storageImagesInfos[set][binding];
-			info.imageView = image->GetView();
-			info.sampler = image->GetSampler();
+			info.info.imageView = image->GetView();
+			info.info.sampler = image->GetSampler();
 
 			auto it = std::find_if(m_imageBarriers[i].begin(), m_imageBarriers[i].end(), [this, set, binding, i, image](const VkImageMemoryBarrier& barrier)
 				{
-					auto oldImage = m_images[set][binding];
-					return barrier.image == oldImage->GetHandle() || barrier.image == VK_NULL_HANDLE || barrier.image == image->GetHandle();
+					Ref<Image2D> oldImage;
+					if (m_images[set].find(binding) != m_images[set].end())
+					{
+						oldImage = m_images[set][binding];
+					}
+
+					return (oldImage && barrier.image == oldImage->GetHandle()) || barrier.image == VK_NULL_HANDLE || barrier.image == image->GetHandle();
 				});
 
-			if (it != m_imageBarriers[i].end())
+			if (it != m_imageBarriers[i].end() && info.writeable)
 			{
 				it->image = image->GetHandle();
 				it->oldLayout = image->GetLayout();
@@ -152,6 +163,11 @@ namespace Lamp
 		}
 
 		m_images[set][binding] = image;
+	}
+
+	void RenderPipelineCompute::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	{
+		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, offset, size, data);
 	}
 
 	Ref<RenderPipelineCompute> RenderPipelineCompute::Create(Ref<Shader> computeShader, uint32_t count)
@@ -172,6 +188,8 @@ namespace Lamp
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layoutInfo.setLayoutCount = (uint32_t)m_shaderResources[0].paddedSetLayouts.size();
 		layoutInfo.pSetLayouts = m_shaderResources[0].paddedSetLayouts.data();
+		layoutInfo.pushConstantRangeCount = (uint32_t)m_shaderResources[0].pushConstantRanges.size();
+		layoutInfo.pPushConstantRanges = m_shaderResources[0].pushConstantRanges.data();
 
 		LP_VK_CHECK(vkCreatePipelineLayout(device->GetHandle(), &layoutInfo, nullptr, &m_pipelineLayout));
 
@@ -237,37 +255,43 @@ namespace Lamp
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set].at(binding);
+						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set].at(binding).info;
 
-						auto& bufferBarrier = m_bufferBarriers[i].emplace_back();
-						bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-						bufferBarrier.pNext = nullptr;
-						bufferBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-						bufferBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-						bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-						bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-						bufferBarrier.buffer = nullptr;
-						bufferBarrier.offset = 0;
-						bufferBarrier.size = 0;
+						if (shaderResources.storageBuffersInfos[set].at(binding).writeable)
+						{
+							auto& bufferBarrier = m_bufferBarriers[i].emplace_back();
+							bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+							bufferBarrier.pNext = nullptr;
+							bufferBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+							bufferBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+							bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+							bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+							bufferBarrier.buffer = nullptr;
+							bufferBarrier.offset = 0;
+							bufferBarrier.size = 0;
+						}
 					}
 					else if (shaderResources.storageImagesInfos[set].find(binding) != shaderResources.storageImagesInfos[set].end())
 					{
-						writeDescriptor.pImageInfo = &shaderResources.storageImagesInfos[set].at(binding);
+						writeDescriptor.pImageInfo = &shaderResources.storageImagesInfos[set].at(binding).info;
 
-						auto& imageBarrier = m_imageBarriers[i].emplace_back();
-						imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-						imageBarrier.pNext = nullptr;
-						imageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-						imageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-						imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-						imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-						imageBarrier.image = nullptr;
-						imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-						imageBarrier.newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-						imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-						imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-						imageBarrier.subresourceRange.baseMipLevel = 0;
-						imageBarrier.subresourceRange.baseArrayLayer = 0;
+						if (shaderResources.storageImagesInfos[set].at(binding).writeable)
+						{
+							auto& imageBarrier = m_imageBarriers[i].emplace_back();
+							imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+							imageBarrier.pNext = nullptr;
+							imageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+							imageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+							imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+							imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+							imageBarrier.image = nullptr;
+							imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+							imageBarrier.newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+							imageBarrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+							imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+							imageBarrier.subresourceRange.baseMipLevel = 0;
+							imageBarrier.subresourceRange.baseArrayLayer = 0;
+						}
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
@@ -281,5 +305,12 @@ namespace Lamp
 				index++;
 			}
 		}
+	}
+
+	void RenderPipelineCompute::WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index)
+	{
+		auto device = GraphicsContext::GetDevice();
+		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[index].size(), m_writeDescriptors[index].data(), 0, nullptr);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), 0, nullptr);
 	}
 }

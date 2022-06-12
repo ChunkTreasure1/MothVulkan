@@ -340,6 +340,7 @@ namespace Lamp
 		VkRect2D scissor = { { 0, 0 }, extent };
 		vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 	}
 
@@ -348,6 +349,10 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, 0, nullptr);
+	}
+
+	void RenderPipeline::BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t set) const
+	{
 	}
 
 	void RenderPipeline::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const

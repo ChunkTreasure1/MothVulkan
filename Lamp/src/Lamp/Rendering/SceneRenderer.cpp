@@ -56,7 +56,6 @@ namespace Lamp
 
 						Renderer::Submit(mesh, transform);
 					}
-
 				}
 			}
 		}
