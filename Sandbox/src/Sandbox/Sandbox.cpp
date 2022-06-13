@@ -27,7 +27,7 @@ void Sandbox::OnAttach()
 
 	for (uint32_t i = 0; i < 100; i++)
 	{
-		for (uint32_t j = 0; j < 100q; j++)
+		for (uint32_t j = 0; j < 100; j++)
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
