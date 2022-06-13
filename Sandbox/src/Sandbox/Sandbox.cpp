@@ -2,6 +2,7 @@
 #include "Sandbox.h"
 
 #include "Sandbox/Window/ViewportPanel.h"
+#include "Sandbox/Window/PropertiesPanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -25,9 +26,9 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	for (uint32_t i = 0; i < 100; i++)
+	for (uint32_t i = 0; i < 10; i++)
 	{
-		for (uint32_t j = 0; j < 100; j++)
+		for (uint32_t j = 0; j < 10; j++)
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
@@ -36,10 +37,16 @@ void Sandbox::OnAttach()
 			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
 			transform.scale = { 0.01f, 0.01f, 0.01f };
 			transform.position = { i, 0.f, j };
+			
+			auto& tag = entity.AddComponent<Lamp::TagComponent>();
+			tag.tag = "Entity";
+
+			m_selectedEntities.emplace_back(entity);
 		}
 	}
-
-	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer->GetFinalFramebuffer()));
+	 
+	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer));
+	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities));
 }
 
 void Sandbox::OnDetach()

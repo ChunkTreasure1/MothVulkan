@@ -3,6 +3,7 @@ RenderPass:
   overridePipeline: ""
   drawType: "Opaque"
   priority: 0
+  resizeable: true
   framebuffer:
     width: 1280
     height: 720

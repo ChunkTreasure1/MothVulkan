@@ -253,6 +253,11 @@ namespace Lamp
 
 		std::vector<IndirectBatch> draws;
 
+		if (renderCommands.empty())
+		{
+			return draws;
+		}
+
 		IndirectBatch& firstDraw = draws.emplace_back();
 		firstDraw.mesh = renderCommands[0].mesh;
 		firstDraw.material = renderCommands[0].material;

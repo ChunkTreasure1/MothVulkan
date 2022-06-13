@@ -8,6 +8,7 @@
 #include "Lamp/Rendering/Renderer.h"
 #include "Lamp/Rendering/RenderGraph.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
+#include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Components/Components.h"
 
@@ -54,7 +55,7 @@ namespace Lamp
 
 		{
 			LP_PROFILE_SCOPE("SceneRenderer::Render");
-			
+
 			Renderer::Begin();
 
 			for (const auto& pass : m_renderGraph->GetRenderPasses())
@@ -65,6 +66,17 @@ namespace Lamp
 			}
 
 			Renderer::End();
+		}
+	}
+
+	void SceneRenderer::Resize(uint32_t width, uint32_t height)
+	{
+		for (auto& pass : m_renderGraph->GetRenderPasses())
+		{
+			if (pass.renderPass->resizeable)
+			{
+				pass.renderPass->framebuffer->Resize(width, height);
+			}
 		}
 	}
 }

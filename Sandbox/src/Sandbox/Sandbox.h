@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Wire/SceneSystem/Entity.h>
 #include <Lamp/Event/ApplicationEvent.h>
 #include <Lamp/Core/Layer/Layer.h>
 
@@ -32,6 +33,7 @@ private:
 	///////////////
 
 	std::vector<Ref<EditorWindow>> m_editorWindows;
+	std::vector<Entity> m_selectedEntities;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;
 	Lamp::EditorCameraController* m_editorCameraController;

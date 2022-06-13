@@ -26,6 +26,7 @@ namespace Lamp
 
 		DrawType drawType = DrawType::Opaque;
 		int32_t priority = 0;
+		bool resizeable = true;
 
 		static AssetType GetStaticType() { return AssetType::RenderPass; }
 		AssetType GetType() override { return GetStaticType(); }

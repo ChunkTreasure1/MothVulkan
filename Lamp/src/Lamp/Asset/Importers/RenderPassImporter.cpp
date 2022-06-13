@@ -183,6 +183,9 @@ namespace Lamp
 		int32_t priority;
 		LP_DESERIALIZE_PROPERTY(priority, priority, pipelineNode, 0);
 
+		bool resizeable;
+		LP_DESERIALIZE_PROPERTY(resizeable, resizeable, pipelineNode, true);
+
 		if (!pipelineNode["framebuffer"])
 		{
 			LP_CORE_ERROR("RenderPass has no framebuffer! This is required!");
