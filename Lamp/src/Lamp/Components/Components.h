@@ -7,45 +7,26 @@
 
 namespace Lamp
 {
-	struct TagComponent
+	REGISTER_COMPONENT(struct TagComponent
 	{
-		TagComponent() = default;
-		TagComponent(const std::string& aTag)
-			: tag(aTag)
-		{ }
-
 		std::string tag;
-	
+
 		SERIALIZE_COMPONENT(TagComponent, "{282FA5FB-6A77-47DB-8340-3D34F1A1FBBD}"_guid);
-	};
+	}, TagComponent);
 
-	struct TransformComponent
+	REGISTER_COMPONENT(struct TransformComponent
 	{
-		TransformComponent() = default;
-		TransformComponent(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
-			: position(pos), rotation(rot), scale(scale)
-		{ }
+		glm::vec3 position;
+		glm::vec3 rotation;
+		glm::vec3 scale;
 
-		glm::vec3 position = { 0.f, 0.f, 0.f };
-		glm::vec3 rotation = { 0.f, 0.f, 0.f };
-		glm::vec3 scale = { 1.f, 1.f, 1.f };
-		
 		SERIALIZE_COMPONENT(TransformComponent, "{E1B8016B-1CAA-4782-927E-C17C29B25893}"_guid);
-	};
+	}, TransformComponent);
 
-	struct MeshComponent
+	REGISTER_COMPONENT(struct MeshComponent
 	{
-		MeshComponent() = default;
-		MeshComponent(const AssetHandle& asset)
-			: handle(asset)
-		{ }
-
 		AssetHandle handle = Asset::Null();
 
 		SERIALIZE_COMPONENT(MeshComponent, "{45D008BE-65C9-4D6F-A0C6-377F7B384E47}"_guid)
-	};
-
-	REGISTER_COMPONENT(TagComponent);
-	REGISTER_COMPONENT(TransformComponent);
-	REGISTER_COMPONENT(MeshComponent);
+	}, MeshComponent);
 }
