@@ -101,7 +101,8 @@ namespace detail
 		template<typename T>
 		struct storage<3, T, true>
 		{
-			typedef struct alignas(4 * sizeof(T)) type {
+			typedef struct 
+				alignas(4 * sizeof(T)) type {
 				T data[4];
 			} type;
 		};

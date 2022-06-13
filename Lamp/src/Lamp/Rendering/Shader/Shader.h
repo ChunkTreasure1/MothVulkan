@@ -27,6 +27,18 @@ namespace Lamp
 	class Shader : public Asset
 	{
 	public:
+		struct ShaderStorageBuffer
+		{
+			VkDescriptorBufferInfo info;
+			bool writeable = true;
+		};
+
+		struct StorageImage
+		{
+			VkDescriptorImageInfo info;
+			bool writeable = true;
+		};
+
 		struct ShaderResources
 		{
 			std::vector<VkDescriptorSetLayout> paddedSetLayouts;
@@ -36,8 +48,8 @@ namespace Lamp
 			std::vector<VkDescriptorPoolSize> poolSizes;
 			
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> binding -> infos
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> storageBuffersInfos; // set -> binding -> infos
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> storageImagesInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, ShaderStorageBuffer>> storageBuffersInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, StorageImage>> storageImagesInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 

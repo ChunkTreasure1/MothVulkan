@@ -29,6 +29,8 @@ namespace Lamp
 
 	void SceneRenderer::OnRender(Ref<Camera> camera)
 	{
+		LP_PROFILE_FUNCTION();
+
 		auto& registry = m_scene->GetRegistry();
 
 		for (auto& entity : registry.GetComponentView<MeshComponent>())
@@ -50,15 +52,19 @@ namespace Lamp
 			}
 		}
 
-		Renderer::Begin();
-
-		for (const auto& pass : m_renderGraph->GetRenderPasses())
 		{
-			Renderer::BeginPass(pass.renderPass, camera);
-			Renderer::Draw();
-			Renderer::EndPass();
-		}
+			LP_PROFILE_SCOPE("SceneRenderer::Render");
+			
+			Renderer::Begin();
 
-		Renderer::End();
+			for (const auto& pass : m_renderGraph->GetRenderPasses())
+			{
+				Renderer::BeginPass(pass.renderPass, camera);
+				Renderer::Draw();
+				Renderer::EndPass();
+			}
+
+			Renderer::End();
+		}
 	}
 }

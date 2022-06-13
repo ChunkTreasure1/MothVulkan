@@ -29,6 +29,8 @@ namespace Lamp
 
 	void IndexBuffer::Bind(VkCommandBuffer commandBuffer)
 	{
+		LP_PROFILE_FUNCTION();
+		
 		const VkDeviceSize offset = 0;
 		vkCmdBindIndexBuffer(commandBuffer, m_buffer, offset, VK_INDEX_TYPE_UINT32);
 	}

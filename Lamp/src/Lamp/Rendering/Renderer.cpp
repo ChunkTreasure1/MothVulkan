@@ -19,40 +19,45 @@
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
 
-#include "Lamp/Rendering/Texture/Texture2D.h"
-#include "Lamp/Rendering/Camera/Camera.h"
-
-
-
-
-#include "Lamp/Asset/AssetManager.h"
-#include "Lamp/Asset/Mesh/Material.h"
-#include "Lamp/Asset/Mesh/Mesh.h"
-#include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
-#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
+#include "Lamp/Rendering/Camera/Camera.h"
+#include "Lamp/Rendering/Texture/Texture2D.h"
+#include "Lamp/Rendering/RendererStructs.h"
+
+#include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
+
+#include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/Mesh/Mesh.h"
 
 namespace Lamp
 {
 	void Renderer::Initialize()
 	{
-		s_rendererData = CreateScope<RendererData>();
 		s_defaultData = CreateScope<DefaultData>();
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
 
-		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(VkDrawIndexedIndirectCommand) * 100, framesInFlight, true);
+		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
 
 		CreateDefaultData();
 		CreateDescriptorPools();
+	}
 
-		/////TESTING//////
-		s_rendererData->mesh = AssetManager::GetAsset<Mesh>("Assets/SM_Particle_Chest.fbx");
-		s_rendererData->texture = AssetManager::GetAsset<Texture2D>("Assets/Textures/peter_lambert.png");
+	void Renderer::InitializeBuffers()
+	{
+		s_rendererData = CreateScope<RendererData>();
 
-		s_rendererData->renderPipeline = RenderPipelineRegistry::Get("trimesh");
+		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
+		constexpr uint32_t MAX_OBJECT_COUNT = 200000;
+
+		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
+		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(1, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
+
+		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
+		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
 	}
 
 	void Renderer::Shutdowm()
@@ -64,30 +69,32 @@ namespace Lamp
 		
 		s_rendererData = nullptr;
 		s_defaultData = nullptr;
-
 	}
 
 	void Renderer::Begin()
 	{
-		Submit(s_rendererData->mesh, glm::scale(glm::mat4(1.f), glm::vec3(0.01f, 0.01f, 0.01f)));
-		
+		LP_PROFILE_FUNCTION();
+
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
-		UpdatePerFrameBuffers();
-
 		s_rendererData->commandBuffer->Begin();
+		SortRenderCommands();
+		UploadAndCullRenderCommands();
+		
+		UpdatePerFrameBuffers();
 	}
 
 	void Renderer::End()
 	{
+		LP_PROFILE_FUNCTION();
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
-		s_rendererData->renderTransforms.clear();
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
 	{
+		LP_PROFILE_FUNCTION();
 		s_rendererData->passCamera = camera;
 
 		UpdatePerPassBuffers();
@@ -121,6 +128,7 @@ namespace Lamp
 
 	void Renderer::EndPass()
 	{
+		LP_PROFILE_FUNCTION();
 		vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		s_rendererData->currentFramebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		s_rendererData->currentFramebuffer = nullptr;
@@ -129,18 +137,20 @@ namespace Lamp
 
 	void Renderer::Submit(Ref<Mesh> mesh, const glm::mat4& transform)
 	{
+		LP_PROFILE_FUNCTION();
 		for (const auto& subMesh : mesh->GetSubMeshes())
 		{
 			auto& cmd = s_rendererData->renderCommands.emplace_back();
 			cmd.mesh = mesh;
 			cmd.material = mesh->GetMaterials().at(subMesh.materialIndex);
 			cmd.subMesh = subMesh;
-			s_rendererData->renderTransforms.emplace_back(transform);
+			cmd.transform = transform;
 		}
 	}
 
 	void Renderer::Draw()
 	{
+		LP_PROFILE_FUNCTION();
 		if (s_rendererData->renderCommands.empty())
 		{
 			return;
@@ -148,22 +158,9 @@ namespace Lamp
 
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
-
 		// Draw
 		{
 			std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
-
-			VkDrawIndexedIndirectCommand* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<VkDrawIndexedIndirectCommand>();
-			for (uint32_t i = 0; i < draws.size(); i++)
-			{
-				drawCommands[i].indexCount = draws[i].subMesh.indexCount;
-				drawCommands[i].firstIndex = draws[i].subMesh.indexStartOffset;
-				drawCommands[i].vertexOffset = draws[i].subMesh.vertexStartOffset;
-				drawCommands[i].instanceCount = 1;
-				drawCommands[i].firstInstance = i;
-			}
-
-			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
 
 			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
@@ -176,21 +173,22 @@ namespace Lamp
 				draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 				draws[i].mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
-				VkDeviceSize drawOffset = draws[i].first * sizeof(VkDrawIndexedIndirectCommand);
-				uint32_t drawStride = sizeof(VkDrawIndexedIndirectCommand);
+				const VkDeviceSize drawOffset = draws[i].first * sizeof(GPUIndirectObject);
+				const VkDeviceSize countOffset = i * sizeof(uint32_t);
+				const uint32_t drawStride = sizeof(GPUIndirectObject);
 
-				vkCmdDrawIndexedIndirect(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->indirectDrawBuffer->Get(currentFrame)->GetHandle(), drawOffset, draws[i].count, drawStride);
+				const Ref<ShaderStorageBuffer> currentIndirectBuffer = s_rendererData->indirectDrawBuffer->Get(currentFrame);
+				const Ref<ShaderStorageBuffer> currentCountBuffer = s_rendererData->indirectCountBuffer->Get(currentFrame);
+
+				vkCmdDrawIndexedIndirectCount(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentIndirectBuffer->GetHandle(), drawOffset, currentCountBuffer->GetHandle(), countOffset, draws[i].count, drawStride);
 			}
 		}
 	}
 
-	void Renderer::TEST_RecompileShader()
-	{
-		s_rendererData->renderPipeline->GetSpecification().shader->Reload(true);
-	}
-
 	VkDescriptorSet Renderer::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
 	{
+		LP_PROFILE_FUNCTION();
+
 		auto device = GraphicsContext::GetDevice();
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		
@@ -249,8 +247,10 @@ namespace Lamp
 		}
 	}
 
-	std::vector<IndirectBatch> Renderer::PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands)
+	std::vector<IndirectBatch> Renderer::PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands)
 	{
+		LP_PROFILE_FUNCTION();
+
 		std::vector<IndirectBatch> draws;
 
 		IndirectBatch& firstDraw = draws.emplace_back();
@@ -278,6 +278,7 @@ namespace Lamp
 				newDraw.subMesh = renderCommands[i].subMesh;
 				newDraw.first = i;
 				newDraw.count = 1;
+				newDraw.id = uint32_t(draws.size() - 1);
 			}
 		}
 
@@ -291,6 +292,8 @@ namespace Lamp
 
 	void Renderer::UpdatePerPassBuffers()
 	{
+		LP_PROFILE_FUNCTION();
+
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 		
 		// Update camera data
@@ -308,6 +311,8 @@ namespace Lamp
 	
 	void Renderer::UpdatePerFrameBuffers()
 	{
+		LP_PROFILE_FUNCTION();
+
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
 		// Update object data
@@ -315,8 +320,88 @@ namespace Lamp
 			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(1, 0)->Get(currentFrame);
 			ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
 
-			memcpy_s(objectData, sizeof(ObjectData) * s_rendererData->renderTransforms.size(), s_rendererData->renderTransforms.data(), sizeof(ObjectData) * s_rendererData->renderTransforms.size());
+			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			{
+				objectData[i].transform = s_rendererData->renderCommands[i].transform;
+			}
+
 			currentObjectBuffer->Unmap();
+		}
+	}
+	
+	void Renderer::SortRenderCommands()
+	{
+		LP_PROFILE_FUNCTION();
+		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
+		{
+			return lhs.subMesh > rhs.subMesh || lhs.mesh > rhs.mesh;
+		});
+	}
+	
+	void Renderer::UploadAndCullRenderCommands()
+	{
+		LP_PROFILE_FUNCTION();
+
+		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
+		std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
+
+		// Fill indirect commands
+		{
+			GPUIndirectObject* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
+
+			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			{
+				auto& cmd = s_rendererData->renderCommands[i];
+
+				drawCommands[i].command.indexCount = cmd.subMesh.indexCount;
+				drawCommands[i].command.firstIndex = cmd.subMesh.indexStartOffset;
+				drawCommands[i].command.vertexOffset = cmd.subMesh.vertexStartOffset;
+				drawCommands[i].command.instanceCount = 1;
+				drawCommands[i].command.firstInstance = i;
+				drawCommands[i].objectId = i;
+
+				// TODO: this is probably not performant
+				auto it = std::find_if(draws.begin(), draws.end(), [&cmd](const IndirectBatch& batch)
+				{
+					return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
+				});
+
+				if (it != draws.end())
+				{
+					drawCommands[i].batchId = it->id;
+				}
+			}
+
+			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
+
+			uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
+			
+			for (uint32_t i = 0; i < draws.size(); i++)
+			{
+				drawCount[i] = 0;
+			}
+
+			s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
+		}
+
+		//Cull dispatch
+		{
+			s_rendererData->indirectCullPipeline->SetUniformBuffer(UniformBufferRegistry::Get(0, 0), 0, 0);
+			s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+			s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+			s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+
+			s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+			
+			CullData cullData{};
+			cullData.drawCount = (uint32_t)s_rendererData->renderCommands.size();
+
+			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), 0, sizeof(CullData), &cullData);
+
+			const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
+			s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
+			
+			s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 		}
 	}
 }

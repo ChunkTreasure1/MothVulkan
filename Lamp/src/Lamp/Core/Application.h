@@ -29,27 +29,8 @@ namespace Lamp
 		bool enableImGui;
 	};
 
-	struct MeshPushConstants
-	{
-		glm::vec4 data;
-		glm::mat4 transform;
-	};
-
-	struct CameraData
-	{
-		glm::mat4 view;
-		glm::mat4 proj;
-		glm::mat4 viewProj;
-	};
-
-	struct ObjectData
-	{
-		glm::mat4 transform;
-	};
-
 	class Window;
 	class AssetManager;
-	class RenderPass;
 	class ImGuiImplementation;
 
 	class Application
@@ -84,8 +65,6 @@ namespace Lamp
 
 		ApplicationInfo m_applicationInfo;
 		inline static Application* s_instance;
-
-		Ref<RenderPass> m_renderPass;
 	};
 
 	static Application* CreateApplication();

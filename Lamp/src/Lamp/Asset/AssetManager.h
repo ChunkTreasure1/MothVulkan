@@ -28,7 +28,7 @@ namespace Lamp
 	public:
 		AssetManager();
 		~AssetManager();
-		
+
 		void Initialize();
 		void Shutdown();
 
@@ -45,7 +45,10 @@ namespace Lamp
 
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle assetHandle);
-		
+
+		template<typename T>
+		static AssetHandle GetHandle(const std::filesystem::path& path);
+
 		template<typename T>
 		static Ref<T> GetAsset(const std::filesystem::path& path);
 
@@ -56,7 +59,7 @@ namespace Lamp
 		void LoadAssetRegistry();
 
 		std::unordered_map<AssetType, Scope<AssetImporter>> m_assetImporters;
- 		std::unordered_map<std::filesystem::path, AssetHandle> m_assetRegistry;
+		std::unordered_map<std::filesystem::path, AssetHandle> m_assetRegistry;
 		std::unordered_map<AssetHandle, Ref<Asset>> m_assetCache;
 	};
 
@@ -67,6 +70,30 @@ namespace Lamp
 		Get().LoadAsset(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline AssetHandle AssetManager::GetHandle(const std::filesystem::path& path)
+	{
+		if (!std::filesystem::exists(path))
+		{
+			LP_CORE_ERROR("Unable to load asset {0}! It does not exist!", path.string().c_str());
+			return Asset::Null();
+		}
+
+		auto it = Get().m_assetRegistry.find(path);
+		if (it != Get().m_assetRegistry.end())
+		{
+			return it->second;
+		}
+	
+		Ref<T> asset = GetAsset<T>(path);
+		if (asset)
+		{
+			return asset->handle;
+		}
+
+		return Asset::Null();
 	}
 
 	template<typename T>

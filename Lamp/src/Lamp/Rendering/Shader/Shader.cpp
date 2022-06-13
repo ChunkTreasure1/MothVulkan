@@ -335,6 +335,8 @@ namespace Lamp
 
 			uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
 			uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
+			uint32_t nonWritable = compiler.get_decoration(ssbo.id, spv::DecorationNonWritable);
+
 			uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
 
 			auto it = std::find_if(outSetLayoutBindings[set].begin(), outSetLayoutBindings[set].end(), [binding](const VkDescriptorSetLayoutBinding& layoutBinding) { return layoutBinding.binding == binding; });
@@ -346,9 +348,10 @@ namespace Lamp
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				layoutBinding.stageFlags = stage;
 
-				VkDescriptorBufferInfo& bufferInfo = m_resources.storageBuffersInfos[set][binding];
-				bufferInfo.offset = 0;
-				bufferInfo.range = size;
+				ShaderStorageBuffer& bufferInfo = m_resources.storageBuffersInfos[set][binding];
+				bufferInfo.info.offset = 0;
+				bufferInfo.info.range = size;
+				bufferInfo.writeable = !(bool)nonWritable;
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -368,12 +371,32 @@ namespace Lamp
 		for (const auto& pushConst : resources.push_constant_buffers)
 		{
 			auto& bufferType = compiler.get_type(pushConst.base_type_id);
+			uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
+			uint32_t offset = compiler.get_decoration(pushConst.id, spv::DecorationOffset);
+
+			auto it = std::find_if(m_resources.pushConstantRanges.begin(), m_resources.pushConstantRanges.end(), [size, offset](const VkPushConstantRange& range)
+				{
+					return range.size == size && range.offset == offset;
+				});
+
+			if (it == m_resources.pushConstantRanges.end())
+			{
+				auto& pushConstantRange = m_resources.pushConstantRanges.emplace_back();
+				pushConstantRange.offset = offset;
+				pushConstantRange.size = size;
+				pushConstantRange.stageFlags = stage;
+			}
+			else
+			{
+				(*it).stageFlags |= stage;
+			}
 		}
 
 		for (const auto& image : resources.storage_images)
 		{
 			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
 			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+			uint32_t nonWritable = compiler.get_decoration(image.id, spv::DecorationNonWritable);
 
 			auto it = std::find_if(outSetLayoutBindings[set].begin(), outSetLayoutBindings[set].end(), [binding](const VkDescriptorSetLayoutBinding& layoutBinding) { return layoutBinding.binding == binding; });
 			if (it == outSetLayoutBindings[set].end())
@@ -384,9 +407,10 @@ namespace Lamp
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 				layoutBinding.stageFlags = stage;
 
-				VkDescriptorImageInfo& imageInfo = m_resources.storageImagesInfos[set][binding];
-				imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-				
+				StorageImage& imageInfo = m_resources.storageImagesInfos[set][binding];
+				imageInfo.info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageInfo.writeable = !(bool)nonWritable;
+
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;
@@ -418,7 +442,7 @@ namespace Lamp
 
 				VkDescriptorImageInfo& imageInfo = m_resources.imageInfos[set][binding];
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
+				
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;

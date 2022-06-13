@@ -34,12 +34,12 @@ namespace Lamp
 			case ElementType::Bool: return 1;
 			case ElementType::Int: return 4;
 			case ElementType::UInt: return 4;
-			case ElementType::UInt2: return 4 * 4;
-			case ElementType::UInt3: return 4 * 4;
+			case ElementType::UInt2: return 4 * 2;
+			case ElementType::UInt3: return 4 * 3;
 			case ElementType::UInt4: return 4 * 4;
 			case ElementType::Float: return 4;
-			case ElementType::Float2: return 4 * 4;
-			case ElementType::Float3: return 4 * 4;
+			case ElementType::Float2: return 4 * 2;
+			case ElementType::Float3: return 4 * 3;
 			case ElementType::Float4: return 4 * 4;
 			case ElementType::Mat3: return 4 * 3 * 3;
 			case ElementType::Mat4: return 4 * 4 * 4;

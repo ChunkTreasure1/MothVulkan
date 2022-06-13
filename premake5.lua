@@ -22,6 +22,7 @@ group "Dependencies"
 include "Lamp/vendor/glfw"
 include "Lamp/vendor/imgui"
 include "Lamp/vendor/Wire/Wire"
+include "Lamp/vendor/Optick"
 
 group "Core"
 include "Lamp"

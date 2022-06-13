@@ -49,7 +49,7 @@ namespace Lamp
 	class GraphicsDevice
 	{
 	public:
-		GraphicsDevice(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures enabledFeatures);
+		GraphicsDevice(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures2 enabledFeatures);
 		~GraphicsDevice();
 
 		VkCommandBuffer GetThreadSafeCommandBuffer(bool begin);
@@ -69,7 +69,7 @@ namespace Lamp
 		inline VkQueue GetComputeQueue() const { return m_computeQueue; }
 		
 		inline Ref<PhysicalGraphicsDevice> GetPhysicalDevice() const { return m_physicalDevice; }
-		static Ref<GraphicsDevice> Create(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures enabledFeatures);
+		static Ref<GraphicsDevice> Create(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures2 enabledFeatures);
 
 	private:
 		const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };

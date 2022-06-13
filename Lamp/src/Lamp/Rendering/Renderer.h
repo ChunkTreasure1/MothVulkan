@@ -17,7 +17,7 @@ namespace Lamp
 	class Mesh;
 	class Texture2D;
 	class Material;
-	class RenderPipeline;
+	class RenderPipelineCompute;
 
 	struct RenderCommand
 	{
@@ -34,6 +34,7 @@ namespace Lamp
 		SubMesh subMesh;
 		uint32_t first;
 		uint32_t count;
+		uint32_t id;
 	};
 
 	class Renderer
@@ -49,6 +50,8 @@ namespace Lamp
 		{};
 
 		static void Initialize();
+		static void InitializeBuffers();
+
 		static void Shutdowm();
 
 		static void Begin();
@@ -60,7 +63,6 @@ namespace Lamp
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 
 		static void Draw(); // WILL BE REMOVED
-		static void TEST_RecompileShader();
 
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 
@@ -71,10 +73,13 @@ namespace Lamp
 		
 		static void CreateDefaultData();
 		static void CreateDescriptorPools();
-		static std::vector<IndirectBatch> PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands);
+		static std::vector<IndirectBatch> PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
 		static void UpdatePerPassBuffers();
 		static void UpdatePerFrameBuffers();
+
+		static void SortRenderCommands();
+		static void UploadAndCullRenderCommands();
 
 		struct RendererData
 		{
@@ -82,18 +87,16 @@ namespace Lamp
 			Ref<Framebuffer> currentFramebuffer;
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
+			Ref<ShaderStorageBufferSet> indirectCountBuffer;
+
+			Ref<ShaderStorageBufferSet> objectBuffer;
+
+			Ref<RenderPipelineCompute> indirectCullPipeline;
+
 			std::vector<RenderCommand> renderCommands;
-			std::vector<glm::mat4> renderTransforms;
 			Ref<Camera> passCamera;
 
 			std::vector<VkDescriptorPool> descriptorPools;
-
-			/////TESTING/////
-			Ref<Mesh> mesh;
-			Ref<Texture2D> texture;
-
-			Ref<Material> material;
-			Ref<RenderPipeline> renderPipeline;
 		};
 
 		inline static Scope<DefaultData> s_defaultData;

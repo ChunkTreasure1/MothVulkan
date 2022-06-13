@@ -30,6 +30,8 @@ project "Sandbox"
     defines
     {
         "GLFW_INCLUDE_NONE",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
+		"GLM_FORCE_SSE2"
     }
 
 	files
@@ -53,7 +55,8 @@ project "Sandbox"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Wire}",
-		"%{IncludeDir.vma}"
+		"%{IncludeDir.vma}",
+		"%{IncludeDir.Optick}"
 	}
 
     links
@@ -63,6 +66,7 @@ project "Sandbox"
 		"GLFW",
 		"ImGui",
 		"Wire",
+		"Optick",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",
@@ -77,6 +81,7 @@ project "Sandbox"
 			defines { "LP_DEBUG" }
 			runtime "Debug"
 			symbols "on"
+			optimize "off"
 
             links
 			{
@@ -92,6 +97,7 @@ project "Sandbox"
 		filter "configurations:Release"
 			defines { "LP_RELEASE", "NDEBUG" }
 			runtime "Release"
+			symbols "on"
 			optimize "on"
 
             links
@@ -105,6 +111,7 @@ project "Sandbox"
 		filter "configurations:Dist"
 			defines { "LP_DIST", "NDEBUG" }
 			runtime "Release"
+			symbols "off"
 			optimize "on"
 			kind "WindowedApp"
 

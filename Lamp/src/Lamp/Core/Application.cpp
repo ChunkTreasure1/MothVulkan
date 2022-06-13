@@ -11,37 +11,18 @@
 #include "Lamp/Core/Layer/Layer.h"
 
 #include "Lamp/Asset/AssetManager.h"
-#include "Lamp/Asset/Mesh/Mesh.h"
-#include "Lamp/Asset/Mesh/Material.h"
 
 #include "Lamp/ImGui/ImGuiImplementation.h"
 
-#include "Lamp/Rendering/Buffer/VertexBuffer.h"
-#include "Lamp/Rendering/Buffer/IndexBuffer.h"
-
-#include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
-
-#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferRegistry.h"
-
-#include "Lamp/Rendering/Texture/Texture2D.h"
-#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
-#include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Rendering/Shader/ShaderRegistry.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 #include "Lamp/Rendering/RenderPass/RenderPassRegistry.h"
 #include "Lamp/Rendering/Renderer.h"
-#include "Lamp/Rendering/RenderPass/RenderPass.h"
 
-#include "Lamp/Utility/ImageUtility.h"
-
-#include <vulkan/vulkan.h>
-#include <imgui.h>
 #include <GLFW/glfw3.h>
-
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace Lamp
 {
@@ -66,11 +47,7 @@ namespace Lamp
 		UniformBufferRegistry::Initialize();
 		ShaderStorageBufferRegistry::Initialize();
 
-		const uint32_t framesInFlight = m_window->GetSwapchain().GetFramesInFlight();
-		constexpr uint32_t MAX_OBJECT_COUNT = 10000;
-
-		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
-		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
+		Renderer::InitializeBuffers();
 
 		ShaderRegistry::Initialize();
 		RenderPassRegistry::Initialize();
@@ -80,8 +57,6 @@ namespace Lamp
 		Renderer::Initialize();
 
 		m_imguiImplementation = ImGuiImplementation::Create();
-
-		m_renderPass = AssetManager::GetAsset<RenderPass>("Engine/RenderPasses/forward.lprp");
 	}
 
 	Application::~Application()
@@ -99,7 +74,6 @@ namespace Lamp
 		RenderPassRegistry::Shutdown();
 		ShaderRegistry::Shutdown();
 
-		m_renderPass = nullptr;
 		m_assetManager = nullptr;
 		m_window = nullptr;
 
@@ -108,10 +82,14 @@ namespace Lamp
 
 	void Application::Run()
 	{
+		LP_PROFILE_THREAD("Main");
+
 		auto device = GraphicsContext::GetDevice()->GetHandle();
 
 		while (m_isRunning)
 		{
+			LP_PROFILE_FRAME("Frame");
+
 			m_window->BeginFrame();
 
 			float time = (float)glfwGetTime();
@@ -119,15 +97,19 @@ namespace Lamp
 			m_lastFrameTime = time;
 
 			{
+				LP_PROFILE_SCOPE("Application::Update");
+
 				AppUpdateEvent updateEvent(m_currentFrameTime);
 				OnEvent(updateEvent);
 			}
 
 			{
+				LP_PROFILE_SCOPE("Application::Render");
+
 				AppRenderEvent renderEvent{};
 				OnEvent(renderEvent);
 			}
-			
+
 			//// Swapchain
 			//{
 			//	VkCommandBuffer cmdBuffer = m_window->GetSwapchain().GetCurrentCommandBuffer();
@@ -194,12 +176,15 @@ namespace Lamp
 
 			//}
 
-			m_imguiImplementation->Begin();
+			{
+				LP_PROFILE_SCOPE("Application::ImGui")
+				m_imguiImplementation->Begin();
 
-			AppImGuiUpdateEvent imguiEvent{};
-			OnEvent(imguiEvent);
+				AppImGuiUpdateEvent imguiEvent{};
+				OnEvent(imguiEvent);
 
-			m_imguiImplementation->End();
+				m_imguiImplementation->End();
+			}
 
 			m_window->Present();
 		}
@@ -241,7 +226,6 @@ namespace Lamp
 		}
 
 		m_window->Resize(e.GetWidth(), e.GetHeight());
-		m_renderPass->framebuffer->Resize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 }

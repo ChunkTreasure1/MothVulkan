@@ -77,7 +77,7 @@ namespace Lamp
 		return CreateRef<PhysicalGraphicsDevice>(instance);
 	}
 
-	GraphicsDevice::GraphicsDevice(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures enabledFeatures)
+	GraphicsDevice::GraphicsDevice(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures2 enabledFeatures)
 		: m_physicalDevice(physicalDevice)
 	{
 		const PhysicalGraphicsDevice::QueueIndices& queueIndices = physicalDevice->GetQueueIndices();
@@ -96,21 +96,12 @@ namespace Lamp
 			queueInfo.queueFamilyIndex = queue;
 		}
 
-		VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
-		dynamicRendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-		dynamicRendering.dynamicRendering = VK_TRUE;
-
-		VkPhysicalDeviceVulkan11Features vulkan11Features{};
-		vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-		vulkan11Features.shaderDrawParameters = VK_TRUE;
-		vulkan11Features.pNext = &dynamicRendering;
-
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pNext = &vulkan11Features;
+		createInfo.pNext = &enabledFeatures;
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueInfos.size());
 		createInfo.pQueueCreateInfos = deviceQueueInfos.data();
-		createInfo.pEnabledFeatures = &enabledFeatures;
+		createInfo.pEnabledFeatures = nullptr;
 
 		std::vector<const char*> enabledExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
@@ -296,7 +287,7 @@ namespace Lamp
 		vkFreeCommandBuffers(m_device, m_graphicsCommandPool, 1, &cmdBuffer);
 	}
 
-	Ref<GraphicsDevice> GraphicsDevice::Create(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures enabledFeatures)
+	Ref<GraphicsDevice> GraphicsDevice::Create(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures2 enabledFeatures)
 	{
 		return CreateRef<GraphicsDevice>(physicalDevice, enabledFeatures);
 	}

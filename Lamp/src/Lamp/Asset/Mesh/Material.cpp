@@ -49,15 +49,22 @@ namespace Lamp
 
 	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const
 	{
+		LP_PROFILE_FUNCTION();
+
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
-		
+
 		m_renderPipeline->Bind(commandBuffer);
-		
+
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
 			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex][i]);
 		}
+	}
+
+	void Material::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	{
+		m_renderPipeline->SetPushConstant(cmdBuffer, offset, size, data);
 	}
 
 	void Material::SetTexture(uint32_t binding, Ref<Texture2D> texture)
@@ -132,7 +139,7 @@ namespace Lamp
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set].at(binding);
+						writeDescriptor.pBufferInfo = &shaderResources.storageBuffersInfos[set].at(binding).info;
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
@@ -140,9 +147,9 @@ namespace Lamp
 					}
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];
-					m_descriptorSetBindings[i].emplace_back(set);
 				}
-
+				
+				m_descriptorSetBindings[i].emplace_back(set);
 				index++;
 			}
 		}
@@ -176,8 +183,8 @@ namespace Lamp
 				{
 					Ref<ShaderStorageBuffer> ssb = ShaderStorageBufferRegistry::Get(set, binding)->Get(i);
 
-					info.buffer = ssb->GetHandle();
-					info.range = ssb->GetSize();
+					info.info.buffer = ssb->GetHandle();
+					info.info.range = ssb->GetSize();
 				}
 			}
 
