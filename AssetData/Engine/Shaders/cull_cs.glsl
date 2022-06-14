@@ -67,8 +67,8 @@ void main()
 	if (globalId < u_cullData.drawCount)
 	{	
 		uint batchId = u_drawBuffer.draws[globalId].batchId;
-		uint index = atomicAdd(u_countBuffer.counts[batchId], 1);
+		atomicAdd(u_countBuffer.counts[batchId], 1);
 	
-		u_objectMap.objectMap[index] = u_drawBuffer.draws[globalId].objectId;
+		u_objectMap.objectMap[globalId] = u_drawBuffer.draws[globalId].objectId;
 	}
 }

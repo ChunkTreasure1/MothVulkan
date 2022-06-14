@@ -40,8 +40,11 @@ void Sandbox::OnAttach()
 			
 			auto& tag = entity.AddComponent<Lamp::TagComponent>();
 			tag.tag = "Entity";
-
-			m_selectedEntities.emplace_back(entity);
+		
+			if (i == 0 && j == 0)
+			{
+				m_selectedEntities.emplace_back(entity);
+			}
 		}
 	}
 	 

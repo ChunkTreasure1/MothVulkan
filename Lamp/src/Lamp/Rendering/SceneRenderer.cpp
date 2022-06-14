@@ -45,9 +45,9 @@ namespace Lamp
 
 				const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
 					glm::scale(glm::mat4(1.f), transformComp.scale) *
-					glm::rotate(glm::mat4(1.f), transformComp.rotation.x, glm::vec3(1, 0, 0)) *
-					glm::rotate(glm::mat4(1.f), transformComp.rotation.y, glm::vec3(0, 1, 0)) *
-					glm::rotate(glm::mat4(1.f), transformComp.rotation.z, glm::vec3(0, 0, 1));
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1));
 
 				Renderer::Submit(mesh, transform);
 			}

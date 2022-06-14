@@ -389,6 +389,17 @@ namespace Lamp
 			s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
 		}
 
+		{
+			uint32_t* ids = ShaderStorageBufferRegistry::Get(1, 1)->Get(currentFrame)->Map<uint32_t>();
+
+			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			{
+				ids[i] = 0;
+			}
+
+			ShaderStorageBufferRegistry::Get(1, 1)->Get(currentFrame)->Unmap();
+		}
+
 		//Cull dispatch
 		{
 			s_rendererData->indirectCullPipeline->SetUniformBuffer(UniformBufferRegistry::Get(0, 0), 0, 0);
