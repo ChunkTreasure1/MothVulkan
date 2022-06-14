@@ -9,6 +9,7 @@
 #include "Lamp/Rendering/Framebuffer.h"
 #include "Lamp/Rendering/Shader/Shader.h"
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
+#include "Lamp/Rendering/Renderer.h"
 
 #include "Lamp/Utility/ImageUtility.h"
 
@@ -385,11 +386,14 @@ namespace Lamp
 
 	void RenderPipeline::Release()
 	{
-		if (m_pipeline != VK_NULL_HANDLE)
-		{
-			auto device = GraphicsContext::GetDevice();
-			vkDestroyPipelineLayout(device->GetHandle(), m_pipelineLayout, nullptr);
-			vkDestroyPipeline(device->GetHandle(), m_pipeline, nullptr);
-		}
+		Renderer::SubmitDestroy([pipeline = m_pipeline, pipelineLayout = m_pipelineLayout]() 
+			{
+				if (pipeline != VK_NULL_HANDLE)
+				{
+					auto device = GraphicsContext::GetDevice();
+					vkDestroyPipelineLayout(device->GetHandle(), pipelineLayout, nullptr);
+					vkDestroyPipeline(device->GetHandle(), pipeline, nullptr);
+				}
+			});
 	}
 }

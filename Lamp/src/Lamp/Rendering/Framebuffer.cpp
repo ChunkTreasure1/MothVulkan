@@ -247,6 +247,7 @@ namespace Lamp
 	{
 		m_width = width;
 		m_height = height;
+		m_firstBind = true;
 
 		Invalidate();
 	}

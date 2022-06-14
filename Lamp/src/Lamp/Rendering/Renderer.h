@@ -3,6 +3,8 @@
 #include "Lamp/Core/Base.h"
 #include "Lamp/Asset/Mesh/SubMesh.h"
 
+#include "Lamp/Rendering/DeletionQueue.hpp"
+
 #include <vulkan/vulkan.h>
 #include <functional>
 
@@ -64,8 +66,9 @@ namespace Lamp
 
 		static void Draw(); // WILL BE REMOVED
 
-		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
+		static void SubmitDestroy(std::function<void()>&& function);
 
+		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }
 
 	private:
@@ -83,12 +86,13 @@ namespace Lamp
 
 		struct RendererData
 		{
+			std::vector<DeletionQueue> frameDeletionQueues;
+
 			Ref<CommandBuffer> commandBuffer;
 			Ref<Framebuffer> currentFramebuffer;
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
 			Ref<ShaderStorageBufferSet> indirectCountBuffer;
-
 			Ref<ShaderStorageBufferSet> objectBuffer;
 
 			Ref<RenderPipelineCompute> indirectCullPipeline;

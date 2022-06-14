@@ -6,6 +6,8 @@
 #include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 
+#include "Lamp/Rendering/Renderer.h"
+
 #include "Lamp/Utility/ImageUtility.h"
 
 namespace Lamp
@@ -150,19 +152,22 @@ namespace Lamp
 			return;
 		}
 
-		auto device = GraphicsContext::GetDevice();
+		Renderer::SubmitDestroy([sampler = m_sampler, imageViews = m_imageViews, image = m_image, bufferAllocation = m_bufferAllocation]()
+			{
+				auto device = GraphicsContext::GetDevice();
 
-		vkDestroySampler(device->GetHandle(), m_sampler, nullptr);
+				vkDestroySampler(device->GetHandle(), sampler, nullptr);
 
-		for (auto& imageView : m_imageViews)
-		{
-			vkDestroyImageView(device->GetHandle(), imageView.second, nullptr);
-		}
+				for (auto& imageView : imageViews)
+				{
+					vkDestroyImageView(device->GetHandle(), imageView.second, nullptr);
+				}
+
+				VulkanAllocator allocator{ "Image2D - Destroy" };
+				allocator.DestroyImage(image, bufferAllocation);
+			});
+
 		m_imageViews.clear();
-
-		VulkanAllocator allocator{ "Image2D - Destroy" };
-		allocator.DestroyImage(m_image, m_bufferAllocation);
-
 		m_image = nullptr;
 		m_bufferAllocation = nullptr;
 	}

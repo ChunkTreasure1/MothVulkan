@@ -47,10 +47,11 @@ namespace Lamp
 
 	void Renderer::InitializeBuffers()
 	{
-		s_rendererData = CreateScope<RendererData>();
-
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		constexpr uint32_t MAX_OBJECT_COUNT = 200000;
+		
+		s_rendererData = CreateScope<RendererData>();
+		s_rendererData->frameDeletionQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
@@ -67,8 +68,14 @@ namespace Lamp
 			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[i], nullptr);
 		}
 		
-		s_rendererData = nullptr;
 		s_defaultData = nullptr;
+	
+		for (size_t i = 0; i < s_rendererData->frameDeletionQueues.size(); i++)
+		{
+			s_rendererData->frameDeletionQueues[i].Flush();
+		}
+		
+		s_rendererData = nullptr;
 	}
 
 	void Renderer::Begin()
@@ -79,6 +86,8 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
+		s_rendererData->frameDeletionQueues[currentFrame].Flush();
+
 		SortRenderCommands();
 		UploadAndCullRenderCommands();
 		
@@ -183,6 +192,12 @@ namespace Lamp
 				vkCmdDrawIndexedIndirectCount(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentIndirectBuffer->GetHandle(), drawOffset, currentCountBuffer->GetHandle(), countOffset, draws[i].count, drawStride);
 			}
 		}
+	}
+
+	void Renderer::SubmitDestroy(std::function<void()>&& function)
+	{
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		s_rendererData->frameDeletionQueues[currentFrame].Push(function);
 	}
 
 	VkDescriptorSet Renderer::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)

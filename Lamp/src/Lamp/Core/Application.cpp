@@ -66,17 +66,16 @@ namespace Lamp
 		m_layerStack.Clear();
 		m_imguiImplementation = nullptr;
 
-		Renderer::Shutdowm();
-
 		ShaderStorageBufferRegistry::Shutdowm();
 		UniformBufferRegistry::Shutdowm();
 		RenderPipelineRegistry::Shutdown();
 		RenderPassRegistry::Shutdown();
 		ShaderRegistry::Shutdown();
 
-		m_assetManager = nullptr;
-		m_window = nullptr;
 
+		m_assetManager = nullptr;
+		Renderer::Shutdowm();
+		m_window = nullptr;
 		s_instance = nullptr;
 	}
 
