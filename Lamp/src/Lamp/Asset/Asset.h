@@ -38,6 +38,7 @@ namespace Lamp
 	{
 		{ ".fbx", AssetType::MeshSource },
 		{ ".gltf", AssetType::MeshSource },
+		{ ".glb", AssetType::MeshSource },
 		{ ".lgf", AssetType::Mesh },
 
 		{ ".lpsk", AssetType::Skeleton },

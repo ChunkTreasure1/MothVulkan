@@ -94,6 +94,7 @@ namespace Lamp
 		vk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
 		vk12Features.pNext = &vulkan11Features;
 		vk12Features.drawIndirectCount = VK_TRUE;
+		vk12Features.samplerFilterMinmax = VK_TRUE;
 
 		VkPhysicalDeviceFeatures2 enabledFeatures{};
 		enabledFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;

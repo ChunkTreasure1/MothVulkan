@@ -38,6 +38,7 @@ namespace Lamp
 
 	private:
 		friend class FbxImporter;
+		friend class GLTFImporter;
 
 		std::vector<SubMesh> m_subMeshes;
 		std::unordered_map<uint32_t, Ref<Material>>	m_materials;

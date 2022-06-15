@@ -52,7 +52,8 @@ project "Launcher"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Wire}",
-		"%{IncludeDir.Optick}"
+		"%{IncludeDir.Optick}",
+		"%{IncludeDir.TinyGLTF}"
 	}
 
     links

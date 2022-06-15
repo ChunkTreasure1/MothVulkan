@@ -56,7 +56,8 @@ project "Sandbox"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Wire}",
 		"%{IncludeDir.vma}",
-		"%{IncludeDir.Optick}"
+		"%{IncludeDir.Optick}",
+		"%{IncludeDir.TinyGLTF}"
 	}
 
     links

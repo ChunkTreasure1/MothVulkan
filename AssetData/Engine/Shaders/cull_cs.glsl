@@ -101,7 +101,6 @@ void main()
 		{
 			const uint batchId = u_drawBuffer.draws[globalId].batchId;
 			const uint drawIndex = atomicAdd(u_countBuffer.counts[batchId], 1);
-
 			const uint baseIndex = u_drawBuffer.draws[globalId].firstInstance;
 
 			u_objectMap.objectMap[baseIndex + drawIndex] = objectId;

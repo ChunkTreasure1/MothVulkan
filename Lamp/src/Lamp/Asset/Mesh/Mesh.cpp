@@ -28,7 +28,6 @@ namespace Lamp
 		glm::vec3 center = (maxAABB + minAABB) * 0.5f;
 		float radius = glm::length(minAABB - maxAABB);
 
-		m_boundingSphere = { glm::vec4{ center.x, center.y, center.z, radius }};
-		m_boundingSphere.centerAndRadius.w *= 0.01f;
+		m_boundingSphere = { center, radius };
 	}
 }

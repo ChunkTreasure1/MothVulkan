@@ -73,11 +73,11 @@ namespace Lamp
 			return;
 		}
 
-		if (fbxMesh->GetElementBinormalCount() == 0 || fbxMesh->GetElementTangentCount() == 0)
-		{
-			bool result = fbxMesh->GenerateTangentsData(0, true, false);
-			LP_CORE_ASSERT(result, "Unable to generate tangent data!");
-		}
+		//if (fbxMesh->GetElementBinormalCount() == 0 || fbxMesh->GetElementTangentCount() == 0)
+		//{
+		//	bool result = fbxMesh->GenerateTangentsData(0, true, false);
+		//	LP_CORE_ASSERT(result, "Unable to generate tangent data!");
+		//}
 
 		Ref<Material> material;
 		int32_t matIndex = 0;
@@ -91,11 +91,7 @@ namespace Lamp
 
 				if (sceneMaterial == meshMaterial)
 				{
-					if (mesh->m_materials.find(sceneMatIndex) != mesh->m_materials.end())
-					{
-						material = mesh->m_materials[sceneMatIndex];
-					}
-					else
+					if (mesh->m_materials.find(sceneMatIndex) == mesh->m_materials.end())
 					{
 						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("trimesh"));
 						mesh->m_materials[sceneMatIndex] = material;

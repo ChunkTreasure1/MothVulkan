@@ -43,6 +43,8 @@ project "Lamp"
 		"vendor/stb/**.cpp",
 		"vendor/stb/**.h",
 
+		"vendor/tiny_gltf/**.h",
+
 		"%{IncludeDir.shaderc_glslc}/**.cc",
 		"%{IncludeDir.shaderc_glslc}/**.h",
 
@@ -66,7 +68,8 @@ project "Lamp"
 		"%{IncludeDir.shaderc_utils}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Wire}",
-		"%{IncludeDir.Optick}"
+		"%{IncludeDir.Optick}",
+		"%{IncludeDir.TinyGLTF}"
 	}
 
 	defines

@@ -344,15 +344,15 @@ namespace Lamp
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
-				objectData[i].transform = s_rendererData->renderCommands[i].transform;
-			
-				glm::vec4 centerRadius = s_rendererData->renderCommands[i].mesh->GetBoundingSphere().centerAndRadius;
+				const BoundingSphere& boundingSphere = s_rendererData->renderCommands[i].mesh->GetBoundingSphere();
 
-				centerRadius.w = 1.f;
-				centerRadius = objectData[i].transform * centerRadius;
-				centerRadius.w = s_rendererData->renderCommands[i].mesh->GetBoundingSphere().centerAndRadius.w;
-
-				objectData[i].sphereBounds = centerRadius;
+				const glm::mat4 transform = s_rendererData->renderCommands[i].transform;
+				const glm::vec3 globalScale = { glm::length(transform[0]), glm::length(transform[1]), glm::length(transform[2]) };
+				const glm::vec3 globalCenter = transform * glm::vec4(boundingSphere.center, 1.f);
+				const float maxScale = std::max(globalScale.x, std::max(globalScale.y, globalScale.z));
+								
+				objectData[i].transform = transform;
+				objectData[i].sphereBounds = glm::vec4(globalCenter, boundingSphere.radius * maxScale * 0.5f);
 			}
 
 			currentObjectBuffer->Unmap();

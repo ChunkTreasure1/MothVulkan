@@ -22,21 +22,21 @@ Sandbox::~Sandbox()
 
 void Sandbox::OnAttach()
 {
-	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 100.f);
+	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 1000.f);
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	for (uint32_t i = 0; i < 10; i++)
+	for (uint32_t i = 0; i < 1; i++)
 	{
-		for (uint32_t j = 0; j < 10; j++)
+		for (uint32_t j = 0; j < 1; j++)
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/SM_Particle_Chest.fbx");
+			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Sponza2022.glb");
 
 			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
-			transform.scale = { 0.01f, 0.01f, 0.01f };
-			transform.position = { i * 2, 0.f, j * 2 };
+			transform.scale = { 1.f, 1.f, 1.f };
+			transform.position = { i * 30, 0.f, j * 30 };
 			
 			auto& tag = entity.AddComponent<Lamp::TagComponent>();
 			tag.tag = "Entity";

@@ -6,6 +6,7 @@ namespace Lamp
 {
 	struct BoundingSphere
 	{
-		glm::vec4 centerAndRadius;
+		glm::vec3 center;
+		float radius;
 	};
 }

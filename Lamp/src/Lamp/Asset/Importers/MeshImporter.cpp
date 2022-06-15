@@ -2,12 +2,14 @@
 #include "MeshImporter.h"
 
 #include "FbxImporter.h"
+#include "GLTFImporter.h"
 
 namespace Lamp
 {
 	void MeshImporter::Initialize()
 	{
 		s_importers[MeshFormat::Fbx] = CreateScope<FbxImporter>();
+		s_importers[MeshFormat::GLTF] = CreateScope<GLTFImporter>();
 	}
 
 	void MeshImporter::Shutdown()
