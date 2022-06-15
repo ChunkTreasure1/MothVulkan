@@ -87,26 +87,24 @@ bool IsVisible(uint objectId)
 	return visible;
 }
 
-shared uint m_lastIndex = 0
-
 layout (local_size_x = 256) in;
 void main()
 {
-	uint globalId = gl_GlobalInvocationID.x;
+	const uint globalId = gl_GlobalInvocationID.x;
 
 	if (globalId < u_cullData.drawCount)
 	{	
-		uint objectId = u_drawBuffer.draws[globalId].objectId;
-		bool visible = IsVisible(objectId);
+		const uint objectId = u_drawBuffer.draws[globalId].objectId;
+		const bool visible = IsVisible(objectId);
 
 		if (visible)
 		{
-			uint batchId = u_drawBuffer.draws[globalId].batchId;
-			uint drawIndex = atomicAdd(u_countBuffer.counts[batchId], 1);
+			const uint batchId = u_drawBuffer.draws[globalId].batchId;
+			const uint drawIndex = atomicAdd(u_countBuffer.counts[batchId], 1);
 
-			
+			const uint baseIndex = u_drawBuffer.draws[globalId].firstInstance;
 
-			u_objectMap.objectMap[drawIndex + (100 * batchId)] = globalId;
+			u_objectMap.objectMap[baseIndex + drawIndex] = objectId;
 		}
 	}
 }

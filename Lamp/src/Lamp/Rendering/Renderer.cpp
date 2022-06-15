@@ -398,9 +398,9 @@ namespace Lamp
 				if (it != draws.end())
 				{
 					drawCommands[i].batchId = it->id;
+					drawCommands[i].command.firstInstance = it->first;
 				}
 
-				drawCommands[i].command.firstInstance = drawCommands[i].batchId;
 			}
 
 			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();

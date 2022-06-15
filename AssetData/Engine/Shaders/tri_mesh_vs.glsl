@@ -23,9 +23,9 @@ layout(std430, set = 1, binding = 1) readonly buffer ObjectMapBuffer
 
 void main()
 {
-    uint meshIndex = u_objectMap.objectMap[gl_BaseInstance];
+    uint meshIndex = u_objectMap.objectMap[gl_BaseInstance + gl_DrawID];
 
-    v_drawId = meshIndex;
+    v_drawId = gl_BaseInstance + gl_DrawID;
     
     v_texCoords = a_texCoords;
     gl_Position = u_cameraBuffer.viewProj * u_objectBuffer.objects[meshIndex].transform * vec4(a_position, 1.f);

@@ -10,6 +10,6 @@ layout(set = 3, binding = 0) uniform sampler2D u_albedo;
 void main()
 {
     vec3 color = texture(u_albedo, v_texCoords).xyz;
-    o_color = vec4(float(v_drawId) / 200);
+    o_color = vec4(1, 0, 1, 1);
     o_color.w = 1;
 }
