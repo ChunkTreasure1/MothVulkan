@@ -13,6 +13,7 @@
 
 #include "Lamp/Rendering/Texture/Image2D.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
+#include "Lamp/Rendering/Renderer.h"
 
 #include "Lamp/Utility/ImageUtility.h"
 
@@ -23,6 +24,19 @@ namespace Lamp
 	{
 		CreatePipeline();
 		AllocateAndSetupDescriptorsAndBarriers();
+	}
+
+	RenderPipelineCompute::~RenderPipelineCompute()
+	{
+		Renderer::SubmitDestroy([pipelineLayout = m_pipelineLayout, pipelineCache = m_pipelineCache, pipeline = m_pipeline, descriptorPool = m_descriptorPool]() 
+			{
+				auto device = GraphicsContext::GetDevice();
+				
+				vkDestroyDescriptorPool(device->GetHandle(), descriptorPool, nullptr);
+				vkDestroyPipelineCache(device->GetHandle(), pipelineCache, nullptr);
+				vkDestroyPipeline(device->GetHandle(), pipeline, nullptr);
+				vkDestroyPipelineLayout(device->GetHandle(), pipelineLayout, nullptr);
+			});
 	}
 
 	void RenderPipelineCompute::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex)

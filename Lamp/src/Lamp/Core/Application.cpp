@@ -177,7 +177,7 @@ namespace Lamp
 
 			{
 				LP_PROFILE_SCOPE("Application::ImGui")
-				m_imguiImplementation->Begin();
+					m_imguiImplementation->Begin();
 
 				AppImGuiUpdateEvent imguiEvent{};
 				OnEvent(imguiEvent);

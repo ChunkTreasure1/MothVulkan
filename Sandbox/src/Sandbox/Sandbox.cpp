@@ -36,7 +36,7 @@ void Sandbox::OnAttach()
 
 			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
 			transform.scale = { 0.01f, 0.01f, 0.01f };
-			transform.position = { i, 0.f, j };
+			transform.position = { i * 2, 0.f, j * 2 };
 			
 			auto& tag = entity.AddComponent<Lamp::TagComponent>();
 			tag.tag = "Entity";
@@ -48,7 +48,7 @@ void Sandbox::OnAttach()
 		}
 	}
 	 
-	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer));
+	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
 	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities));
 }
 

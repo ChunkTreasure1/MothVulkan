@@ -18,7 +18,7 @@ namespace Lamp
 	{
 	public:
 		RenderPipelineCompute(Ref<Shader> computeShader, uint32_t count);
-		~RenderPipelineCompute() = default;
+		~RenderPipelineCompute();
 
 		void Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0);
 		void InsertBarrier(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0, VkPipelineStageFlags pipelineStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);

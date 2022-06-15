@@ -82,12 +82,11 @@ namespace Lamp
 		static void UpdatePerFrameBuffers();
 
 		static void SortRenderCommands();
-		static void UploadAndCullRenderCommands();
+		static void UploadRenderCommands();
+		static void CullRenderCommands();
 
 		struct RendererData
 		{
-			std::vector<DeletionQueue> frameDeletionQueues;
-
 			Ref<CommandBuffer> commandBuffer;
 			Ref<Framebuffer> currentFramebuffer;
 
@@ -105,5 +104,6 @@ namespace Lamp
 
 		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
+		inline static std::vector<DeletionQueue> s_frameDeletionQueues;
 	};
 }

@@ -30,6 +30,9 @@ namespace Lamp
 
 		inline const float GetFieldOfView() const { return m_fieldOfView; }
 		inline const float GetAspectRatio() const { return m_aspectRatio; }
+		
+		inline const float GetNearPlane() const { return m_nearPlane; }
+		inline const float GetFarPlane() const { return m_farPlane; }
 
 		glm::vec3 GetUp() const;
 		glm::vec3 GetRight() const;

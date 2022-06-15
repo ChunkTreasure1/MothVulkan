@@ -4,6 +4,7 @@
 #include "Lamp/Asset/Mesh/SubMesh.h"
 
 #include "Lamp/Rendering/Vertex.h"
+#include "Lamp/Rendering/BoundingStructures.h"
 
 #include <vector>
 #include <unordered_map>
@@ -27,6 +28,7 @@ namespace Lamp
 
 		inline const size_t GetVertexCount() const { return m_vertices.size(); }
 		inline const size_t GetIndexCount() const { return m_indices.size(); }
+		inline const BoundingSphere& GetBoundingSphere() const { return m_boundingSphere; }
 		
 		inline const Ref<VertexBuffer>& GetVertexBuffer() const { return m_vertexBuffer; }
 		inline const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
@@ -46,6 +48,7 @@ namespace Lamp
 		Ref<VertexBuffer> m_vertexBuffer;
 		Ref<IndexBuffer> m_indexBuffer;
 
+		BoundingSphere m_boundingSphere;
 		std::string m_name;
 	};
 }

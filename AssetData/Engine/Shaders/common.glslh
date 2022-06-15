@@ -5,3 +5,9 @@ layout(set = 0, binding = 0) uniform CameraBuffer
     mat4 viewProj;
 
 } u_cameraBuffer;
+
+struct ObjectData
+{
+    mat4 transform;
+    vec4 sphereBounds;
+};

@@ -143,7 +143,7 @@ void PropertiesPanel::UpdateContent()
 							case Wire::ComponentRegistry::PropertyType::Vector4: UI::Property(prop.name, *(glm::vec4*)(&data[offset])); break;
 						}
 
-						offset += size;
+						offset += size; 
 					}
 
 					UI::EndProperties();

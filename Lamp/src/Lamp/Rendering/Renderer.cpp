@@ -1,6 +1,9 @@
 #include "lppch.h"
 #include "Renderer.h"
 
+#include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/Mesh/Mesh.h"
+
 #include "Lamp/Core/Application.h"
 #include "Lamp/Core/Window.h"
 #include "Lamp/Core/Graphics/Swapchain.h"
@@ -27,8 +30,7 @@
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
 
-#include "Lamp/Asset/Mesh/Material.h"
-#include "Lamp/Asset/Mesh/Mesh.h"
+#include "Lamp/Utility/Math.h"
 
 namespace Lamp
 {
@@ -49,9 +51,9 @@ namespace Lamp
 	{
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		constexpr uint32_t MAX_OBJECT_COUNT = 200000;
-		
+
 		s_rendererData = CreateScope<RendererData>();
-		s_rendererData->frameDeletionQueues.resize(framesInFlight);
+		s_frameDeletionQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
@@ -67,15 +69,14 @@ namespace Lamp
 		{
 			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[i], nullptr);
 		}
-		
+
 		s_defaultData = nullptr;
-	
-		for (size_t i = 0; i < s_rendererData->frameDeletionQueues.size(); i++)
-		{
-			s_rendererData->frameDeletionQueues[i].Flush();
-		}
-		
 		s_rendererData = nullptr;
+
+		for (size_t i = 0; i < s_frameDeletionQueues.size(); i++)
+		{
+			s_frameDeletionQueues[i].Flush();
+		}
 	}
 
 	void Renderer::Begin()
@@ -86,11 +87,11 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
-		s_rendererData->frameDeletionQueues[currentFrame].Flush();
+		s_frameDeletionQueues[currentFrame].Flush();
 
 		SortRenderCommands();
-		UploadAndCullRenderCommands();
-		
+		UploadRenderCommands();
+
 		UpdatePerFrameBuffers();
 	}
 
@@ -106,6 +107,7 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 		s_rendererData->passCamera = camera;
 
+		CullRenderCommands();
 		UpdatePerPassBuffers();
 
 		// Begin RenderPass
@@ -197,7 +199,7 @@ namespace Lamp
 	void Renderer::SubmitDestroy(std::function<void()>&& function)
 	{
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
-		s_rendererData->frameDeletionQueues[currentFrame].Push(function);
+		s_frameDeletionQueues[currentFrame].Push(function);
 	}
 
 	VkDescriptorSet Renderer::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
@@ -206,12 +208,12 @@ namespace Lamp
 
 		auto device = GraphicsContext::GetDevice();
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
-		
+
 		allocInfo.descriptorPool = s_rendererData->descriptorPools[currentFrame];
-		
+
 		VkDescriptorSet descriptorSet;
 		LP_VK_CHECK(vkAllocateDescriptorSets(device->GetHandle(), &allocInfo, &descriptorSet));
-		
+
 		return descriptorSet;
 	}
 
@@ -315,7 +317,7 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
-		
+
 		// Update camera data
 		{
 			auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
@@ -328,7 +330,7 @@ namespace Lamp
 			currentCameraBuffer->Unmap();
 		}
 	}
-	
+
 	void Renderer::UpdatePerFrameBuffers()
 	{
 		LP_PROFILE_FUNCTION();
@@ -343,12 +345,20 @@ namespace Lamp
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
 				objectData[i].transform = s_rendererData->renderCommands[i].transform;
+			
+				glm::vec4 centerRadius = s_rendererData->renderCommands[i].mesh->GetBoundingSphere().centerAndRadius;
+
+				centerRadius.w = 1.f;
+				centerRadius = objectData[i].transform * centerRadius;
+				centerRadius.w = s_rendererData->renderCommands[i].mesh->GetBoundingSphere().centerAndRadius.w;
+
+				objectData[i].sphereBounds = centerRadius;
 			}
 
 			currentObjectBuffer->Unmap();
 		}
 	}
-	
+
 	void Renderer::SortRenderCommands()
 	{
 		LP_PROFILE_FUNCTION();
@@ -357,8 +367,8 @@ namespace Lamp
 			return lhs.subMesh > rhs.subMesh || lhs.mesh > rhs.mesh;
 		});
 	}
-	
-	void Renderer::UploadAndCullRenderCommands()
+
+	void Renderer::UploadRenderCommands()
 	{
 		LP_PROFILE_FUNCTION();
 
@@ -377,7 +387,6 @@ namespace Lamp
 				drawCommands[i].command.firstIndex = cmd.subMesh.indexStartOffset;
 				drawCommands[i].command.vertexOffset = cmd.subMesh.vertexStartOffset;
 				drawCommands[i].command.instanceCount = 1;
-				drawCommands[i].command.firstInstance = i;
 				drawCommands[i].objectId = i;
 
 				// TODO: this is probably not performant
@@ -390,18 +399,11 @@ namespace Lamp
 				{
 					drawCommands[i].batchId = it->id;
 				}
+
+				drawCommands[i].command.firstInstance = drawCommands[i].batchId;
 			}
 
 			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
-
-			uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
-			
-			for (uint32_t i = 0; i < draws.size(); i++)
-			{
-				drawCount[i] = 0;
-			}
-
-			s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
 		}
 
 		{
@@ -414,24 +416,62 @@ namespace Lamp
 
 			ShaderStorageBufferRegistry::Get(1, 1)->Get(currentFrame)->Unmap();
 		}
+	}
 
-		//Cull dispatch
+	void Renderer::CullRenderCommands()
+	{
+		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
+
+		uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
+
+		std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
+
+		for (uint32_t i = 0; i < draws.size(); i++)
 		{
-			s_rendererData->indirectCullPipeline->SetUniformBuffer(UniformBufferRegistry::Get(0, 0), 0, 0);
-			s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-			s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-			s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+			drawCount[i] = 0;
+		}
 
-			s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
-			
+		s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
+
+		s_rendererData->indirectCullPipeline->SetUniformBuffer(UniformBufferRegistry::Get(0, 0), 0, 0);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+
+		s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+
+		// Set cull data
+		{
+			glm::mat4 projection = s_rendererData->passCamera->GetProjection();
+			glm::mat4 projectionTrans = glm::transpose(projection);
+
+			glm::vec4 frustumX = Math::NormalizePlane(projectionTrans[3] + projectionTrans[0]);
+			glm::vec4 frustumY = Math::NormalizePlane(projectionTrans[3] + projectionTrans[1]);
+
 			CullData cullData{};
+			cullData.view = s_rendererData->passCamera->GetView();
+			cullData.P00 = projection[0][0];
+			cullData.P11 = projection[1][1];
+			cullData.zNear = s_rendererData->passCamera->GetNearPlane();
+			cullData.zFar = s_rendererData->passCamera->GetFarPlane();
+
+			cullData.frustum[0] = frustumX.x;
+			cullData.frustum[1] = frustumX.z;
+			cullData.frustum[2] = frustumY.y;
+			cullData.frustum[3] = frustumY.z;
+
 			cullData.drawCount = (uint32_t)s_rendererData->renderCommands.size();
 
-			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), 0, sizeof(CullData), &cullData);
+			cullData.cullingEnabled = true;
+			cullData.lodEnabled = true;
+			cullData.distCull = 0;
 
-			const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
-			s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
-			s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
+			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), 0, sizeof(CullData), &cullData);
 		}
+
+		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
+		s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
+		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 	}
 }

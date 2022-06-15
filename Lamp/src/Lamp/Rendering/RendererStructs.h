@@ -15,7 +15,14 @@ namespace Lamp
 	struct ObjectData
 	{
 		glm::mat4 transform;
+		glm::vec4 sphereBounds;
 	};	
+
+	struct ObjectMapData
+	{
+		uint32_t id;
+		uint32_t batchId;
+	};
 
 	struct GPUIndirectObject
 	{
@@ -24,8 +31,6 @@ namespace Lamp
 		uint32_t batchId;
 		uint32_t padding;
 	};
-	
-
 
 	struct CullData
 	{

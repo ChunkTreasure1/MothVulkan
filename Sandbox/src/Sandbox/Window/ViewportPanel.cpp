@@ -1,12 +1,14 @@
 #include "sbpch.h"
 #include "ViewportPanel.h"
 
+#include <Lamp/Rendering/Camera/EditorCameraController.h>
+
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Framebuffer.h>
 #include <Lamp/Utility/UIUtility.h>
 
-ViewportPanel::ViewportPanel(Ref<Lamp::SceneRenderer> sceneRenderer)
-	: EditorWindow("Viewport"), m_sceneRenderer(sceneRenderer)
+ViewportPanel::ViewportPanel(Ref<Lamp::SceneRenderer> sceneRenderer, Lamp::EditorCameraController* cameraController)
+	: EditorWindow("Viewport"), m_sceneRenderer(sceneRenderer), m_editorCameraController(cameraController)
 {
 	m_isOpen = true;
 	m_windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
@@ -50,6 +52,8 @@ void ViewportPanel::UpdateContent()
 	{
 		m_viewportSize = { viewportSize.x, viewportSize.y };
 		m_sceneRenderer->Resize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+
+		m_editorCameraController->UpdateProjection((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
 	}
 
 	ImGui::Image(UI::GetTextureID(m_sceneRenderer->GetFinalFramebuffer()->GetColorAttachment(0)), size);
