@@ -48,10 +48,10 @@ namespace Lamp
 				transformComp.rotation.z += 1.f;
 
 				const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
-					glm::scale(glm::mat4(1.f), transformComp.scale) *
 					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
 					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1));
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1)) *
+					glm::scale(glm::mat4(1.f), transformComp.scale);
 
 				Renderer::Submit(mesh, transform);
 			}

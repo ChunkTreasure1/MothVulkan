@@ -26,17 +26,17 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	for (uint32_t i = 0; i < 5; i++)
+	for (uint32_t i = 0; i < 3; i++)
 	{
-		for (uint32_t j = 0; j < 5; j++)
+		for (uint32_t j = 0; j < 3; j++)
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/LampSkull.glb");
+			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Sponza2022.glb");
 
 			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
 			transform.scale = { 1.f, 1.f, 1.f };
-			transform.position = { i * 2, 0.f, j * 2 };
+			transform.position = { i * 40, 0.f, j * 40 };
 
 			auto& tag = entity.AddComponent<Lamp::TagComponent>();
 			tag.tag = "Entity";
