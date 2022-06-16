@@ -3,9 +3,16 @@
 
 #include "Lamp/Log/Log.h"
 #include "Lamp/Asset/Importers/TextureImporter.h"
+#include "Lamp/Asset/Mesh/MultiMaterial.h"
+#include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/AssetManager.h"
+
+#include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
 #include "Lamp/Rendering/Texture/Texture2D.h"
 #include "Lamp/Rendering/Shader/Shader.h"
+
+#include "Lamp/Utility/SerializationMacros.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -96,4 +103,86 @@ namespace Lamp
 	{
 
 	}
+
+	bool MultiMaterialImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
+	{
+		asset = CreateRef<MultiMaterial>();
+		if (!std::filesystem::exists(path)) [[unlikely]]
+		{
+			LP_CORE_ERROR("File {0} not found!", path.string().c_str());
+			asset->SetFlag(AssetFlag::Missing, true);
+			return false;
+		}
+
+		std::ifstream file(path);
+		if (!file.is_open()) [[unlikely]]
+		{
+			LP_CORE_ERROR("Failed to open file: {0}!", path.string().c_str());
+			asset->SetFlag(AssetFlag::Invalid, true);
+			return false;
+		}
+
+		std::stringstream sstream;
+		sstream << file.rdbuf();
+		file.close();
+
+		YAML::Node root = YAML::Load(sstream.str());
+		YAML::Node multiMaterialNode = root["MultiMaterial"];
+
+		std::string nameString;
+		LP_DESERIALIZE_PROPERTY(name, nameString, multiMaterialNode, std::string("Null"));
+
+		std::unordered_map<uint32_t, Ref<Material>> materials;
+
+		YAML::Node materialsNode = multiMaterialNode["materials"];
+		for (const auto& materialNode : materialsNode)
+		{
+			std::string materialNameString;
+			LP_DESERIALIZE_PROPERTY(material, materialNameString, materialNode, std::string("Null"));
+
+			uint32_t materialIndex;
+			LP_DESERIALIZE_PROPERTY(index, materialIndex, materialNode, 0);
+
+			std::string renderPipelineString;
+			LP_DESERIALIZE_PROPERTY(renderPipeline, renderPipelineString, materialNode, std::string("Null"));
+		
+			std::unordered_map<uint32_t, Ref<Texture2D>> textures;
+
+			YAML::Node texturesNode = materialNode["textures"];
+			for (const auto& textureNode : texturesNode)
+			{
+				uint32_t textureBinding;
+				LP_DESERIALIZE_PROPERTY(binding, textureBinding, textureNode, 0);
+				
+				AssetHandle textureHandle;
+				LP_DESERIALIZE_PROPERTY(handle, textureHandle, textureNode, uint64_t(0));
+
+				textures.emplace(textureBinding, AssetManager::GetAsset<Texture2D>(textureHandle));
+			}
+
+			Ref<RenderPipeline> renderPipeline = RenderPipelineRegistry::Get(renderPipelineString);
+			if (!renderPipeline)
+			{
+				// TODO: add default render pipeline in renderer
+			}
+
+			Ref<Material> material = Material::Create(materialNameString, materialIndex, renderPipeline);
+			for (const auto& [binding, texture] : textures)
+			{
+				material->SetTexture(binding, texture);
+			}
+
+			materials.emplace(materialIndex, material);
+		}
+
+		Ref<MultiMaterial> multiMaterial = std::reinterpret_pointer_cast<MultiMaterial>(asset);
+		multiMaterial->m_name = nameString;
+		multiMaterial->m_materials = materials;
+		multiMaterial->path = path;
+		
+		return true;
+	}
+
+	void MultiMaterialImporter::Save(const Ref<Asset>& asset) const
+	{}
 }

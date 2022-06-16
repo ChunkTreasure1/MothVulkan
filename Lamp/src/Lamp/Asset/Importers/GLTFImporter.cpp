@@ -45,6 +45,7 @@ namespace Lamp
 		}
 
 		Ref<Mesh> mesh = CreateRef<Mesh>();
+		mesh->m_material = CreateRef<MultiMaterial>();
 
 		const tinygltf::Scene& scene = gltfInput.scenes[gltfInput.defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
@@ -220,10 +221,10 @@ namespace Lamp
 				subMesh.materialIndex = gltfPrimitive.material;
 				subMesh.GenerateHash();
 
-				if (outMesh->m_materials.find(subMesh.materialIndex) == outMesh->m_materials.end())
+				if (outMesh->m_material->m_materials.find(subMesh.materialIndex) == outMesh->m_material->m_materials.end())
 				{
 					Ref<Material> material = Material::Create(inputModel.materials[subMesh.materialIndex].name, subMesh.materialIndex, RenderPipelineRegistry::Get("trimesh"));
-					outMesh->m_materials[subMesh.materialIndex] = material;
+					outMesh->m_material->m_materials[subMesh.materialIndex] = material;
 				}
 			}
 		}

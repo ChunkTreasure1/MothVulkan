@@ -14,7 +14,7 @@ RenderPass:
         blendMode: "None"
         clearMode: "Clear"
         borderColor: [ 1.0, 1.0, 1.0, 1.0 ]
-        clearColor: [ 1.0, 1.0, 1.0, 1.0 ]
+        clearColor: [ 0.1, 0.1, 0.1, 1.0 ]
         debugName: ""
         copyable: true
       - format: "DEPTH32F"

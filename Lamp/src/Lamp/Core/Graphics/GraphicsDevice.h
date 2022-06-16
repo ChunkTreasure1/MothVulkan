@@ -16,10 +16,11 @@ namespace Lamp
 		{
 			bool IsComplete() const
 			{
-				return graphicsQueueIndex != -1 && presentQueueIndex != -1 && computeQueueIndex != -1;
+				return graphicsQueueIndex != -1 && presentQueueIndex != -1 && computeQueueIndex != -1 && transferQueueIndex != -1;
 			}
 
 			int32_t graphicsQueueIndex = -1;
+			int32_t transferQueueIndex = -1;
 			int32_t presentQueueIndex = -1;
 			int32_t computeQueueIndex = -1;
 		};
@@ -67,6 +68,7 @@ namespace Lamp
 		inline VkDevice GetHandle() const { return m_device; }
 		inline VkQueue GetGraphicsQueue() const { return m_graphicsQueue; }
 		inline VkQueue GetComputeQueue() const { return m_computeQueue; }
+		inline VkQueue GetTransferQueue() const { return m_transferQueue; }
 		
 		inline Ref<PhysicalGraphicsDevice> GetPhysicalDevice() const { return m_physicalDevice; }
 		static Ref<GraphicsDevice> Create(Ref<PhysicalGraphicsDevice> physicalDevice, VkPhysicalDeviceFeatures2 enabledFeatures);
@@ -82,5 +84,6 @@ namespace Lamp
 		VkDevice m_device;
 		VkQueue m_graphicsQueue;
 		VkQueue m_computeQueue;
+		VkQueue m_transferQueue;
 	};
 }

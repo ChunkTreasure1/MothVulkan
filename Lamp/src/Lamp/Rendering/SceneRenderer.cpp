@@ -39,9 +39,13 @@ namespace Lamp
 			if (registry.HasComponent<TransformComponent>(entity))
 			{
 				const auto& meshComp = registry.GetComponent<MeshComponent>(entity);
-				const auto& transformComp = registry.GetComponent<TransformComponent>(entity);
+				auto& transformComp = registry.GetComponent<TransformComponent>(entity);
 
 				auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
+				
+				transformComp.rotation.x += 1.f;
+				transformComp.rotation.y += 1.f;
+				transformComp.rotation.z += 1.f;
 
 				const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
 					glm::scale(glm::mat4(1.f), transformComp.scale) *
@@ -61,7 +65,7 @@ namespace Lamp
 			for (const auto& pass : m_renderGraph->GetRenderPasses())
 			{
 				Renderer::BeginPass(pass.renderPass, camera);
-				Renderer::Draw();
+				Renderer::DispatchRenderCommands();
 				Renderer::EndPass();
 			}
 

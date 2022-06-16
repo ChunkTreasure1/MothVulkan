@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Log/Log.h"
+#include "Lamp/Core/Profiling.h"
 
 #include <deque>
 #include <functional>
@@ -21,6 +22,8 @@ namespace Lamp
 
 		void Flush()
 		{
+			LP_PROFILE_FUNCTION();
+
 			for (auto it = m_queue.rbegin(); it != m_queue.rend(); it++)
 			{
 				(*it)();

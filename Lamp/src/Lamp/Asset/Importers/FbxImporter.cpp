@@ -47,6 +47,7 @@ namespace Lamp
 		FetchGeometryNodes(rootNode, geomNodes);
 
 		Ref<Mesh> mesh = CreateRef<Mesh>();
+		mesh->m_material = CreateRef<MultiMaterial>();
 
 		for (auto node : geomNodes)
 		{
@@ -91,10 +92,10 @@ namespace Lamp
 
 				if (sceneMaterial == meshMaterial)
 				{
-					if (mesh->m_materials.find(sceneMatIndex) == mesh->m_materials.end())
+					if (mesh->m_material->m_materials.find(sceneMatIndex) == mesh->m_material->m_materials.end())
 					{
 						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("trimesh"));
-						mesh->m_materials[sceneMatIndex] = material;
+						mesh->m_material->m_materials[sceneMatIndex] = material;
 					}
 					matIndex = sceneMatIndex;
 				}

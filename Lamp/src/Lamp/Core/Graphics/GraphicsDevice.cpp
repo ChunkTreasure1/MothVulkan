@@ -52,10 +52,16 @@ namespace Lamp
 				m_queueIndices.presentQueueIndex = i;
 			}
 			
-			if (prop.queueFlags & VK_QUEUE_COMPUTE_BIT)
+			if (prop.queueFlags & VK_QUEUE_COMPUTE_BIT && i != m_queueIndices.graphicsQueueIndex && i != m_queueIndices.transferQueueIndex)
 			{
 				m_queueIndices.computeQueueIndex = i;
 			}
+
+			if (prop.queueFlags & VK_QUEUE_TRANSFER_BIT && i != m_queueIndices.graphicsQueueIndex && i != m_queueIndices.computeQueueIndex)
+			{
+				m_queueIndices.transferQueueIndex = i;
+			}
+
 
 			if (m_queueIndices.IsComplete())
 			{
@@ -116,6 +122,7 @@ namespace Lamp
 
 		vkGetDeviceQueue(m_device, queueIndices.graphicsQueueIndex, 0, &m_graphicsQueue);
 		vkGetDeviceQueue(m_device, queueIndices.computeQueueIndex, 0, &m_computeQueue);
+		vkGetDeviceQueue(m_device, queueIndices.transferQueueIndex, 0, &m_transferQueue);
 	
 		// Create main thread (faster to use) command pool
 		{

@@ -16,7 +16,7 @@ layout(set = 3, binding = 0) uniform sampler2D u_albedo;
 
 void main()
 {
-    const vec3 color = vec3(1, 0, 1);
+    const vec3 color = vec3(1, 0, 0);
 
     o_color.xyz = color * max(dot(v_input.normal, vec3(0, 1, 0)), 0.01) + vec3(0.1, 0.1, 0.1) * color;
     o_color.w = 1;

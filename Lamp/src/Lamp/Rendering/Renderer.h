@@ -64,7 +64,7 @@ namespace Lamp
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 
-		static void Draw(); // WILL BE REMOVED
+		static void DispatchRenderCommands(); // WILL BE REMOVED
 
 		static void SubmitDestroy(std::function<void()>&& function);
 

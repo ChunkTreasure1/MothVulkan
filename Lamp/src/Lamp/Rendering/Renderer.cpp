@@ -153,13 +153,13 @@ namespace Lamp
 		{
 			auto& cmd = s_rendererData->renderCommands.emplace_back();
 			cmd.mesh = mesh;
-			cmd.material = mesh->GetMaterials().at(subMesh.materialIndex);
+			cmd.material = mesh->GetMaterial()->GetMaterials().at(subMesh.materialIndex);
 			cmd.subMesh = subMesh;
 			cmd.transform = transform;
 		}
 	}
 
-	void Renderer::Draw()
+	void Renderer::DispatchRenderCommands()
 	{
 		LP_PROFILE_FUNCTION();
 		if (s_rendererData->renderCommands.empty())
