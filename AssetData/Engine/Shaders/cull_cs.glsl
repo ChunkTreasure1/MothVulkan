@@ -1,6 +1,6 @@
 #version 460
 
-#include "common.glslh"
+#include "Structures.glslh"
 
 struct DrawCullData
 {

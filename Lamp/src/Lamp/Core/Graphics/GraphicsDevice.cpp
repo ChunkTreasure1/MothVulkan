@@ -88,7 +88,7 @@ namespace Lamp
 	{
 		const PhysicalGraphicsDevice::QueueIndices& queueIndices = physicalDevice->GetQueueIndices();
 		
-		std::set<int32_t> uniqueQueues = { queueIndices.computeQueueIndex, queueIndices.graphicsQueueIndex, queueIndices.presentQueueIndex };
+		std::set<int32_t> uniqueQueues = { queueIndices.computeQueueIndex, queueIndices.graphicsQueueIndex, queueIndices.presentQueueIndex, queueIndices.transferQueueIndex };
 		float queuePriority = 1.f;
 
 		std::vector<VkDeviceQueueCreateInfo> deviceQueueInfos;

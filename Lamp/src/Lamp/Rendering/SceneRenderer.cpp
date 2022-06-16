@@ -34,15 +34,10 @@ namespace Lamp
 
 		auto& registry = m_scene->GetRegistry();
 
-		for (auto& entity : registry.GetComponentView<MeshComponent>())
-		{
-			if (registry.HasComponent<TransformComponent>(entity))
+		registry.ForEach<MeshComponent, TransformComponent>([](Wire::EntityId id, const MeshComponent& meshComp, TransformComponent& transformComp) 
 			{
-				const auto& meshComp = registry.GetComponent<MeshComponent>(entity);
-				auto& transformComp = registry.GetComponent<TransformComponent>(entity);
-
 				auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
-				
+
 				transformComp.rotation.x += 1.f;
 				transformComp.rotation.y += 1.f;
 				transformComp.rotation.z += 1.f;
@@ -54,8 +49,16 @@ namespace Lamp
 					glm::scale(glm::mat4(1.f), transformComp.scale);
 
 				Renderer::Submit(mesh, transform);
-			}
-		}
+			});
+
+		registry.ForEach<DirectionalLightComponent, TransformComponent>([](Wire::EntityId id, const DirectionalLightComponent& dirLightComp, const TransformComponent& transformComp)
+			{
+				const glm::mat4 transform = glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
+					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1));
+
+				Renderer::SubmitDirectionalLight(transform, dirLightComp.color, dirLightComp.intensity);
+			});
 
 		{
 			LP_PROFILE_SCOPE("SceneRenderer::Render");

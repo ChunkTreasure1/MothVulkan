@@ -62,7 +62,7 @@ namespace Lamp
 		if (m_shaderResources[0].uniformBuffersInfos.find(set) == m_shaderResources[0].uniformBuffersInfos.end() ||
 			m_shaderResources[0].uniformBuffersInfos.at(set).find(binding) == m_shaderResources[0].uniformBuffersInfos.at(set).end())
 		{
-			LP_CORE_ERROR("Unable to set buffer at set {0} and binding {1}", set, binding);
+			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set buffer at set {0} and binding {1}", set, binding);
 			return;
 		}
 
@@ -81,7 +81,7 @@ namespace Lamp
 		if (m_shaderResources[0].storageBuffersInfos.find(set) == m_shaderResources[0].storageBuffersInfos.end() ||
 			m_shaderResources[0].storageBuffersInfos.at(set).find(binding) == m_shaderResources[0].storageBuffersInfos.at(set).end())
 		{
-			LP_CORE_ERROR("Unable to set buffer at set {0} and binding {1}", set, binding);
+			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set buffer at set {0} and binding {1}", set, binding);
 			return;
 		}
 
@@ -124,7 +124,7 @@ namespace Lamp
 		if (m_shaderResources[0].imageInfos.find(set) == m_shaderResources[0].imageInfos.end() ||
 			m_shaderResources[0].imageInfos.at(set).find(binding) == m_shaderResources[0].imageInfos.at(set).end())
 		{
-			LP_CORE_ERROR("Unable to set texture at set {0} and binding {1}", set, binding);
+			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set texture at set {0} and binding {1}", set, binding);
 			return;
 		}
 
@@ -141,7 +141,7 @@ namespace Lamp
 		if (m_shaderResources[0].storageImagesInfos.find(set) == m_shaderResources[0].storageImagesInfos.end() ||
 			m_shaderResources[0].storageImagesInfos.at(set).find(binding) == m_shaderResources[0].storageImagesInfos.at(set).end())
 		{
-			LP_CORE_ERROR("Unable to set image at set {0} and binding {1}", set, binding);
+			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set image at set {0} and binding {1}", set, binding);
 			return;
 		}
 

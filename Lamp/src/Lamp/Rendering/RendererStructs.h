@@ -12,6 +12,12 @@ namespace Lamp
 		glm::mat4 viewProj;
 	};
 
+	struct DirectionalLightData
+	{
+		glm::vec4 direction;
+		glm::vec4 colorIntensity;
+	};
+
 	struct ObjectData
 	{
 		glm::mat4 transform;

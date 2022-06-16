@@ -94,7 +94,7 @@ namespace Lamp
 				{
 					if (mesh->m_material->m_materials.find(sceneMatIndex) == mesh->m_material->m_materials.end())
 					{
-						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("trimesh"));
+						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("pbr")); // TODO: change to default pipeline
 						mesh->m_material->m_materials[sceneMatIndex] = material;
 					}
 					matIndex = sceneMatIndex;

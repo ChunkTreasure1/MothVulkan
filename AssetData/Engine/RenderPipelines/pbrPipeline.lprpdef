@@ -1,6 +1,6 @@
 RenderPipeline: 
-  name: "TriMesh"
-  shader: "trimesh"
+  name: "PBR"
+  shader: "pbr"
   renderPass: "forward"
   topology: "TriangleList"
   cullMode: "Back"

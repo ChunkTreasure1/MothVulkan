@@ -21,12 +21,12 @@
 
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
+#include "Lamp/Rendering/Buffer/UniformBuffer/UniformBuffer.h"
 
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 #include "Lamp/Rendering/Camera/Camera.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
-#include "Lamp/Rendering/RendererStructs.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
 
@@ -56,6 +56,8 @@ namespace Lamp
 		s_frameDeletionQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
+		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
+
 		ShaderStorageBufferRegistry::Register(1, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
 		ShaderStorageBufferRegistry::Register(1, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
 
@@ -90,6 +92,7 @@ namespace Lamp
 		s_frameDeletionQueues[currentFrame].Flush();
 
 		SortRenderCommands();
+		PrepareForIndirectDraw(s_rendererData->renderCommands);
 		UploadRenderCommands();
 
 		UpdatePerFrameBuffers();
@@ -159,6 +162,13 @@ namespace Lamp
 		}
 	}
 
+	void Renderer::SubmitDirectionalLight(const glm::mat4& transform, const glm::vec3& color, const float intensity)
+	{
+		const glm::vec3 direction = glm::normalize(glm::mat3(transform) * glm::vec3(1.f)) * -1.f;
+		s_rendererData->directionalLight.direction = { direction.x, direction.y, direction.z, 0.f };
+		s_rendererData->directionalLight.colorIntensity = { color, intensity };
+	}
+
 	void Renderer::DispatchRenderCommands()
 	{
 		LP_PROFILE_FUNCTION();
@@ -171,7 +181,7 @@ namespace Lamp
 
 		// Draw
 		{
-			std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
+			std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 
 			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
@@ -264,16 +274,17 @@ namespace Lamp
 		}
 	}
 
-	std::vector<IndirectBatch> Renderer::PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands)
+	void Renderer::PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands)
 	{
 		LP_PROFILE_FUNCTION();
 
-		std::vector<IndirectBatch> draws;
-
 		if (renderCommands.empty())
 		{
-			return draws;
+			return;
 		}
+
+		s_rendererData->indirectBatches.clear();
+		auto& draws = s_rendererData->indirectBatches;
 
 		IndirectBatch& firstDraw = draws.emplace_back();
 		firstDraw.mesh = renderCommands[0].mesh;
@@ -308,8 +319,6 @@ namespace Lamp
 			{
 				return lhs.material < rhs.material;
 			});
-
-		return draws;
 	}
 
 	void Renderer::UpdatePerPassBuffers()
@@ -357,6 +366,12 @@ namespace Lamp
 
 			currentObjectBuffer->Unmap();
 		}
+
+		// Update directional light
+		{
+			auto currentBuffer = UniformBufferRegistry::Get(0, 1)->Get(currentFrame);
+			currentBuffer->SetData(&s_rendererData->directionalLight, sizeof(DirectionalLightData));
+		}
 	}
 
 	void Renderer::SortRenderCommands()
@@ -373,7 +388,7 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
-		std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
+		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 
 		// Fill indirect commands
 		{
@@ -424,7 +439,7 @@ namespace Lamp
 
 		uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
 
-		std::vector<IndirectBatch> draws = PrepareForIndirectDraw(s_rendererData->renderCommands);
+		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 
 		for (uint32_t i = 0; i < draws.size(); i++)
 		{
@@ -433,7 +448,6 @@ namespace Lamp
 
 		s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
 
-		s_rendererData->indirectCullPipeline->SetUniformBuffer(UniformBufferRegistry::Get(0, 0), 0, 0);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);

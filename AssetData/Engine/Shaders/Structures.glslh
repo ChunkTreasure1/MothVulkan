@@ -1,0 +1,18 @@
+struct ObjectData
+{
+    mat4 transform;
+    vec4 sphereBounds;
+};
+
+struct DirectionalLight
+{
+    vec4 direction;
+    vec4 colorIntensity;
+};
+
+struct CameraData
+{
+    mat4 view;
+    mat4 proj;
+    mat4 viewProj;
+};

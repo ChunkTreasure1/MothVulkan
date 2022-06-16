@@ -4,6 +4,7 @@
 #include "Lamp/Asset/Mesh/SubMesh.h"
 
 #include "Lamp/Rendering/DeletionQueue.hpp"
+#include "Lamp/Rendering/RendererStructs.h"
 
 #include <vulkan/vulkan.h>
 #include <functional>
@@ -63,8 +64,9 @@ namespace Lamp
 		static void EndPass();
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
+		static void SubmitDirectionalLight(const glm::mat4& transform, const glm::vec3& color, const float intensity);
 
-		static void DispatchRenderCommands(); // WILL BE REMOVED
+		static void DispatchRenderCommands();
 
 		static void SubmitDestroy(std::function<void()>&& function);
 
@@ -76,7 +78,7 @@ namespace Lamp
 		
 		static void CreateDefaultData();
 		static void CreateDescriptorPools();
-		static std::vector<IndirectBatch> PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
+		static void PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
 		static void UpdatePerPassBuffers();
 		static void UpdatePerFrameBuffers();
@@ -97,9 +99,15 @@ namespace Lamp
 			Ref<RenderPipelineCompute> indirectCullPipeline;
 
 			std::vector<RenderCommand> renderCommands;
+			std::vector<IndirectBatch> indirectBatches;
+
 			Ref<Camera> passCamera;
 
 			std::vector<VkDescriptorPool> descriptorPools;
+
+			/////Uniform data//////
+			DirectionalLightData directionalLight;
+			///////////////////////
 		};
 
 		inline static Scope<DefaultData> s_defaultData;

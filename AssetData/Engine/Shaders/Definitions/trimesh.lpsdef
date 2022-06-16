@@ -1,4 +1,0 @@
-name: "trimesh"
-paths:
-    - "Engine/Shaders/tri_mesh_vs.glsl"
-    - "Engine/Shaders/tri_mesh_fs.glsl"

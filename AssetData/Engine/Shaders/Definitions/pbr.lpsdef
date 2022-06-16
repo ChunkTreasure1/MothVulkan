@@ -1,0 +1,4 @@
+name: "pbr"
+paths:
+    - "Engine/Shaders/PBR_vs.glsl"
+    - "Engine/Shaders/PBR_fs.glsl"
