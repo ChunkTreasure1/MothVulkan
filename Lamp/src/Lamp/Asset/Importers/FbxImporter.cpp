@@ -48,6 +48,7 @@ namespace Lamp
 
 		Ref<Mesh> mesh = CreateRef<Mesh>();
 		mesh->m_material = CreateRef<MultiMaterial>();
+		mesh->m_material->m_name = path.stem().string() + "_mat";
 
 		for (auto node : geomNodes)
 		{

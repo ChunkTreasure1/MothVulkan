@@ -9,13 +9,14 @@
 class EditorWindow
 {
 public:
-	EditorWindow(const std::string& title);
+	EditorWindow(const std::string& title, bool dockSpace = false);
 	virtual ~EditorWindow() = default;
 
 	bool Begin();
 	void End();
 
-	virtual void UpdateContent() = 0;
+	virtual void UpdateMainContent() = 0;
+	virtual void UpdateContent() {}
 	virtual void OnEvent(Lamp::Event& e) {}
 
 	inline const std::string& GetTitle() const { return m_title; }
@@ -30,4 +31,5 @@ protected:
 	bool m_isOpen = false;
 	bool m_isFocused = false;
 	bool m_isHovered = false;
+	bool m_hasDockSpace = false;
 };

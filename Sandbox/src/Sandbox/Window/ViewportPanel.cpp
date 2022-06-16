@@ -14,7 +14,7 @@ ViewportPanel::ViewportPanel(Ref<Lamp::SceneRenderer> sceneRenderer, Lamp::Edito
 	m_windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 }
 
-void ViewportPanel::UpdateContent()
+void ViewportPanel::UpdateMainContent()
 {
 	auto size = ImGui::GetContentRegionAvail();
 	

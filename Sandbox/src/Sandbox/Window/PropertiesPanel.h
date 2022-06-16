@@ -10,7 +10,7 @@ class PropertiesPanel : public EditorWindow
 public:
 	PropertiesPanel(std::vector<Entity>& selectedEntites);
 
-	void UpdateContent() override;
+	void UpdateMainContent() override;
 
 private:
 	std::vector<Entity>& m_selectedEntites;

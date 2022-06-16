@@ -14,7 +14,7 @@ class ViewportPanel : public EditorWindow
 public:
 	ViewportPanel(Ref<Lamp::SceneRenderer> sceneRenderer, Lamp::EditorCameraController* cameraController);
 
-	void UpdateContent() override;
+	void UpdateMainContent() override;
 
 private:
 	void UpdateToolbar(float toolbarHeight, float toolbarXPadding);

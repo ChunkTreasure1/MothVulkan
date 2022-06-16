@@ -10,7 +10,7 @@ PropertiesPanel::PropertiesPanel(std::vector<Entity>& selectedEntites)
 	m_isOpen = true;
 }
 
-void PropertiesPanel::UpdateContent()
+void PropertiesPanel::UpdateMainContent()
 {
 	if (m_selectedEntites.empty())
 	{

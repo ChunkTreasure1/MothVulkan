@@ -3,6 +3,7 @@
 
 #include "Sandbox/Window/ViewportPanel.h"
 #include "Sandbox/Window/PropertiesPanel.h"
+#include "Sandbox/Window/MaterialEditorPanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -57,6 +58,7 @@ void Sandbox::OnAttach()
 
 	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
 	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities));
+	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 }
 
 void Sandbox::OnDetach()
@@ -88,8 +90,10 @@ bool Sandbox::OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e)
 	{
 		if (window->Begin())
 		{
-			window->UpdateContent();
+			window->UpdateMainContent();
 			window->End();
+
+			window->UpdateContent();
 		}
 	}
 

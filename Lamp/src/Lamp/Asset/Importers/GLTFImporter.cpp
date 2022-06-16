@@ -4,6 +4,7 @@
 #include "Lamp/Log/Log.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/MaterialRegistry.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
@@ -46,6 +47,9 @@ namespace Lamp
 
 		Ref<Mesh> mesh = CreateRef<Mesh>();
 		mesh->m_material = CreateRef<MultiMaterial>();
+		mesh->m_material->m_name = path.stem().string() + "_mat";
+
+		MaterialRegistry::Register(mesh->m_material->m_name, mesh->m_material); // TODO: REMOVE
 
 		const tinygltf::Scene& scene = gltfInput.scenes[gltfInput.defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)

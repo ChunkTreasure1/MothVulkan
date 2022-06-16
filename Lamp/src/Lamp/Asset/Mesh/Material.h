@@ -22,6 +22,7 @@ namespace Lamp
 		void Invalidate();
 
 		inline const std::string& GetName() const { return m_name; }
+		inline const std::map<uint32_t, Ref<Texture2D>>& GetTextures() const { return m_textures; }
 
 		static AssetType GetStaticType() { return AssetType::Material; }
 		AssetType GetType() override { return GetStaticType(); }
