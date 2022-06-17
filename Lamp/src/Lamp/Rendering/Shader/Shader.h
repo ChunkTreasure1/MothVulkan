@@ -41,6 +41,8 @@ namespace Lamp
 
 		struct ShaderResources
 		{
+			std::unordered_map<uint32_t, std::string> shaderTextureDefinitions; // binding -> name
+
 			std::vector<VkDescriptorSetLayout> paddedSetLayouts;
 			std::vector<VkDescriptorSetLayout> realSetLayouts;
 

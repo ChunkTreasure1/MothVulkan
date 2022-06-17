@@ -11,6 +11,7 @@
 #include "Lamp/Core/Layer/Layer.h"
 
 #include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/MaterialRegistry.h"
 
 #include "Lamp/ImGui/ImGuiImplementation.h"
 
@@ -49,6 +50,7 @@ namespace Lamp
 
 		Renderer::InitializeBuffers();
 
+		MaterialRegistry::Initialize();
 		ShaderRegistry::Initialize();
 		RenderPassRegistry::Initialize();
 		RenderPipelineRegistry::Initialize();
@@ -71,7 +73,7 @@ namespace Lamp
 		RenderPipelineRegistry::Shutdown();
 		RenderPassRegistry::Shutdown();
 		ShaderRegistry::Shutdown();
-
+		MaterialRegistry::Shutdown();
 
 		m_assetManager = nullptr;
 		Renderer::Shutdowm();

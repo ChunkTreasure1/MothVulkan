@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Utility/FileSystem.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
 #include <imgui_internal.h>
-
 #include <imgui_stdlib.h>
 
 namespace Lamp
@@ -233,7 +233,7 @@ namespace UI
 
 		return changed;
 	}
-	
+
 	static bool Property(const std::string& text, uint32_t& value)
 	{
 		bool changed = false;
@@ -520,8 +520,7 @@ namespace UI
 		std::string sPath = path.string();
 		ImGui::PushItemWidth(ImGui::GetColumnWidth() - ImGui::CalcTextSize("Open...").x - 20.f);
 
-		std::string id = "##" + std::to_string(s_stackId++);
-		if (InputText(id, sPath))
+		if (InputText("", sPath))
 		{
 			path = std::filesystem::path(sPath);
 			changed = true;
@@ -530,12 +529,16 @@ namespace UI
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		//if (ImGui::Button("Open...", { ImGui::GetContentRegionAvail().x, 25.f }))
-		//{
-		//	auto newPath = Lamp::FileDialogs::OpenFile("All (*.*)\0*.*\0");
-		//	path = newPath;
-		//	changed = true;
-		//}
+		std::string buttonId = "Open...##" + std::to_string(s_stackId++);
+		if (ImGui::Button(buttonId.c_str(), { ImGui::GetContentRegionAvail().x, 25.f }))
+		{
+			auto newPath = FileSystem::OpenFile("All (*.*)\0*.*\0");
+			if (!newPath.empty())
+			{
+				path = newPath;
+				changed = true;
+			}
+		}
 
 		//if (auto ptr = UI::DragDropTarget("CONTENT_BROWSER_ITEM"))
 		//{

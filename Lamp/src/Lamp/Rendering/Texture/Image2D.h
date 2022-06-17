@@ -22,6 +22,23 @@ namespace Lamp
 
 		SRGB,
 
+		BC1,
+		BC1SRGB,
+
+		BC2,
+		BC2SRGB,
+
+		BC3,
+		BC3SRGB,
+
+		BC4,
+
+		BC5,
+
+		BC7,
+		BC7SRGB,
+		
+
 		DEPTH32F,
 		DEPTH24STENCIL8
 	};

@@ -49,6 +49,7 @@ namespace Lamp
 		{ ".jpeg", AssetType::Texture },
 		{ ".tga", AssetType::Texture },
 		{ ".ktx", AssetType::Texture },
+		{ ".dds", AssetType::Texture },
 		
 		{ ".lpsdef", AssetType::Shader },
 		{ ".lprpdef", AssetType::RenderPipeline },

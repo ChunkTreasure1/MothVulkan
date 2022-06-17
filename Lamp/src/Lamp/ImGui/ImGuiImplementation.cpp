@@ -43,8 +43,8 @@ namespace Lamp
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;	//Enable keyboard controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;	//Enable gamepad controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;		//Enable docking
-
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;		//Enable multiple viewports
+		
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
@@ -146,7 +146,7 @@ namespace Lamp
 		style.TabBorderSize = 0.0f;
 		style.TabRounding = 0.0f;
 		style.WindowRounding = 0.0f;
-		style.WindowBorderSize = 10.f;
+		style.WindowBorderSize = 2.f;
 
 		/////Vulkan initialization/////
 		auto& context = GraphicsContext::Get();
@@ -229,14 +229,6 @@ namespace Lamp
 	void ImGuiImplementation::End()
 	{
 		ImGui::Render();
-
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
 
 		auto& swapchain = Application::Get().GetWindow()->GetSwapchain();
 
@@ -330,6 +322,14 @@ namespace Lamp
 		vkCmdEndRenderPass(drawCmdBuffer);
 
 		LP_VK_CHECK(vkEndCommandBuffer(drawCmdBuffer));
+
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 
 	Scope<ImGuiImplementation> ImGuiImplementation::Create()

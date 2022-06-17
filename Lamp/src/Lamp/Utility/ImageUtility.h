@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
+#include "Lamp/Core/Graphics/GraphicsContext.h"
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Rendering/Texture/Image2D.h"
@@ -316,13 +317,33 @@ namespace Lamp
 				case ImageFormat::R32F: return VK_FORMAT_R32_SFLOAT;
 				case ImageFormat::R32SI: return VK_FORMAT_R32_SINT;
 				case ImageFormat::R32UI: return VK_FORMAT_R32_UINT;
+
 				case ImageFormat::RGB: return VK_FORMAT_R8G8B8_UNORM;
 				case ImageFormat::RGBA: return VK_FORMAT_R8G8B8A8_UNORM;
+				
 				case ImageFormat::RGBA16F: return VK_FORMAT_R16G16B16A16_SFLOAT;
 				case ImageFormat::RGBA32F: return VK_FORMAT_R32G32B32A32_SFLOAT;
+				
 				case ImageFormat::RG16F: return VK_FORMAT_R16G16_SFLOAT;
 				case ImageFormat::RG32F: return VK_FORMAT_R32G32B32_SFLOAT;
+				
 				case ImageFormat::SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
+				
+				case ImageFormat::BC1: return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+				case ImageFormat::BC1SRGB: return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+
+				case ImageFormat::BC2: return VK_FORMAT_BC2_UNORM_BLOCK;
+				case ImageFormat::BC2SRGB: return VK_FORMAT_BC2_SRGB_BLOCK;
+
+				case ImageFormat::BC3: return VK_FORMAT_BC3_UNORM_BLOCK;
+				case ImageFormat::BC3SRGB: return VK_FORMAT_BC3_SRGB_BLOCK;
+
+				case ImageFormat::BC4: return VK_FORMAT_BC4_UNORM_BLOCK;
+				case ImageFormat::BC5: return VK_FORMAT_BC5_UNORM_BLOCK;
+
+				case ImageFormat::BC7: return VK_FORMAT_BC7_UNORM_BLOCK;
+				case ImageFormat::BC7SRGB: return VK_FORMAT_BC7_SRGB_BLOCK;					
+
 				case ImageFormat::DEPTH32F: return VK_FORMAT_D32_SFLOAT;
 				case ImageFormat::DEPTH24STENCIL8: return VK_FORMAT_D24_UNORM_S8_UINT;
 

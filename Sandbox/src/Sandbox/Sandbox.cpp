@@ -27,9 +27,9 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	for (uint32_t i = 0; i < 3; i++)
+	for (uint32_t i = 0; i < 1; i++)
 	{
-		for (uint32_t j = 0; j < 3; j++)
+		for (uint32_t j = 0; j < 1; j++)
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();

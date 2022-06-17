@@ -70,7 +70,7 @@ namespace Lamp
 	void Material::SetTexture(uint32_t binding, Ref<Texture2D> texture)
 	{
 		m_textures[binding] = texture;
-		UpdateTextureWriteDescriptor(binding);
+		Invalidate();
 	}
 
 	void Material::Invalidate()
@@ -148,7 +148,7 @@ namespace Lamp
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];
 				}
-				
+
 				m_descriptorSetBindings[i].emplace_back(set);
 				index++;
 			}
@@ -200,27 +200,16 @@ namespace Lamp
 			{
 				for (auto& [binding, imageInfo] : m_shaderResources[i].imageInfos[(uint32_t)DescriptorSetType::PerMaterial])
 				{
-					auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
-					imageInfo.imageView = defaultTexture->GetImage()->GetView();
-					imageInfo.sampler = defaultTexture->GetImage()->GetSampler();
-					
 					if (m_textures.find(binding) == m_textures.end())
 					{
+						auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
 						m_textures.emplace(binding, defaultTexture);
 					}
+
+					imageInfo.imageView = m_textures.at(binding)->GetImage()->GetView();
+					imageInfo.sampler = m_textures.at(binding)->GetImage()->GetSampler();
 				}
 			}
 		}
-	}
-
-	void Material::UpdateTextureWriteDescriptor(uint32_t binding)
-	{
-		for (size_t i = 0; i < m_shaderResources.size(); i++)
-		{
-			m_shaderResources[i].imageInfos[(uint32_t)DescriptorSetType::PerMaterial][binding].imageView = m_textures[binding]->GetImage()->GetView();
-			m_shaderResources[i].imageInfos[(uint32_t)DescriptorSetType::PerMaterial][binding].sampler = m_textures[binding]->GetImage()->GetSampler();
-		}
-
-		Invalidate();
 	}
 }

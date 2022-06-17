@@ -55,23 +55,35 @@ void MaterialEditorPanel::UpdateContent()
 		if (m_selectedSubMaterial)
 		{
 			UI::PushId();
-			UI::BeginProperties();
-
-			for (const auto& [index, texture] : m_selectedSubMaterial->GetTextures())
+			if (UI::BeginProperties())
 			{
-				static std::filesystem::path texturePath = texture->path;
+				const auto textureDefinitions = m_selectedSubMaterial->GetTextureDefinitions();
+				const auto textures = m_selectedSubMaterial->GetTextures();
 
-				if (UI::Property("Texture", texturePath))
+				for (const auto [binding, name] : textureDefinitions)
 				{
-					Ref<Lamp::Texture2D> texture = Lamp::AssetManager::GetAsset<Lamp::Texture2D>(texturePath);
-					if (texture)
+					auto it = textures.find(binding);
+					if (it == textures.end())
 					{
-						m_selectedSubMaterial->SetTexture(index, texture);
+						LP_CORE_CRITICAL("Texture not found in material! Something has gone terribly wrong!");
+						continue;
+					}
+
+					Ref<Lamp::Texture2D> texture = it->second;
+					std::filesystem::path texturePath = texture->path;
+
+					if (UI::Property(name, texturePath))
+					{
+						Ref<Lamp::Texture2D> newTexture = Lamp::AssetManager::GetAsset<Lamp::Texture2D>(texturePath);
+						if (newTexture)
+						{
+							m_selectedSubMaterial->SetTexture(binding, newTexture);
+						}
 					}
 				}
-			}
 
-			UI::EndProperties();
+				UI::EndProperties();
+			}
 			UI::PopId();
 		}
 	}

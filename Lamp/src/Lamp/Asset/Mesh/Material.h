@@ -23,6 +23,7 @@ namespace Lamp
 
 		inline const std::string& GetName() const { return m_name; }
 		inline const std::map<uint32_t, Ref<Texture2D>>& GetTextures() const { return m_textures; }
+		inline const std::unordered_map<uint32_t, std::string>& GetTextureDefinitions() const { return m_shaderResources[0].shaderTextureDefinitions; }
 
 		static AssetType GetStaticType() { return AssetType::Material; }
 		AssetType GetType() override { return GetStaticType(); }
@@ -35,7 +36,6 @@ namespace Lamp
 		void AllocateAndSetupDescriptorSets();
 
 		void SetupMaterialFromPipeline();
-		void UpdateTextureWriteDescriptor(uint32_t binding);
 
 		Ref<RenderPipeline> m_renderPipeline;
 

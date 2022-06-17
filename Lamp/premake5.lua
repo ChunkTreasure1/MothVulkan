@@ -69,7 +69,8 @@ project "Lamp"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Wire}",
 		"%{IncludeDir.Optick}",
-		"%{IncludeDir.TinyGLTF}"
+		"%{IncludeDir.TinyGLTF}",
+		"%{IncludeDir.tinyddsloader}"
 	}
 
 	defines

@@ -79,13 +79,53 @@ namespace Lamp
 
 		YAML::Node pathsNode = root["paths"];
 		std::vector<std::filesystem::path> paths;
-		
 		for (const auto path : pathsNode)
 		{
 			paths.emplace_back(path.as<std::string>());
 		}
 
+		YAML::Node inputTexturesNode = root["inputTextures"];
+		std::unordered_map<uint32_t, std::string> inputTextures; // binding -> name
+		for (const auto input : inputTexturesNode)
+		{
+			uint32_t binding;
+			LP_DESERIALIZE_PROPERTY(binding, binding, input, 0);
+
+			std::string name;
+			LP_DESERIALIZE_PROPERTY(name, name, input, std::string("Null"));
+
+			inputTextures.emplace(binding, name);
+		}
+
 		Ref<Shader> shader = Shader::Create(name, paths, false);
+
+		// Make sure all textures defined in definition actually exist
+		{
+			const auto& imageInfos = shader->GetResources().imageInfos;
+			auto& shaderInputDefinitions = const_cast<std::unordered_map<uint32_t, std::string>&>(shader->GetResources().shaderTextureDefinitions);
+
+			auto setIt = imageInfos.find((uint32_t)DescriptorSetType::PerMaterial);
+			if (setIt == imageInfos.end())
+			{
+				LP_CORE_ERROR("Shader {0} does not have a per-material descriptor set, but textures are defined in definition!", path.string().c_str());
+			}
+			else
+			{
+				for (const auto& [binding, name] : inputTextures)
+				{
+					auto inputIt = setIt->second.find(binding);
+					if (inputIt == setIt->second.end())
+					{
+						LP_CORE_ERROR("Shader {0} does not have a texture input with binding {1}, but this is defined in definition!", path.string().c_str(), binding);
+					}
+					else
+					{
+						shaderInputDefinitions.emplace(binding, name);
+					}
+				}
+			}
+		}
+
 		if (!shader) [[unlikely]]
 		{
 			LP_CORE_ERROR("Failed to create shader {0}!", name.c_str());

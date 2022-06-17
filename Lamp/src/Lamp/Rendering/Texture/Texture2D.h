@@ -27,6 +27,7 @@ namespace Lamp
 
 	private:
 		friend class DefaultTextureImporter;
+		friend class DDSTextureImporter;
 
 		Ref<Image2D> m_image;
 	};

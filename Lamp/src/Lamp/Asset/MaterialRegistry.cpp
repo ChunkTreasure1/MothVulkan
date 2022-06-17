@@ -56,7 +56,10 @@ namespace Lamp
 			if (type == AssetType::Material)
 			{
 				Ref<MultiMaterial> material = AssetManager::GetAsset<MultiMaterial>(path.path());
-				Register(material->GetName(), material);
+				if (material)
+				{
+					Register(material->GetName(), material);
+				}
 			}
 		}
 	}
