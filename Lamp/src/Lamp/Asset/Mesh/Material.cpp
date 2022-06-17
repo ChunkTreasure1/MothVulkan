@@ -203,6 +203,11 @@ namespace Lamp
 					auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
 					imageInfo.imageView = defaultTexture->GetImage()->GetView();
 					imageInfo.sampler = defaultTexture->GetImage()->GetSampler();
+					
+					if (m_textures.find(binding) == m_textures.end())
+					{
+						m_textures.emplace(binding, defaultTexture);
+					}
 				}
 			}
 		}

@@ -1,9 +1,14 @@
 #include "sbpch.h"
 #include "MaterialEditorPanel.h"
 
-#include "Lamp/Asset/MaterialRegistry.h"
-#include "Lamp/Asset/Mesh/MultiMaterial.h"
-#include "Lamp/Asset/Mesh/Material.h"
+#include <Lamp/Asset/MaterialRegistry.h>
+#include <Lamp/Asset/Mesh/MultiMaterial.h>
+#include <Lamp/Asset/Mesh/Material.h>
+#include <Lamp/Asset/AssetManager.h>
+
+#include <Lamp/Rendering/Texture/Texture2D.h>
+
+#include <Lamp/Utility/UIUtility.h>
 
 MaterialEditorPanel::MaterialEditorPanel()
 	: EditorWindow("Material Editor", true)
@@ -49,10 +54,25 @@ void MaterialEditorPanel::UpdateContent()
 	{
 		if (m_selectedSubMaterial)
 		{
+			UI::PushId();
+			UI::BeginProperties();
+
 			for (const auto& [index, texture] : m_selectedSubMaterial->GetTextures())
 			{
-				ImGui::Text("%d", index);
+				static std::filesystem::path texturePath = texture->path;
+
+				if (UI::Property("Texture", texturePath))
+				{
+					Ref<Lamp::Texture2D> texture = Lamp::AssetManager::GetAsset<Lamp::Texture2D>(texturePath);
+					if (texture)
+					{
+						m_selectedSubMaterial->SetTexture(index, texture);
+					}
+				}
 			}
+
+			UI::EndProperties();
+			UI::PopId();
 		}
 	}
 	ImGui::End();
