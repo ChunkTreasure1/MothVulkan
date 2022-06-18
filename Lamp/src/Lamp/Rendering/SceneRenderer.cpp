@@ -34,17 +34,19 @@ namespace Lamp
 
 		auto& registry = m_scene->GetRegistry();
 
-		registry.ForEach<MeshComponent, TransformComponent>([](Wire::EntityId id, const MeshComponent& meshComp, TransformComponent& transformComp) 
+		registry.ForEach<MeshComponent, TransformComponent>([](Wire::EntityId id, const MeshComponent& meshComp, TransformComponent& transformComp)
 			{
-				auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
+				if (meshComp.handle != Asset::Null())
+				{
+					auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
+					const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
+						glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1)) *
+						glm::scale(glm::mat4(1.f), transformComp.scale);
 
-				const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1)) *
-					glm::scale(glm::mat4(1.f), transformComp.scale);
-
-				Renderer::Submit(mesh, transform);
+					Renderer::Submit(mesh, transform);
+				}
 			});
 
 		registry.ForEach<DirectionalLightComponent, TransformComponent>([](Wire::EntityId id, const DirectionalLightComponent& dirLightComp, const TransformComponent& transformComp)

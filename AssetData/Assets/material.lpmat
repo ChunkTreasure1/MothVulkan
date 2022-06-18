@@ -1,9 +1,0 @@
-MultiMaterial:
-  name: "MultiMaterial"
-  materials:
-    - material: "Material"
-      index: 0
-      renderPipeline: "trimesh"
-      textures:
-        - binding: 0
-          handle: 7921486373975219315

@@ -52,6 +52,7 @@ namespace Lamp
 	{
 		for (Layer* layer : m_layers)
 		{
+			layer->OnDetach();
 			delete layer;
 		}
 

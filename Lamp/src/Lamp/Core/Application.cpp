@@ -50,13 +50,13 @@ namespace Lamp
 
 		Renderer::InitializeBuffers();
 
-		MaterialRegistry::Initialize();
 		ShaderRegistry::Initialize();
 		RenderPassRegistry::Initialize();
 		RenderPipelineRegistry::Initialize();
 		RenderPassRegistry::SetupOverrides();
 
 		Renderer::Initialize();
+		MaterialRegistry::Initialize();
 
 		m_imguiImplementation = ImGuiImplementation::Create();
 	}
@@ -68,12 +68,12 @@ namespace Lamp
 		m_layerStack.Clear();
 		m_imguiImplementation = nullptr;
 
-		ShaderStorageBufferRegistry::Shutdowm();
-		UniformBufferRegistry::Shutdowm();
+		MaterialRegistry::Shutdown();
 		RenderPipelineRegistry::Shutdown();
 		RenderPassRegistry::Shutdown();
 		ShaderRegistry::Shutdown();
-		MaterialRegistry::Shutdown();
+		ShaderStorageBufferRegistry::Shutdowm();
+		UniformBufferRegistry::Shutdowm();
 
 		m_assetManager = nullptr;
 		Renderer::Shutdowm();

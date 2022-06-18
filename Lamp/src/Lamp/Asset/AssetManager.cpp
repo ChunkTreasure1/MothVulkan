@@ -45,6 +45,7 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::RenderPipeline, CreateScope<RenderPipelineImporter>());
 		m_assetImporters.emplace(AssetType::RenderPass, CreateScope<RenderPassImporter>());
 		m_assetImporters.emplace(AssetType::RenderGraph, CreateScope<RenderGraphImporter>());
+		m_assetImporters.emplace(AssetType::Material, CreateScope<MultiMaterialImporter>());
 
 		LoadAssetRegistry();
 	}
@@ -81,7 +82,7 @@ namespace Lamp
 #ifdef LP_DEBUG
 		LP_CORE_INFO("Loading asset {0}!", path.string().c_str());
 #endif
-		
+
 		m_assetImporters[type]->Load(path, asset);
 		if (handle != Asset::Null())
 		{
@@ -138,6 +139,17 @@ namespace Lamp
 		m_assetImporters[asset->GetType()]->Save(asset);
 	}
 
+	Ref<Asset> AssetManager::GetAssetRaw(AssetHandle assetHandle)
+	{
+		auto it = m_assetCache.find(assetHandle);
+		if (it != m_assetCache.end())
+		{
+			return it->second;
+		}
+
+		return nullptr;
+	}
+
 	AssetType AssetManager::GetAssetTypeFromPath(const std::filesystem::path& path)
 	{
 		return GetAssetTypeFromExtension(path.extension().string());
@@ -156,7 +168,12 @@ namespace Lamp
 
 	AssetHandle AssetManager::GetAssetHandleFromPath(const std::filesystem::path& path)
 	{
-		return m_assetRegistry.find(path) != m_assetRegistry.end() ? m_assetRegistry[path] : Asset::Null();
+		auto it = m_assetRegistry.find(path);
+		if (it == m_assetRegistry.end())
+		{
+			m_assetRegistry[path] = AssetHandle();
+		}
+		return m_assetRegistry[path];
 	}
 
 	std::filesystem::path AssetManager::GetPathFromAssetHandle(AssetHandle handle)

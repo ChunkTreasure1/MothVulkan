@@ -13,7 +13,7 @@ namespace std
 	template<>
 	struct hash<std::filesystem::path>
 	{
-		size_t operator()(const std::filesystem::path& aPath) const
+		inline size_t operator()(const std::filesystem::path& aPath) const
 		{
 			return std::filesystem::hash_value(aPath.string());
 		}
@@ -35,6 +35,7 @@ namespace Lamp
 		void LoadAsset(const std::filesystem::path& path, Ref<Asset>& asset);
 		void LoadAsset(AssetHandle assetHandle, Ref<Asset>& asset);
 		void SaveAsset(const Ref<Asset> asset);
+		Ref<Asset> GetAssetRaw(AssetHandle assetHandle);
 
 		AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
 		AssetType GetAssetTypeFromExtension(const std::string& extension);

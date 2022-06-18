@@ -1,35 +1,47 @@
 Assets:
-  - Handle: 11533325920728509549
-    Path: Assets/cube.fbx
-  - Handle: 17776315938670444291
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\brickwall_02_c.dds
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 10912000280717110820
-    Path: Engine/RenderPasses\forward.lprp
+  - Handle: 11533325920728509549
+    Path: Assets/cube.fbx
+  - Handle: 13717396777666668695
+    Path: Assets\Meshes\Sponza\sponzamat.lpmat
   - Handle: 13461233730205319078
     Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
-  - Handle: 7142021493210235664
-    Path: Assets/NewSponza_Main_Blender_glTF.gltf
+  - Handle: 10912000280717110820
+    Path: Engine/RenderPasses\forward.lprp
   - Handle: 6171269730112167638
     Path: Assets/SM_Particle_Chest.fbx
   - Handle: 4056126216708790799
     Path: Engine/RenderGraph/renderGraph.lprg
   - Handle: 15894168365099429476
-    Path: Assets/Sponza2022.glb
+    Path: Assets/Meshes/Sponza/Sponza2022.glb
+  - Handle: 4103065852066774411
+    Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_m.dds
   - Handle: 444175265639903240
     Path: Assets/LampSkull.glb
+  - Handle: 8193205504869265655
+    Path: Editor/Textures/Icons/icon_stop.dds
   - Handle: 8309224794366092948
     Path: Engine/RenderPipelines\pbrPipeline.lprpdef
-  - Handle: 683040149020427668
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\arch_stone_wall_01_c.dds
-  - Handle: 4204528476735624225
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\arch_stone_wall_01_Normal.dds
-  - Handle: 7728833203411375621
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\arch_stone_wall_01_m.dds
-  - Handle: 8599778227364086903
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\brickwall_01_c.dds
-  - Handle: 16618193616199742251
-    Path: C:\Users\xXRag\OneDrive\Desktop\TGE TEXTURES\ceiling_plaster_01_c.dds
+  - Handle: 495756609342039801
+    Path: Assets\sponzamat.lpmat
+  - Handle: 10526662306552513238
+    Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_c.dds
+  - Handle: 3111270070065897487
+    Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_Normal.dds
+  - Handle: 2473489394814697106
+    Path: Editor/Textures/Icons/icon_reload.dds
+  - Handle: 6377004731874760236
+    Path: Editor/Textures/Icons/icon_directory.dds
+  - Handle: 8791231563255988072
+    Path: Editor/Textures/Icons/icon_back.dds
+  - Handle: 16277546926481524236
+    Path: Editor/Textures/Icons/icon_search.dds
+  - Handle: 4566814669381579120
+    Path: Editor/Textures/Icons/icon_settings.dds
+  - Handle: 2658475523617608575
+    Path: Editor/Textures/Icons/icon_play.dds
+  - Handle: 9181451804674598263
+    Path: Editor/Textures/Icons/icon_file.dds

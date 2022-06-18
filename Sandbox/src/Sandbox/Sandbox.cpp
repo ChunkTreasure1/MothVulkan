@@ -4,6 +4,8 @@
 #include "Sandbox/Window/ViewportPanel.h"
 #include "Sandbox/Window/PropertiesPanel.h"
 #include "Sandbox/Window/MaterialEditorPanel.h"
+#include "Sandbox/Window/EditorIconLibrary.h"
+#include "Sandbox/Window/AssetBrowserPanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -23,6 +25,8 @@ Sandbox::~Sandbox()
 
 void Sandbox::OnAttach()
 {
+	EditorIconLibrary::Initialize();
+
 	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 1000.f);
 	m_editorScene = CreateRef<Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
@@ -33,7 +37,7 @@ void Sandbox::OnAttach()
 		{
 			auto entity = m_editorScene->CreateEntity();
 			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Sponza2022.glb");
+			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
 
 			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
 			transform.scale = { 1.f, 1.f, 1.f };
@@ -59,6 +63,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
 	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities));
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
+	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
 }
 
 void Sandbox::OnDetach()
@@ -66,6 +71,8 @@ void Sandbox::OnDetach()
 	m_editorWindows.clear();
 	delete m_editorCameraController;
 	m_editorCameraController = nullptr;
+
+	EditorIconLibrary::Shutdown();
 }
 
 void Sandbox::OnEvent(Lamp::Event& e)

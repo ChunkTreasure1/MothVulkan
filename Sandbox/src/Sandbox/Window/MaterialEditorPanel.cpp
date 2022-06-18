@@ -17,12 +17,18 @@ MaterialEditorPanel::MaterialEditorPanel()
 }
 
 void MaterialEditorPanel::UpdateMainContent()
-{}
+{
+}
 
 void MaterialEditorPanel::UpdateContent()
 {
 	ImGui::Begin("Materials");
 	{
+		if (ImGui::Button("Save selected material") && m_selectedMaterial)
+		{
+			Lamp::AssetManager::Get().SaveAsset(m_selectedMaterial);
+		}
+
 		const auto& materials = Lamp::MaterialRegistry::GetMaterials();
 		for (auto& [name, material] : materials)
 		{
@@ -41,7 +47,8 @@ void MaterialEditorPanel::UpdateContent()
 			const auto& subMaterials = m_selectedMaterial->GetMaterials();
 			for (auto& [index, material] : subMaterials)
 			{
-				if (ImGui::Selectable(std::to_string(index).c_str()))
+				std::string id = material->GetName() + "##" + std::to_string(index);
+				if (ImGui::Selectable(id.c_str()))
 				{
 					m_selectedSubMaterial = material;
 				}
@@ -72,12 +79,11 @@ void MaterialEditorPanel::UpdateContent()
 					Ref<Lamp::Texture2D> texture = it->second;
 					std::filesystem::path texturePath = texture->path;
 
-					if (UI::Property(name, texturePath))
+					if (UI::Property<Lamp::Texture2D>(name, texture))
 					{
-						Ref<Lamp::Texture2D> newTexture = Lamp::AssetManager::GetAsset<Lamp::Texture2D>(texturePath);
-						if (newTexture)
+						if (texture)
 						{
-							m_selectedSubMaterial->SetTexture(binding, newTexture);
+							m_selectedSubMaterial->SetTexture(binding, texture);
 						}
 					}
 				}

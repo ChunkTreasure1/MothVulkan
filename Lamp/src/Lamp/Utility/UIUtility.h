@@ -3,6 +3,8 @@
 #include "Lamp/Core/Base.h"
 #include "Lamp/Utility/FileSystem.h"
 
+#include "Lamp/Asset/AssetManager.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
@@ -89,6 +91,38 @@ namespace UI
 		return ImGui::InputTextString(id.c_str(), &text, flags);
 	}
 
+	static bool ImageButton(const std::string& id, ImTextureID textureId, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1))
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		if (window->SkipItems)
+			return false;
+
+		const ImGuiID imId = window->GetID(id.c_str());
+
+		// Default to using texture ID as ID. User can still push string/integer prefixes.
+		const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : g.Style.FramePadding;
+		return ImGui::ImageButtonEx(imId, textureId, size, uv0, uv1, padding, bg_col, tint_col);
+	}
+
+	static bool TreeNodeImage(Ref<Lamp::Texture2D> texture, const std::string& text, ImGuiTreeNodeFlags flags)
+	{
+		ScopedStyleFloat2 frame{ ImGuiStyleVar_FramePadding, { 0.f, 0.f } };
+		ScopedStyleFloat2 spacing{ ImGuiStyleVar_ItemSpacing, { 0.f, 0.f } };
+
+		ImVec2 size = ImGui::CalcTextSize(text.c_str());
+
+		ImGui::Image(GetTextureID(texture), { size.y, size.y });
+		ImGui::SameLine();
+
+		return ImGui::TreeNodeEx(text.c_str(), flags);
+	}
+
+	static void TreeNodePop()
+	{
+		ImGui::TreePop();
+	}
+
 	static void PushId()
 	{
 		int id = s_contextId++;
@@ -111,6 +145,43 @@ namespace UI
 	{
 		ImGui::EndTable();
 	}
+
+	static void* DragDropTarget(const std::string& type)
+	{
+		void* data = nullptr;
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload(type.c_str()))
+			{
+				data = pPayload->Data;
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		return data;
+	}
+
+	static void* DragDropTarget(std::initializer_list<std::string> types)
+	{
+		void* data = nullptr;
+
+		for (const auto& type : types)
+		{
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload(type.c_str()))
+				{
+					data = pPayload->Data;
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+		return data;
+	}	
 
 	static bool PropertyAxisColor(const std::string& text, glm::vec3& value, float resetValue = 0.f)
 	{
@@ -552,39 +623,96 @@ namespace UI
 		return changed;
 	}
 
-	//static bool Property(const std::string& text, Ref<Lamp::Asset>& asset)
-	//{
-	//	bool changed = false;
+	static bool Property(const std::string& text, Lamp::AssetHandle& assetHandle)
+	{
+		bool changed = false;
+		
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(text.c_str());
 
-	//	ImGui::TableNextColumn();
-	//	ImGui::TextUnformatted(text.c_str());
+		ImGui::TableNextColumn();
+		
+		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 20.f);
+		
+		std::string assetFileName = "Null";
 
-	//	ImGui::TableNextColumn();
-	//	ImGui::PushItemWidth(ImGui::GetColumnWidth() - 20.f);
-	//	ImGui::Text("Asset: %s", asset->path.filename().string().c_str());
+		const Ref<Lamp::Asset> rawAsset = Lamp::AssetManager::Get().GetAssetRaw(assetHandle);
+		if (rawAsset)
+		{
+			assetFileName = rawAsset->path.filename().string();
+		}
 
-	//	ImGui::PopItemWidth();
+		std::string textId = "##" + std::to_string(s_stackId++);
+		ImGui::InputTextString(textId.c_str(), &assetFileName, ImGuiInputTextFlags_ReadOnly);
+		ImGui::PopItemWidth();
 
-	//	ImGui::SameLine();
-	//	std::string buttonId = "Open##" + std::to_string(s_stackId++);
-	//	if (ImGui::Button(buttonId.c_str(), { ImGui::GetContentRegionAvail().x, 25.f }))
-	//	{
-	//	}
-	//	/*if (BeginPopup())
-	//	{
-	//		ImGui::Text("Test");
+		if (auto ptr = UI::DragDropTarget("ASSET_BROWSER_ITEM"))
+		{
+			Lamp::AssetHandle newHandle = *(Lamp::AssetHandle*)ptr;
+			assetHandle = newHandle;
+			changed = true;
+		}
 
-	//		EndPopup();
-	//	}
+		ImGui::SameLine();
 
-	//	if (auto ptr = UI::DragDropTarget("CONTENT_BROWSER_ITEM"))
-	//	{
-	//		const wchar_t* inPath = (const wchar_t*)ptr;
-	//		std::filesystem::path newPath = std::filesystem::path("assets") / inPath;
+		std::string buttonId = "X##" + std::to_string(s_stackId++);
+		if (ImGui::Button(buttonId.c_str()))
+		{
+			assetHandle = Lamp::Asset::Null();
+			changed = true;
+		}
 
-	//		changed = true;
-	//	}*/
+		return changed;
+	}
 
-	//	return changed;
-	//}
+	template<typename T>
+	static bool Property(const std::string& text, Ref<T>& asset)
+	{
+		bool changed = false;
+
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(text.c_str());
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 20.f);
+
+		std::string assetFileName = "Null";
+
+		if (asset)
+		{
+			assetFileName = asset->path.filename().string();
+		}
+
+		std::string textId = "##" + std::to_string(s_stackId++);
+		ImGui::InputTextString(textId.c_str(), &assetFileName, ImGuiInputTextFlags_ReadOnly);
+		ImGui::PopItemWidth();
+
+		if (auto ptr = UI::DragDropTarget("ASSET_BROWSER_ITEM"))
+		{
+			Lamp::AssetHandle newHandle = *(Lamp::AssetHandle*)ptr;
+			Ref<T> newAsset = Lamp::AssetManager::GetAsset<T>(newHandle);
+			if (newAsset)
+			{
+				asset = newAsset;
+			}
+			else
+			{
+				asset = nullptr;
+			}
+
+			changed = true;
+		}
+
+		ImGui::SameLine();
+
+		std::string buttonId = "X##" + std::to_string(s_stackId++);
+		if (ImGui::Button(buttonId.c_str()))
+		{
+			asset = nullptr;
+			changed = true;
+		}
+
+		return changed;
+	}
 }

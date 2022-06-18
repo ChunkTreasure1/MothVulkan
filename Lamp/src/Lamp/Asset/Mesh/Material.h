@@ -9,7 +9,7 @@ namespace Lamp
 	class RenderPipeline;
 	class Texture2D;
 
-	class Material : public Asset
+	class Material
 	{
 	public:
 		Material() = default;
@@ -25,12 +25,10 @@ namespace Lamp
 		inline const std::map<uint32_t, Ref<Texture2D>>& GetTextures() const { return m_textures; }
 		inline const std::unordered_map<uint32_t, std::string>& GetTextureDefinitions() const { return m_shaderResources[0].shaderTextureDefinitions; }
 
-		static AssetType GetStaticType() { return AssetType::Material; }
-		AssetType GetType() override { return GetStaticType(); }
-		 
 		static Ref<Material> Create(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline);
 
 	private:
+		friend class MultiMaterialImporter;
 
 		void CreateDescriptorPool();
 		void AllocateAndSetupDescriptorSets();

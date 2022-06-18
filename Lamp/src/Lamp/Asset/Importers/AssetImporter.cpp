@@ -8,9 +8,11 @@
 #include "Lamp/Asset/AssetManager.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Rendering/Texture/Texture2D.h"
 #include "Lamp/Rendering/Shader/Shader.h"
+#include "Lamp/Rendering/Renderer.h"
 
 #include "Lamp/Utility/SerializationMacros.h"
 
@@ -69,7 +71,7 @@ namespace Lamp
 
 		YAML::Node root = YAML::Load(sstream.str());
 		std::string name = root["name"] ? root["name"].as<std::string>() : "Unnamed";
-		
+
 		if (!root["paths"]) [[unlikely]]
 		{
 			LP_CORE_ERROR("No shaders defined in shader definition {0}!", path.string().c_str());
@@ -135,7 +137,7 @@ namespace Lamp
 
 		asset = shader;
 		asset->path = path;
-		
+
 		return true;
 	}
 
@@ -185,7 +187,7 @@ namespace Lamp
 
 			std::string renderPipelineString;
 			LP_DESERIALIZE_PROPERTY(renderPipeline, renderPipelineString, materialNode, std::string("Null"));
-		
+
 			std::unordered_map<uint32_t, Ref<Texture2D>> textures;
 
 			YAML::Node texturesNode = materialNode["textures"];
@@ -193,11 +195,17 @@ namespace Lamp
 			{
 				uint32_t textureBinding;
 				LP_DESERIALIZE_PROPERTY(binding, textureBinding, textureNode, 0);
-				
+
 				AssetHandle textureHandle;
 				LP_DESERIALIZE_PROPERTY(handle, textureHandle, textureNode, uint64_t(0));
 
-				textures.emplace(textureBinding, AssetManager::GetAsset<Texture2D>(textureHandle));
+				Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(textureHandle);
+				if (!texture)
+				{
+					texture = Renderer::GetDefaultData().whiteTexture;
+				}
+
+				textures.emplace(textureBinding, texture);
 			}
 
 			Ref<RenderPipeline> renderPipeline = RenderPipelineRegistry::Get(renderPipelineString);
@@ -219,10 +227,49 @@ namespace Lamp
 		multiMaterial->m_name = nameString;
 		multiMaterial->m_materials = materials;
 		multiMaterial->path = path;
-		
+
 		return true;
 	}
 
 	void MultiMaterialImporter::Save(const Ref<Asset>& asset) const
-	{}
+	{
+		Ref<MultiMaterial> material = std::reinterpret_pointer_cast<MultiMaterial>(asset);
+
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "MultiMaterial" << YAML::Value;
+		{
+			out << YAML::BeginMap;
+			LP_SERIALIZE_PROPERTY(name, material->m_name, out);
+
+			{
+				out << YAML::Key << "materials" << YAML::BeginSeq;
+				for (const auto& [index, material] : material->m_materials)
+				{
+					out << YAML::BeginMap;
+					LP_SERIALIZE_PROPERTY(material, material->GetName(), out);
+					LP_SERIALIZE_PROPERTY(index, index, out);
+					LP_SERIALIZE_PROPERTY(renderPipeline, material->m_renderPipeline->GetSpecification().name, out);
+
+					out << YAML::Key << "textures" << YAML::BeginSeq;
+					for (const auto& [binding, texture] : material->m_textures)
+					{
+						out << YAML::BeginMap;
+						LP_SERIALIZE_PROPERTY(binding, binding, out);
+						LP_SERIALIZE_PROPERTY(handle, texture->handle, out);
+						out << YAML::EndMap;
+					}
+					out << YAML::EndSeq;
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+			}
+			out << YAML::EndMap;
+		}
+		out << YAML::EndMap;
+
+		std::ofstream fout(asset->path);
+		fout << out.c_str();
+		fout.close();
+	}
 }

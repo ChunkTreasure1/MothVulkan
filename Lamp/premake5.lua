@@ -76,7 +76,8 @@ project "Lamp"
 	defines
 	{
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		"GLM_FORCE_SSE2"
+		"GLM_FORCE_SSE2",
+		"NOMINMAX"
 	}
 
 	filter "files:vendor/**.cpp"
