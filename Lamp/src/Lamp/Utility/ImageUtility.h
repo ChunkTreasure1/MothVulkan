@@ -183,7 +183,7 @@ namespace Lamp
 			device->FlushThreadSafeCommandBuffer(commandBuffer);
 		}
 
-		inline void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+		inline void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0)
 		{
 			auto device = GraphicsContext::GetDevice();
 			VkCommandBuffer cmdBuffer = device->GetThreadSafeCommandBuffer(true);
@@ -194,7 +194,7 @@ namespace Lamp
 			region.bufferImageHeight = 0;
 
 			region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			region.imageSubresource.mipLevel = 0;
+			region.imageSubresource.mipLevel = mipLevel;
 			region.imageSubresource.baseArrayLayer = 0;
 			region.imageSubresource.layerCount = 1;
 

@@ -126,16 +126,51 @@ namespace Lamp
 			imageSpec.usage = ImageUsage::Texture;
 			imageSpec.width = width;
 			imageSpec.height = height;
-			imageSpec.mips = 1;
+			imageSpec.mips = dds.GetMipCount();
 
 			image = Image2D::Create(imageSpec);
 		
 			Utility::TransitionImageLayout(image->GetHandle(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 			Utility::CopyBufferToImage(stagingBuffer, image->GetHandle(), width, height);
-			Utility::TransitionImageLayout(image->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 
 		allocator.DestroyBuffer(stagingBuffer, stagingAllocation);
+
+		// Set mip data
+		{
+			for (uint32_t i = 1; i < dds.GetMipCount(); i++)
+			{
+				VmaAllocation mipStagingAllocation;
+				VkBuffer mipStagingBuffer;
+
+				auto mipData = dds.GetImageData(i);
+				VkDeviceSize mipSize = mipData->m_memSlicePitch;
+
+				// Create mip staging buffer
+				{
+					VkBufferCreateInfo bufferInfo{};
+					bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+					bufferInfo.size = mipSize;
+					bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+					bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+					mipStagingAllocation = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, mipStagingBuffer);
+				}
+
+				// Map mip memory
+				{
+					void* bufferPtr = allocator.MapMemory<void>(mipStagingAllocation);
+					memcpy_s(bufferPtr, mipSize, mipData->m_mem, mipSize);
+					allocator.UnmapMemory(mipStagingAllocation);
+				}				
+				
+				Utility::CopyBufferToImage(mipStagingBuffer, image->GetHandle(), mipData->m_width, mipData->m_height, i);
+				allocator.DestroyBuffer(mipStagingBuffer, mipStagingAllocation);
+			}
+
+			Utility::TransitionImageLayout(image->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
+
 
 		Ref<Texture2D> texture = CreateRef<Texture2D>();
 		texture->m_image = image;
