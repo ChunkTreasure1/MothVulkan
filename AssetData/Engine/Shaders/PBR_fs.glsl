@@ -27,8 +27,7 @@ layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
 };
 
 layout(set = 3, binding = 0) uniform sampler2D u_albedoTexture;
-layout(set = 3, binding = 1) uniform sampler2D u_normalTexture;
-layout(set = 3, binding = 2) uniform sampler2D u_materialTexture;
+layout(set = 3, binding = 1) uniform sampler2D u_materialNormalTexture;
 
 struct PBRParamters
 {
@@ -105,12 +104,12 @@ vec3 ReconstructNormal(vec3 normal)
 void main()
 {
     /////Textures/////
-    m_pbrParameters.albedo = texture(u_albedoTexture, v_input.texCoords);
-    m_pbrParameters.normal = ReconstructNormal(texture(u_normalTexture, v_input.texCoords).wyz);
-    const vec4 material = texture(u_materialTexture, v_input.texCoords);
+    const vec4 materialNormal = texture(u_materialNormalTexture, v_input.texCoords);
 
-    m_pbrParameters.metallic = material.x;
-    m_pbrParameters.roughness = material.y;
+    m_pbrParameters.albedo = texture(u_albedoTexture, v_input.texCoords);
+    m_pbrParameters.normal = ReconstructNormal(materialNormal.zyx);
+    m_pbrParameters.metallic = materialNormal.x;
+    m_pbrParameters.roughness = materialNormal.w;
     //////////////////
 
     const vec3 dirToCamera = normalize(u_cameraData.position.xyz - v_input.worldPosition);

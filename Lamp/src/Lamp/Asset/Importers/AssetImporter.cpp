@@ -200,7 +200,7 @@ namespace Lamp
 				LP_DESERIALIZE_PROPERTY(handle, textureHandle, textureNode, uint64_t(0));
 
 				Ref<Texture2D> texture = AssetManager::GetAsset<Texture2D>(textureHandle);
-				if (!texture)
+				if (textureHandle == Asset::Null() || !texture->IsValid())
 				{
 					texture = Renderer::GetDefaultData().whiteTexture;
 				}
@@ -217,7 +217,10 @@ namespace Lamp
 			Ref<Material> material = Material::Create(materialNameString, materialIndex, renderPipeline);
 			for (const auto& [binding, texture] : textures)
 			{
-				material->SetTexture(binding, texture);
+				if (renderPipeline->GetSpecification().shader->GetResources().shaderTextureDefinitions.find(binding) != renderPipeline->GetSpecification().shader->GetResources().shaderTextureDefinitions.end())
+				{
+					material->SetTexture(binding, texture);
+				}
 			}
 
 			materials.emplace(materialIndex, material);

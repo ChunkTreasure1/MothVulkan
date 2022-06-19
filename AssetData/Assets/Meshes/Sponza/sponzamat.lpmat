@@ -6,438 +6,350 @@ MultiMaterial:
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 7911758241137627276
+          handle: 10526662306552513238
         - binding: 1
-          handle: 7023752946304257660
-        - binding: 2
-          handle: 4205207197740891228
+          handle: 15066647806672068906
     - material: stone_trims_01
       index: 1
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 10775042495677737548
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14977105164640407251
     - material: metal_door
       index: 2
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 17810153698990391107
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 1206742991733818978
     - material: brickwall_02
       index: 3
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 2160169861445308383
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 1128520537286674042
     - material: stones_2ndfloor
       index: 4
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 18138378460617245620
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 2246333071492162729
     - material: stone_trims_02
       index: 5
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 6253220372439050657
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 15689025092329343871
     - material: ceiling_plaster_02
       index: 6
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 11590495622663019701
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 13164748137301035396
     - material: window_frame_01
       index: 7
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 9584340477627636809
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14860646877363534706
     - material: stones_01_tile
       index: 8
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 12562275450317383540
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 16705355829975429953
     - material: column_1stfloor
       index: 9
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 3763836502500103802
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 8245412336997914396
     - material: column_head_1stfloor
       index: 10
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 10247269930800027082
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 16605861160291563046
     - material: dirt_decal
       index: 11
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 9845721996608143630
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: brickwall_01
       index: 12
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 2627664088067154109
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14943131848083426544
     - material: lamp_glass_01
       index: 13
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 0
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: light_bulb
       index: 14
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 0
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: door_stoneframe_02
       index: 15
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 7625587265189312090
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 1416992170171628257
     - material: glass
       index: 16
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 0
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: door_stoneframe_01
       index: 17
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 3342959149669462403
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 8585311606290656843
     - material: arch_stone_wall_01.001
       index: 18
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 10526662306552513238
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 15066647806672068906
     - material: stone_trims_01.001
       index: 19
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 10775042495677737548
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14977105164640407251
     - material: window_frame_01.001
       index: 20
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 9584340477627636809
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14860646877363534706
     - material: stones_01_tile.001
       index: 21
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 12562275450317383540
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 16705355829975429953
     - material: floor_01
       index: 22
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 13648423932771400095
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 10554142289799163817
     - material: stones_2ndfloor.001
       index: 23
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 18138378460617245620
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 2246333071492162729
     - material: door_stoneframe_02.001
       index: 24
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 3342959149669462403
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: metal_door.001
       index: 25
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 17810153698990391107
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 1206742991733818978
     - material: glass.001
       index: 26
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 0
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: brickwall_01.001
       index: 27
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 2627664088067154109
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14943131848083426544
     - material: brickwall_02.001
       index: 28
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 2160169861445308383
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 1128520537286674042
     - material: stone_trims_02.001
       index: 29
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 6253220372439050657
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 15689025092329343871
     - material: ceiling_plaster_02.001
       index: 30
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 11590495622663019701
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 13164748137301035396
     - material: wood_door_01
       index: 31
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 273500686285729536
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 4285905638287371977
     - material: wood_01
       index: 32
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 11062217365819457771
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 17696389535103733824
     - material: ceiling_plaster_01
       index: 33
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 12705515675753564767
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 14912558973699739751
     - material: column_brickwall_01
       index: 34
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 5331706042518227231
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 11566361249794305466
     - material: column_head_2ndfloor_03
       index: 35
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 7417824356246717196
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 17404678916996796885
     - material: column_head_2ndfloor_02
       index: 36
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 6792430985733487355
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 3434824630969020684
     - material: floor_01.001
       index: 37
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 13648423932771400095
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 10554142289799163817
     - material: door_stoneframe_01.001
       index: 38
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 3342959149669462403
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 8585311606290656843
     - material: roof_tiles_01
       index: 39
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 5701117690511550777
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 2626732546091404536
     - material: ornament_01
       index: 40
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 12363893699666129652
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 13063949618994673401
     - material: ornament_lion
       index: 41
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 18176121538481493841
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 18289383571320609539
     - material: dirt_decal.001
       index: 42
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 9845721996608143630
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 0
     - material: ornament_01.001
       index: 43
       renderPipeline: PBR
       textures:
         - binding: 0
-          handle: 4113174591286284415
+          handle: 12363893699666129652
         - binding: 1
-          handle: 4113174591286284415
-        - binding: 2
-          handle: 4113174591286284415
+          handle: 13063949618994673401

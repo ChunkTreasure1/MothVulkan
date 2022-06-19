@@ -6,6 +6,4 @@ inputTextures:
   - binding: 0
     name: "Albedo"
   - binding: 1
-    name: "Normal"
-  - binding: 2
-    name: "Material"
+    name: "MaterialNormal"

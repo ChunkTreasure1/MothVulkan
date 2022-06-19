@@ -63,7 +63,17 @@ void AssetBrowserPanel::UpdateMainContent()
 
 		{
 			UI::ShiftCursor(5.f, 5.f);
-			if (UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), "Assets", ImGuiTreeNodeFlags_DefaultOpen))
+			auto flags = (m_directories[FileSystem::GetAssetsPath().string()]->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+
+			bool open = UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), "Assets", flags);
+
+			if (ImGui::IsItemClicked())
+			{
+				m_directories[FileSystem::GetAssetsPath().string()]->selected = true;
+				m_nextDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+			}
+
+			if (open)
 			{
 				UI::ScopedStyleFloat2 spacing(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
@@ -96,17 +106,14 @@ void AssetBrowserPanel::UpdateMainContent()
 				ImGui::Columns(columnCount, nullptr, false);
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.f, 0.f, 0.f, 0.f });
 
-				//if (!m_hasSearchQuery)
-				//{
-				//	RenderView(m_pCurrentDirectory->subDirectories, m_pCurrentDirectory->assets);
-				//}
-				//else
-				//{
-				//	RenderView(m_searchDirectories, m_searchAssets);
-				//}
-
-				RenderView(m_currentDirectory->subDirectories, m_currentDirectory->assets);
-
+				if (!m_hasSearchQuery)
+				{
+					RenderView(m_currentDirectory->subDirectories, m_currentDirectory->assets);
+				}
+				else
+				{
+					RenderView(m_searchDirectories, m_searchAssets);
+				}
 
 				ImGui::PopStyleColor();
 			}
@@ -189,11 +196,12 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 			{
 				if (!m_searchQuery.empty())
 				{
-
+					m_hasSearchQuery = true;
+					Search(m_searchQuery);
 				}
 				else
 				{
-
+					m_hasSearchQuery = false;
 				}
 			}
 
@@ -205,7 +213,7 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 				if (UI::ImageButton("##reloadButton", UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Reload)), { height - buttonSizeOffset, height - buttonSizeOffset }))
 				{
-					//Reload();
+					Reload();
 				}
 
 				ImGui::SameLine();
@@ -347,4 +355,123 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 		ImGui::NextColumn();
 		ImGui::PopID();
 	}
+}
+
+void AssetBrowserPanel::Reload()
+{
+	const std::filesystem::path currentPath = m_currentDirectory ? m_currentDirectory->path : FileSystem::GetAssetsPath();
+
+	m_currentDirectory = nullptr;
+	m_nextDirectory = nullptr;
+
+	m_directories[FileSystem::GetAssetsPath().string()] = ProcessDirectory(FileSystem::GetAssetsPath().string(), nullptr);
+
+	//Find directory
+	m_currentDirectory = FindDirectoryWithPath(currentPath);
+	if (!m_currentDirectory)
+	{
+		m_currentDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+	}
+
+	//Setup new file path buttons
+	m_directoryButtons.clear();
+	m_directoryButtons = FindParentDirectoriesOfDirectory(m_currentDirectory);
+}
+
+void AssetBrowserPanel::Search(const std::string& query)
+{
+	std::vector<std::string> queries;
+	std::vector<std::string> types;
+
+	std::string searchQuery = query;
+
+	searchQuery.push_back(' ');
+
+	for (auto next = searchQuery.find_first_of(' '); next != std::string::npos; next = searchQuery.find_first_of(' '))
+	{
+		std::string split = searchQuery.substr(0, next);
+		searchQuery = searchQuery.substr(next + 1);
+
+		if (split.front() == '*')
+		{
+			types.emplace_back(split);
+		}
+		else
+		{
+			queries.emplace_back(split);
+		}
+	}
+
+	//Find all folders and files containing queries
+	m_searchDirectories.clear();
+	m_searchAssets.clear();
+	for (const auto& query : queries)
+	{
+		FindFoldersAndFilesWithQuery(m_directories[FileSystem::GetAssetsPath().string()]->subDirectories, m_searchDirectories, m_searchAssets, query);
+	}
+}
+
+void AssetBrowserPanel::FindFoldersAndFilesWithQuery(const std::vector<Ref<DirectoryData>>& dirList, std::vector<Ref<DirectoryData>>& directories, std::vector<AssetData>& assets, const std::string& query)
+{
+	for (const auto& dir : dirList)
+	{
+		std::string dirStem = dir->path.stem().string();
+		std::transform(dirStem.begin(), dirStem.end(), dirStem.begin(), [](unsigned char c)
+			{
+				return std::tolower(c);
+			});
+
+		if (dirStem.find(query) != std::string::npos)
+		{
+			directories.emplace_back(dir);
+		}
+
+		for (const auto& asset : dir->assets)
+		{
+			std::string assetStem = asset.path.stem().string();
+			std::transform(assetStem.begin(), assetStem.end(), assetStem.begin(), [](unsigned char c)
+				{
+					return std::tolower(c);
+				});
+
+			if (assetStem.find(query) != std::string::npos)
+			{
+				assets.emplace_back(asset);
+			}
+		}
+
+		FindFoldersAndFilesWithQuery(dir->subDirectories, directories, assets, query);
+	}
+}
+
+DirectoryData* AssetBrowserPanel::FindDirectoryWithPath(const std::filesystem::path& path)
+{
+	std::vector<Ref<DirectoryData>> dirList;
+	for (const auto& dir : m_directories)
+	{
+		dirList.emplace_back(dir.second);
+	}
+
+	return FindDirectoryWithPathRecursivly(dirList, path);
+}
+
+DirectoryData* AssetBrowserPanel::FindDirectoryWithPathRecursivly(const std::vector<Ref<DirectoryData>> dirList, const std::filesystem::path& path)
+{
+	for (const auto& dir : dirList)
+	{
+		if (dir->path == path)
+		{
+			return dir.get();
+		}
+	}
+
+	for (const auto& dir : dirList)
+	{
+		if (auto it = FindDirectoryWithPathRecursivly(dir->subDirectories, path))
+		{
+			return it;
+		}
+	}
+
+	return nullptr;
 }

@@ -1,3 +1,4 @@
+
 #include "lppch.h"
 #include "Renderer.h"
 
@@ -236,6 +237,7 @@ namespace Lamp
 
 			uint32_t whiteTextureData = 0xffffffff;
 			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
+			s_defaultData->whiteTexture->handle = Asset::Null();
 		}
 	}
 

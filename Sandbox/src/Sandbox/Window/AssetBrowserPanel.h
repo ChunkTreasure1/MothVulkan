@@ -39,6 +39,13 @@ private:
 	void RenderControlsBar(float height);
 	void RenderDirectory(const Ref<DirectoryData> dirData);
 	void RenderView(const std::vector<Ref<DirectoryData>>& dirData, const std::vector<AssetData>& assetData);
+	void Reload();
+	
+	void Search(const std::string& query);
+	void FindFoldersAndFilesWithQuery(const std::vector<Ref<DirectoryData>>& dirList, std::vector<Ref<DirectoryData>>& directories, std::vector<AssetData>& assets, const std::string& query);
+
+	DirectoryData* FindDirectoryWithPath(const std::filesystem::path& path);
+	DirectoryData* FindDirectoryWithPathRecursivly(const std::vector<Ref<DirectoryData>> dirList, const std::filesystem::path& path);
 
 	std::unordered_map<std::string, Ref<DirectoryData>> m_directories;
 	std::vector<DirectoryData*> m_directoryButtons;
@@ -51,4 +58,7 @@ private:
 	float m_thumbnailSize = 100.f;
 
 	std::string m_searchQuery;
+	std::vector<Ref<DirectoryData>> m_searchDirectories;
+	std::vector<AssetData> m_searchAssets;
+	bool m_hasSearchQuery = false;
 };
