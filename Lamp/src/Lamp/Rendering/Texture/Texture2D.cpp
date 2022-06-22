@@ -3,7 +3,7 @@
 
 namespace Lamp
 {
-	Texture2D::Texture2D(ImageFormat format, uint32_t width, uint32_t height, void* data)
+	Texture2D::Texture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data)
 	{
 		ImageSpecification imageSpec{};
 		imageSpec.format = format;
@@ -34,7 +34,7 @@ namespace Lamp
 		return m_image->GetHeight();
 	}
 
-	Ref<Texture2D> Texture2D::Create(ImageFormat format, uint32_t width, uint32_t height, void* data)
+	Ref<Texture2D> Texture2D::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data)
 	{
 		return CreateRef<Texture2D>(format, width, height, data);
 	}

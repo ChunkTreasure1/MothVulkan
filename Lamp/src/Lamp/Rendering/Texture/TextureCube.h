@@ -6,12 +6,12 @@
 
 namespace Lamp
 {
-	class Texture2D : public Asset
+	class TextureCube : public Asset
 	{
 	public:
-		Texture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data);
-		Texture2D() = default;
-		~Texture2D() override;
+		TextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data);
+		TextureCube() = default;
+		~TextureCube() override;
 
 		void SetData(const void* data, uint32_t size);
 
@@ -21,9 +21,9 @@ namespace Lamp
 		inline const Ref<Image2D> GetImage() const { return m_image; }
 
 		static AssetType GetStaticType() { return AssetType::Texture; }
-		AssetType GetType() { return GetStaticType(); }		
-		
-		static Ref<Texture2D> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
+		AssetType GetType() { return GetStaticType(); }
+
+		static Ref<TextureCube> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
 
 	private:
 		friend class DefaultTextureImporter;

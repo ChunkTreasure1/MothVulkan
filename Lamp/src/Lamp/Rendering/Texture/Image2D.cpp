@@ -118,6 +118,7 @@ namespace Lamp
 		imageViewInfo.subresourceRange = {};
 		imageViewInfo.subresourceRange.aspectMask = aspectMask;
 		imageViewInfo.subresourceRange.baseMipLevel = 0;
+		imageViewInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewInfo.subresourceRange.levelCount = m_specification.mips;
 		imageViewInfo.subresourceRange.layerCount = m_specification.layers;
 		imageViewInfo.image = m_image;
@@ -182,8 +183,105 @@ namespace Lamp
 		const VkImageAspectFlags flag = Utility::IsDepthFormat(m_specification.format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 		const VkImageSubresourceRange range = { flag, 0, 1, 0, 1 };
 
+		VkImageSubresourceRange subresourceRange{};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseArrayLayer = 0;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.layerCount = m_specification.layers;
+		subresourceRange.levelCount = m_specification.mips;
+
 		Utility::TransitionImageLayout(commandBuffer, m_image, m_imageLayout, targetLayout, range);
 		m_imageLayout = targetLayout;
+	}
+
+	void Image2D::GenerateMips(bool readOnly)
+	{
+		auto device = GraphicsContext::GetDevice();
+		VkCommandBuffer cmdBuffer = device->GetThreadSafeCommandBuffer(true);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.image = m_image;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.oldLayout = m_imageLayout;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+
+		const uint32_t mipLevels = GetMipCount();
+		m_specification.mips = mipLevels;
+
+		for (uint32_t layer = 0; layer < m_specification.layers; layer++)
+		{
+			barrier.subresourceRange.baseArrayLayer = layer;
+			vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		}
+
+		for (uint32_t i = 1; i < mipLevels; i++)
+		{
+			for (uint32_t layer = 0; layer < m_specification.layers; layer++)
+			{
+				VkImageBlit imageBlit{};
+				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.srcSubresource.layerCount = 1;
+				imageBlit.srcSubresource.mipLevel = i - 1;
+				imageBlit.srcSubresource.baseArrayLayer = layer;
+
+				imageBlit.srcOffsets[0] = { 0, 0, 0 };
+				imageBlit.srcOffsets[1] = { int32_t(m_specification.width >> (i - 1)), int32_t(m_specification.height >> (i - 1)), 1 };
+
+				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				imageBlit.dstSubresource.layerCount = 1;
+				imageBlit.dstSubresource.mipLevel = i;
+				imageBlit.dstSubresource.baseArrayLayer = layer;
+
+				imageBlit.srcOffsets[0] = { 0, 0, 0 };
+				imageBlit.srcOffsets[1] = { int32_t(m_specification.width >> i), int32_t(m_specification.height >> i), 1 };
+
+				barrier.subresourceRange.baseMipLevel = i;
+				barrier.subresourceRange.baseMipLevel = layer;
+
+				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrier.srcAccessMask = 0;
+				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+				vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+				vkCmdBlitImage(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
+				
+				barrier.srcAccessMask = 0;
+				barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+				vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			}
+		}
+
+		VkImageSubresourceRange subresourceRange{};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseArrayLayer = 0;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.layerCount = m_specification.layers;
+		subresourceRange.levelCount = m_specification.mips;
+
+		const VkImageLayout targetLayout = readOnly ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+
+		Utility::TransitionImageLayout(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, targetLayout, subresourceRange);
+		device->FlushThreadSafeCommandBuffer(cmdBuffer);
+
+		m_hasGeneratedMips = true;
+		m_imageLayout = targetLayout;
+	}
+
+	const uint32_t Image2D::GetMipCount() const
+	{
+		return Utility::CalculateMipCount(m_specification.width, m_specification.height);
 	}
 
 	Ref<Image2D> Image2D::Create(const ImageSpecification& specification, const void* data)
