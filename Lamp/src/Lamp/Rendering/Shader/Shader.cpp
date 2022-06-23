@@ -208,6 +208,8 @@ namespace Lamp
 					LP_CORE_ERROR("Failed to preprocess shader {0}!", currentPath.string().c_str());
 					LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
 					LP_CORE_ASSERT(false, "Failed to preprocess shader!");
+
+					return;
 				}
 
 				std::string proccessedSource = std::string(preProcessResult.cbegin(), preProcessResult.cend());
@@ -220,6 +222,8 @@ namespace Lamp
 						LP_CORE_ERROR("Failed to compile shader {0}!", currentPath.string().c_str());
 						LP_CORE_ERROR(compileResult.GetErrorMessage().c_str());
 						LP_CORE_ASSERT(false, "Shader compilation failed!");
+
+						return;
 					}
 
 					const uint8_t* begin = (const uint8_t*)compileResult.cbegin();

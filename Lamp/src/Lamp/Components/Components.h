@@ -2,7 +2,7 @@
 
 #include "Lamp/Asset/Asset.h"
 
-#include <Wire/ECS/Serialization.h>
+#include <Wire/Serialization.h>
 #include <glm/glm.hpp>
 
 namespace Lamp

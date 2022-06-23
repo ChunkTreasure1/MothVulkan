@@ -4,7 +4,7 @@
 #include <Lamp/Components/Components.h>
 #include <Lamp/Utility/UIUtility.h>
 
-PropertiesPanel::PropertiesPanel(std::vector<Entity>& selectedEntites)
+PropertiesPanel::PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites)
 	: EditorWindow("Properties"), m_selectedEntites(selectedEntites)
 {
 	m_isOpen = true;
@@ -21,7 +21,7 @@ void PropertiesPanel::UpdateMainContent()
 
 	if (singleSelected)
 	{
-		Entity& entity = m_selectedEntites[0];
+		Lamp::Entity& entity = m_selectedEntites[0];
 		if (entity.HasComponent<Lamp::TagComponent>())
 		{
 			auto& tag = entity.GetComponent<Lamp::TagComponent>();

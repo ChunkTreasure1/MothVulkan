@@ -76,6 +76,16 @@ namespace Lamp
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.format = m_format;
+		imageInfo.flags = 0;
+
+		if (m_specification.isCubeMap)
+		{
+			imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		}
+		else if (m_specification.layers > 0)
+		{
+			imageInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+		}
 
 		m_bufferAllocation = allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_image);
 
@@ -112,7 +122,21 @@ namespace Lamp
 
 		VkImageViewCreateInfo imageViewInfo{};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewInfo.viewType = m_specification.layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
+		imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+
+		if (m_specification.isCubeMap)
+		{
+			imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		}
+		else if (m_specification.layers > 1)
+		{
+			imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		}
+		else if (m_specification.isCubeMap && m_specification.layers > 6)
+		{
+			imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+		}
+
 		imageViewInfo.format = m_format;
 		imageViewInfo.flags = 0;
 		imageViewInfo.subresourceRange = {};
@@ -253,7 +277,7 @@ namespace Lamp
 
 				vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 				vkCmdBlitImage(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
-				
+
 				barrier.srcAccessMask = 0;
 				barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -277,6 +301,45 @@ namespace Lamp
 
 		m_hasGeneratedMips = true;
 		m_imageLayout = targetLayout;
+	}
+
+	VkImageView Image2D::CreateMipView(uint32_t mip)
+	{
+		if (m_imageViews.find(mip) != m_imageViews.end())
+		{
+			return m_imageViews.at(mip);
+		}
+
+		VkImageViewCreateInfo info{};
+		info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+
+		if (m_specification.isCubeMap)
+		{
+			info.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		}
+		else if (m_specification.layers > 1)
+		{
+			info.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		}
+		else if (m_specification.isCubeMap && m_specification.layers > 6)
+		{
+			info.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+		}
+
+		info.format = m_format;
+		info.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
+		info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		info.subresourceRange.baseMipLevel = mip;
+		info.subresourceRange.baseArrayLayer = 0;
+		info.subresourceRange.layerCount = m_specification.layers;
+		info.subresourceRange.levelCount = 1;
+		info.image = m_image;
+
+		auto device = GraphicsContext::GetDevice();
+		LP_VK_CHECK(vkCreateImageView(device->GetHandle(), &info, nullptr, &m_imageViews[mip]));
+
+		return m_imageViews.at(mip);
 	}
 
 	const uint32_t Image2D::GetMipCount() const

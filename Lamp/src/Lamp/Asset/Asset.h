@@ -50,6 +50,7 @@ namespace Lamp
 		{ ".tga", AssetType::Texture },
 		{ ".ktx", AssetType::Texture },
 		{ ".dds", AssetType::Texture },
+		{ ".hdr", AssetType::Texture },
 		
 		{ ".lpsdef", AssetType::Shader },
 		{ ".lprpdef", AssetType::RenderPipeline },

@@ -119,7 +119,7 @@ namespace Lamp
 		m_storageBufferSets[set][binding] = storageBuffer;
 	}
 
-	void RenderPipelineCompute::SetTexture(Ref<Texture2D> texture, uint32_t set, uint32_t binding)
+	void RenderPipelineCompute::SetTexture(Ref<Texture2D> texture, uint32_t set, uint32_t binding, uint32_t mipLevel)
 	{
 		if (m_shaderResources[0].imageInfos.find(set) == m_shaderResources[0].imageInfos.end() ||
 			m_shaderResources[0].imageInfos.at(set).find(binding) == m_shaderResources[0].imageInfos.at(set).end())
@@ -131,12 +131,12 @@ namespace Lamp
 		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
 		{
 			auto& info = m_shaderResources[i].imageInfos[set][binding];
-			info.imageView = texture->GetImage()->GetView();
+			info.imageView = texture->GetImage()->GetView(mipLevel);
 			info.sampler = texture->GetImage()->GetSampler();
 		}
 	}
 
-	void RenderPipelineCompute::SetImage(Ref<Image2D> image, uint32_t set, uint32_t binding, VkAccessFlags accessFlags, VkImageLayout targetLayout)
+	void RenderPipelineCompute::SetImage(Ref<Image2D> image, uint32_t set, uint32_t binding, uint32_t mipLevel, VkAccessFlags accessFlags, VkImageLayout targetLayout)
 	{
 		if (m_shaderResources[0].storageImagesInfos.find(set) == m_shaderResources[0].storageImagesInfos.end() ||
 			m_shaderResources[0].storageImagesInfos.at(set).find(binding) == m_shaderResources[0].storageImagesInfos.at(set).end())
@@ -148,7 +148,7 @@ namespace Lamp
 		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
 		{
 			auto& info = m_shaderResources[i].storageImagesInfos[set][binding];
-			info.info.imageView = image->GetView();
+			info.info.imageView = image->GetView(mipLevel);
 			info.info.sampler = image->GetSampler();
 
 			auto it = std::find_if(m_imageBarriers[i].begin(), m_imageBarriers[i].end(), [this, set, binding, i, image](const VkImageMemoryBarrier& barrier)
@@ -179,7 +179,7 @@ namespace Lamp
 		m_images[set][binding] = image;
 	}
 
-	void RenderPipelineCompute::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	void RenderPipelineCompute::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t size, const void* data, uint32_t offset) const
 	{
 		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, offset, size, data);
 	}

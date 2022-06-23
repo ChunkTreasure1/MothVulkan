@@ -81,7 +81,7 @@ namespace Lamp
 			
 			if (!isHDR)
 			{
-				Utility::GenerateMipMaps(image->GetHandle(), width, height, imageSpec.mips);
+				image->GenerateMips(true);
 			}
 		}
 

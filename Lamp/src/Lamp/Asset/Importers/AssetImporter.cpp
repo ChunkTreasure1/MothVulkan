@@ -107,11 +107,7 @@ namespace Lamp
 			auto& shaderInputDefinitions = const_cast<std::unordered_map<uint32_t, std::string>&>(shader->GetResources().shaderTextureDefinitions);
 
 			auto setIt = imageInfos.find((uint32_t)DescriptorSetType::PerMaterial);
-			if (setIt == imageInfos.end())
-			{
-				LP_CORE_ERROR("Shader {0} does not have a per-material descriptor set, but textures are defined in definition!", path.string().c_str());
-			}
-			else
+			if (setIt != imageInfos.end())
 			{
 				for (const auto& [binding, name] : inputTextures)
 				{

@@ -70,6 +70,8 @@ namespace Lamp
 
 		static void SubmitDestroy(std::function<void()>&& function);
 
+		static Skybox GenerateEnvironmentMap(const std::filesystem::path& cubeMap);
+
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }
 

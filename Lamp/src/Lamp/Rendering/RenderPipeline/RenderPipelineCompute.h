@@ -26,9 +26,9 @@ namespace Lamp
 		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 		void SetUniformBuffer(Ref<UniformBufferSet> uniformBuffer, uint32_t set, uint32_t binding);
 		void SetStorageBuffer(Ref<ShaderStorageBufferSet> storageBuffer, uint32_t set, uint32_t binding, VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT);
-		void SetTexture(Ref<Texture2D> texture, uint32_t set, uint32_t binding);
-		void SetImage(Ref<Image2D> image, uint32_t set, uint32_t binding, VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const;
+		void SetTexture(Ref<Texture2D> texture, uint32_t set, uint32_t binding, uint32_t mipLevel = 0);
+		void SetImage(Ref<Image2D> image, uint32_t set, uint32_t binding, uint32_t mipLevel = 0, VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t size, const void* data, uint32_t offset = 0) const;
 
 		static Ref<RenderPipelineCompute> Create(Ref<Shader> computeShader, uint32_t count = 1);
 

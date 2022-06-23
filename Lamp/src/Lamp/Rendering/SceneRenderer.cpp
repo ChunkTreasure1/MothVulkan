@@ -11,9 +11,9 @@
 #include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Components/Components.h"
+#include "Lamp/Scene/Scene.h"
 
-#include <Wire/SceneSystem/Scene.h>
-#include <Wire/ECS/Registry.h>
+#include <Wire/Registry.h>
 
 namespace Lamp
 {

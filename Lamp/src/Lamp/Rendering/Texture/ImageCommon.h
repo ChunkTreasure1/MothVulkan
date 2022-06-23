@@ -94,5 +94,6 @@ namespace Lamp
 
 		bool copyable = false;
 		bool comparable = false;
+		bool isCubeMap = false;
 	};
 }

@@ -18,6 +18,7 @@ namespace Lamp
 
 		void TransitionToLayout(VkCommandBuffer commandBuffer, VkImageLayout targetLayout);
 		void GenerateMips(bool readOnly);
+		VkImageView CreateMipView(uint32_t mip);
 
 		inline const VkImage GetHandle() const { return m_image; };
 		inline const ImageFormat GetFormat() const { return m_specification.format; }

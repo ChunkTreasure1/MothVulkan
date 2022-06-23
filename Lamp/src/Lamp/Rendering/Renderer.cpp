@@ -4,6 +4,7 @@
 
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/Mesh/Mesh.h"
+#include "Lamp/Asset/AssetManager.h"
 
 #include "Lamp/Core/Application.h"
 #include "Lamp/Core/Window.h"
@@ -28,6 +29,8 @@
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 #include "Lamp/Rendering/Camera/Camera.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
+
+#include "Lamp/Rendering/Shader/ShaderRegistry.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
 
@@ -85,6 +88,8 @@ namespace Lamp
 	void Renderer::Begin()
 	{
 		LP_PROFILE_FUNCTION();
+
+		GenerateEnvironmentMap("Assets/Textures/HDRIs/brightForest.hdr");
 
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
@@ -212,6 +217,118 @@ namespace Lamp
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		s_frameDeletionQueues[currentFrame].Push(function);
 	}
+
+	Skybox Renderer::GenerateEnvironmentMap(const std::filesystem::path& cubeMap)
+	{
+		Ref<Texture2D> equirectangularTexture = AssetManager::GetAsset<Texture2D>(cubeMap);
+		if (!equirectangularTexture || !equirectangularTexture->IsValid())
+		{
+			return Skybox{};
+		}
+
+		constexpr uint32_t cubeMapSize = 1024;
+		constexpr uint32_t irradianceMapSize = 32;
+		constexpr uint32_t conversionThreadCount = 32;
+
+		auto device = GraphicsContext::GetDevice();
+
+		Ref<Image2D> environmentUnfiltered;
+		Ref<Image2D> environmentFiltered;
+		Ref<Image2D> irradianceMap;
+
+		VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+
+		// Unfiltered - Conversion
+		{
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA32F;
+			imageSpec.width = cubeMapSize;
+			imageSpec.height = cubeMapSize;
+			imageSpec.usage = ImageUsage::Storage;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			environmentUnfiltered = Image2D::Create(imageSpec);
+
+			Ref<RenderPipelineCompute> conversionPipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EquirectangularConversion"));
+			conversionPipeline->Bind(cmdBuffer);
+			conversionPipeline->SetTexture(equirectangularTexture, 0, 0);
+			conversionPipeline->SetImage(environmentUnfiltered, 0, 1, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			conversionPipeline->Dispatch(cmdBuffer, 0, cubeMapSize / conversionThreadCount, cubeMapSize / conversionThreadCount, 1);
+			conversionPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+		}
+
+		// Filtered
+		{
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA32F;
+			imageSpec.width = cubeMapSize;
+			imageSpec.height = cubeMapSize;
+			imageSpec.usage = ImageUsage::Storage;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			environmentFiltered = Image2D::Create(imageSpec);
+
+			for (uint32_t i = 0; i < environmentFiltered->GetMipCount(); i++)
+			{
+				environmentFiltered->CreateMipView(i);
+			}
+
+			Ref<RenderPipelineCompute> filterPipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EnvironmentFiltering"));
+			filterPipeline->Bind(cmdBuffer);
+			filterPipeline->SetImage(environmentUnfiltered, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT);
+			
+			const float deltaRoughness = 1.f / glm::max((float)environmentFiltered->GetMipCount() - 1.f, 1.f);
+			for (uint32_t i = 0, size = cubeMapSize; i < environmentFiltered->GetMipCount(); i++, size /= 2)
+			{
+				const uint32_t numGroups = glm::max(1u, size / 32);
+
+				float roughness = i * deltaRoughness;
+				roughness = glm::max(roughness, 0.05f);
+
+				filterPipeline->SetPushConstant(cmdBuffer, sizeof(float), &roughness);
+				filterPipeline->SetImage(environmentFiltered, 0, 1, i, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_GENERAL);
+				filterPipeline->Dispatch(cmdBuffer, 0, numGroups, numGroups, 6);
+			}
+
+			filterPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+		}
+
+		// Irradiance
+		{
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA32F;
+			imageSpec.width = irradianceMapSize;
+			imageSpec.height = irradianceMapSize;
+			imageSpec.usage = ImageUsage::Storage;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			irradianceMap = Image2D::Create(imageSpec);
+			
+			Ref<RenderPipelineCompute> irradiancePipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EnvironmentGenerateIrradiance"));
+			constexpr uint32_t irradianceComputeSamples = 512;
+
+			irradiancePipeline->Bind(cmdBuffer);
+			irradiancePipeline->SetImage(environmentFiltered, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			irradiancePipeline->SetImage(irradianceMap, 0, 1, 0, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			irradiancePipeline->SetPushConstant(cmdBuffer, sizeof(uint32_t), &irradianceComputeSamples);
+			irradiancePipeline->Dispatch(cmdBuffer, 0, irradianceMapSize / conversionThreadCount, irradianceMapSize / conversionThreadCount, 6);
+			irradiancePipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+			irradianceMap->GenerateMips(false);
+		}
+
+		device->FlushCommandBuffer(cmdBuffer);
+
+		Skybox skybox{};
+		skybox.irradianceMap = irradianceMap;
+		skybox.radianceMap = environmentFiltered;
+
+		return skybox;
+	}
+
 
 	VkDescriptorSet Renderer::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
 	{
@@ -483,7 +600,7 @@ namespace Lamp
 			cullData.lodEnabled = true;
 			cullData.distCull = 0;
 
-			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), 0, sizeof(CullData), &cullData);
+			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), sizeof(CullData), &cullData);
 		}
 
 		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;

@@ -14,8 +14,8 @@
 #include <Lamp/Asset/AssetManager.h>
 #include <Lamp/Asset/Mesh/Mesh.h>
 
-#include <Wire/SceneSystem/Scene.h>
-#include <Wire/SceneSystem/Entity.h>
+#include <Lamp/Scene/Entity.h>
+#include <Lamp/Scene/Scene.h>
 
 #include <imgui.h>
 
@@ -28,7 +28,7 @@ void Sandbox::OnAttach()
 	EditorIconLibrary::Initialize();
 
 	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 1000.f);
-	m_editorScene = CreateRef<Scene>("Scene");
+	m_editorScene = CreateRef<Lamp::Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
 	for (uint32_t i = 0; i < 1; i++)

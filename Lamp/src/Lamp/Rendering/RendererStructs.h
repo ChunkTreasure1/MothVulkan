@@ -1,10 +1,22 @@
 #pragma once
 
+#include "Lamp/Core/Base.h"
+
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
 namespace Lamp
 {
+	class Image2D;
+
+	/////Renderer structs/////
+	struct Skybox
+	{
+		Ref<Image2D> irradianceMap;
+		Ref<Image2D> radianceMap;
+	};
+
+	/////Shader structs/////
 	struct CameraData
 	{
 		glm::mat4 view;

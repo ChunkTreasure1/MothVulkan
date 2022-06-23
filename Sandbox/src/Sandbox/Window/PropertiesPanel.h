@@ -2,16 +2,17 @@
 
 #include "Sandbox/Window/EditorWindow.h"
 
-#include <Wire/SceneSystem/Entity.h>
+#include <Lamp/Scene/Entity.h>
+
 #include <vector>
 
 class PropertiesPanel : public EditorWindow
 {
 public:
-	PropertiesPanel(std::vector<Entity>& selectedEntites);
+	PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites);
 
 	void UpdateMainContent() override;
 
 private:
-	std::vector<Entity>& m_selectedEntites;
+	std::vector<Lamp::Entity>& m_selectedEntites;
 };
