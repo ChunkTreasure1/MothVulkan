@@ -249,6 +249,8 @@ namespace Lamp
 		m_height = height;
 		m_firstBind = true;
 
+		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
+
 		Invalidate();
 	}
 
