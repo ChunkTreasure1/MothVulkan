@@ -45,6 +45,8 @@ void Sandbox::OnAttach()
 
 			auto& tag = entity.AddComponent<Lamp::TagComponent>();
 			tag.tag = "Entity";
+
+			m_selectedEntities.emplace_back(entity);
 		}
 	}
 
@@ -57,7 +59,6 @@ void Sandbox::OnAttach()
 		lightComp.intensity = 1.f;
 		
 		entity.AddComponent<Lamp::TransformComponent>();
-		m_selectedEntities.emplace_back(entity);
 	}
 
 	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
