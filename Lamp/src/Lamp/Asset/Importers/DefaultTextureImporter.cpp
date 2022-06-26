@@ -81,7 +81,11 @@ namespace Lamp
 			
 			if (!isHDR)
 			{
-				image->GenerateMips(true);
+				image->GenerateMips(true); // implicitly converts from VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			}
+			else
+			{
+				Utility::TransitionImageLayout(image->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
 

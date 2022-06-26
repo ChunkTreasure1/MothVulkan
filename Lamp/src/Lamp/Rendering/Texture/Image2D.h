@@ -17,7 +17,7 @@ namespace Lamp
 		void Release();
 
 		void TransitionToLayout(VkCommandBuffer commandBuffer, VkImageLayout targetLayout);
-		void GenerateMips(bool readOnly);
+		void GenerateMips(bool readOnly, VkCommandBuffer commandBuffer = nullptr);
 		VkImageView CreateMipView(uint32_t mip);
 
 		inline const VkImage GetHandle() const { return m_image; };
@@ -35,6 +35,8 @@ namespace Lamp
 		static Ref<Image2D> Create(const ImageSpecification& specification, const void* data = nullptr);
 
 	private:
+		friend class RenderPipelineCompute;
+
 		ImageSpecification m_specification;
 
 		VmaAllocation m_bufferAllocation = nullptr;

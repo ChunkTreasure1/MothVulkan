@@ -28,10 +28,10 @@ namespace Lamp
 
 	RenderPipelineCompute::~RenderPipelineCompute()
 	{
-		Renderer::SubmitDestroy([pipelineLayout = m_pipelineLayout, pipelineCache = m_pipelineCache, pipeline = m_pipeline, descriptorPool = m_descriptorPool]() 
+		Renderer::SubmitDestroy([pipelineLayout = m_pipelineLayout, pipelineCache = m_pipelineCache, pipeline = m_pipeline, descriptorPool = m_descriptorPool]()
 			{
 				auto device = GraphicsContext::GetDevice();
-				
+
 				vkDestroyDescriptorPool(device->GetHandle(), descriptorPool, nullptr);
 				vkDestroyPipelineCache(device->GetHandle(), pipelineCache, nullptr);
 				vkDestroyPipeline(device->GetHandle(), pipeline, nullptr);
@@ -119,69 +119,88 @@ namespace Lamp
 		m_storageBufferSets[set][binding] = storageBuffer;
 	}
 
-	void RenderPipelineCompute::SetTexture(Ref<Texture2D> texture, uint32_t set, uint32_t binding, uint32_t mipLevel)
-	{
-		if (m_shaderResources[0].imageInfos.find(set) == m_shaderResources[0].imageInfos.end() ||
-			m_shaderResources[0].imageInfos.at(set).find(binding) == m_shaderResources[0].imageInfos.at(set).end())
-		{
-			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set texture at set {0} and binding {1}", set, binding);
-			return;
-		}
-
-		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
-		{
-			auto& info = m_shaderResources[i].imageInfos[set][binding];
-			info.imageView = texture->GetImage()->GetView(mipLevel);
-			info.sampler = texture->GetImage()->GetSampler();
-		}
-	}
-
-	void RenderPipelineCompute::SetImage(Ref<Image2D> image, uint32_t set, uint32_t binding, uint32_t mipLevel, VkAccessFlags accessFlags, VkImageLayout targetLayout)
-	{
-		if (m_shaderResources[0].storageImagesInfos.find(set) == m_shaderResources[0].storageImagesInfos.end() ||
-			m_shaderResources[0].storageImagesInfos.at(set).find(binding) == m_shaderResources[0].storageImagesInfos.at(set).end())
-		{
-			LP_CORE_ERROR("[RenderPipelineCompute] Unable to set image at set {0} and binding {1}", set, binding);
-			return;
-		}
-
-		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
-		{
-			auto& info = m_shaderResources[i].storageImagesInfos[set][binding];
-			info.info.imageView = image->GetView(mipLevel);
-			info.info.sampler = image->GetSampler();
-
-			auto it = std::find_if(m_imageBarriers[i].begin(), m_imageBarriers[i].end(), [this, set, binding, i, image](const VkImageMemoryBarrier& barrier)
-				{
-					Ref<Image2D> oldImage;
-					if (m_images[set].find(binding) != m_images[set].end())
-					{
-						oldImage = m_images[set][binding];
-					}
-
-					return (oldImage && barrier.image == oldImage->GetHandle()) || barrier.image == VK_NULL_HANDLE || barrier.image == image->GetHandle();
-				});
-
-			if (it != m_imageBarriers[i].end() && info.writeable)
-			{
-				it->image = image->GetHandle();
-				it->oldLayout = image->GetLayout();
-				it->newLayout = targetLayout;
-				it->dstAccessMask = accessFlags;
-				it->subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-			}
-			else
-			{
-				LP_CORE_ASSERT(false, "No valid image barrier found!");
-			}
-		}
-
-		m_images[set][binding] = image;
-	}
-
 	void RenderPipelineCompute::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t size, const void* data, uint32_t offset) const
 	{
 		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, offset, size, data);
+	}
+
+	void RenderPipelineCompute::SetTexture(Ref<Texture2D> texture, uint32_t dstSet, uint32_t dstBinding, uint32_t srcMip)
+	{
+		UpdateImage(texture->GetImage(), dstSet, dstBinding, srcMip, ImageUsage::Texture);
+	}
+
+	void RenderPipelineCompute::SetImage(Ref<Image2D> image, uint32_t dstSet, uint32_t dstBinding, uint32_t srcMip, VkAccessFlags dstAccessFlags, VkImageLayout targetLayout)
+	{
+		UpdateImage(image, dstSet, dstBinding, srcMip, ImageUsage::Storage, dstAccessFlags, targetLayout);
+	}
+
+	void RenderPipelineCompute::SetImage(Ref<Image2D> image, uint32_t dstSet, uint32_t dstBinding, uint32_t srcMip)
+	{
+		UpdateImage(image, dstSet, dstBinding, srcMip, ImageUsage::Texture);
+	}
+
+	void RenderPipelineCompute::UpdateImage(Ref<Image2D> image, uint32_t dstSet, uint32_t dstBinding, uint32_t srcMip, ImageUsage usage, VkAccessFlags dstAccessFlags, VkImageLayout targetLayout)
+	{
+		if (usage == ImageUsage::Texture)
+		{
+			if (m_shaderResources[0].imageInfos.find(dstSet) == m_shaderResources[0].imageInfos.end() ||
+				m_shaderResources[0].imageInfos.at(dstSet).find(dstBinding) == m_shaderResources[0].imageInfos.at(dstSet).end())
+			{
+				LP_CORE_ERROR("[RenderPipelineCompute] Unable to set texture at set {0} and binding {1}", dstSet, dstBinding);
+				return;
+			}
+
+			for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
+			{
+				auto& info = m_shaderResources[i].imageInfos[dstSet][dstBinding];
+				info.imageView = image->GetView(srcMip);
+				info.sampler = image->GetSampler();
+			}
+		}
+		else if (usage == ImageUsage::Storage)
+		{
+			if (m_shaderResources[0].storageImagesInfos.find(dstSet) == m_shaderResources[0].storageImagesInfos.end() ||
+				m_shaderResources[0].storageImagesInfos.at(dstSet).find(dstBinding) == m_shaderResources[0].storageImagesInfos.at(dstSet).end())
+			{
+				LP_CORE_ERROR("[RenderPipelineCompute] Unable to set image at set {0} and binding {1}", dstSet, dstBinding);
+				return;
+			}
+
+			for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
+			{
+				auto& info = m_shaderResources[i].storageImagesInfos[dstSet][dstBinding];
+				info.info.imageView = image->GetView(srcMip);
+				info.info.sampler = image->GetSampler();
+
+				auto it = std::find_if(m_imageBarriers[i].begin(), m_imageBarriers[i].end(), [this, dstSet, dstBinding, i, image](const VkImageMemoryBarrier& barrier)
+					{
+						Ref<Image2D> oldImage;
+						if (m_images[dstSet].find(dstBinding) != m_images[dstSet].end())
+						{
+							oldImage = m_images[dstSet][dstBinding];
+						}
+
+						return (oldImage && barrier.image == oldImage->GetHandle()) || barrier.image == VK_NULL_HANDLE || barrier.image == image->GetHandle();
+					});
+
+				if (it != m_imageBarriers[i].end() && info.writeable)
+				{
+					it->image = image->GetHandle();
+					it->oldLayout = image->GetLayout();
+					it->newLayout = targetLayout == VK_IMAGE_LAYOUT_UNDEFINED ? image->GetLayout() : targetLayout;
+					it->dstAccessMask = dstAccessFlags;
+					it->subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+
+					image->m_imageLayout = it->newLayout;
+				}
+				else
+				{
+					LP_CORE_ASSERT(false, "No valid image barrier found!");
+				}
+			}
+
+			m_images[dstSet][dstBinding] = image;
+		}
 	}
 
 	Ref<RenderPipelineCompute> RenderPipelineCompute::Create(Ref<Shader> computeShader, uint32_t count)

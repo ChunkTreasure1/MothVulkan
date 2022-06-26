@@ -82,10 +82,6 @@ namespace Lamp
 		{
 			imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		}
-		else if (m_specification.layers > 0)
-		{
-			imageInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
-		}
 
 		m_bufferAllocation = allocator.AllocateImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_image);
 
@@ -205,7 +201,6 @@ namespace Lamp
 		}
 
 		const VkImageAspectFlags flag = Utility::IsDepthFormat(m_specification.format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-		const VkImageSubresourceRange range = { flag, 0, 1, 0, 1 };
 
 		VkImageSubresourceRange subresourceRange{};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -214,14 +209,23 @@ namespace Lamp
 		subresourceRange.layerCount = m_specification.layers;
 		subresourceRange.levelCount = m_specification.mips;
 
-		Utility::TransitionImageLayout(commandBuffer, m_image, m_imageLayout, targetLayout, range);
+		Utility::TransitionImageLayout(commandBuffer, m_image, m_imageLayout, targetLayout, subresourceRange);
 		m_imageLayout = targetLayout;
 	}
 
-	void Image2D::GenerateMips(bool readOnly)
+	void Image2D::GenerateMips(bool readOnly, VkCommandBuffer commandBuffer)
 	{
 		auto device = GraphicsContext::GetDevice();
-		VkCommandBuffer cmdBuffer = device->GetThreadSafeCommandBuffer(true);
+		VkCommandBuffer cmdBuffer = nullptr;
+
+		if (!commandBuffer)
+		{
+			cmdBuffer = device->GetThreadSafeCommandBuffer(true);
+		}
+		else
+		{
+			cmdBuffer = commandBuffer;
+		}
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -234,8 +238,8 @@ namespace Lamp
 		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+		barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
 		const uint32_t mipLevels = GetMipCount();
 		m_specification.mips = mipLevels;
@@ -269,6 +273,8 @@ namespace Lamp
 
 				barrier.subresourceRange.baseMipLevel = i;
 				barrier.subresourceRange.baseMipLevel = layer;
+				barrier.subresourceRange.levelCount = 1;
+				barrier.subresourceRange.layerCount = 1;
 
 				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -297,7 +303,11 @@ namespace Lamp
 		const VkImageLayout targetLayout = readOnly ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
 
 		Utility::TransitionImageLayout(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, targetLayout, subresourceRange);
-		device->FlushThreadSafeCommandBuffer(cmdBuffer);
+
+		if (!commandBuffer)
+		{
+			device->FlushThreadSafeCommandBuffer(cmdBuffer);
+		}
 
 		m_hasGeneratedMips = true;
 		m_imageLayout = targetLayout;

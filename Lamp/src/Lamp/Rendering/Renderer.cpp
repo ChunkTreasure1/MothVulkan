@@ -35,6 +35,7 @@
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
 
 #include "Lamp/Utility/Math.h"
+#include "Lamp/Utility/ImageUtility.h"
 
 namespace Lamp
 {
@@ -88,8 +89,6 @@ namespace Lamp
 	void Renderer::Begin()
 	{
 		LP_PROFILE_FUNCTION();
-
-		GenerateEnvironmentMap("Assets/Textures/HDRIs/brightForest.hdr");
 
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
@@ -236,7 +235,6 @@ namespace Lamp
 		Ref<Image2D> environmentFiltered;
 		Ref<Image2D> irradianceMap;
 
-		VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
 
 		// Unfiltered - Conversion
 		{
@@ -251,11 +249,17 @@ namespace Lamp
 			environmentUnfiltered = Image2D::Create(imageSpec);
 
 			Ref<RenderPipelineCompute> conversionPipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EquirectangularConversion"));
+
+			VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+			environmentUnfiltered->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_GENERAL);
+
 			conversionPipeline->Bind(cmdBuffer);
 			conversionPipeline->SetTexture(equirectangularTexture, 0, 0);
-			conversionPipeline->SetImage(environmentUnfiltered, 0, 1, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			conversionPipeline->SetImage(environmentUnfiltered, 0, 1, 0, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			conversionPipeline->Dispatch(cmdBuffer, 0, cubeMapSize / conversionThreadCount, cubeMapSize / conversionThreadCount, 1);
 			conversionPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+			device->FlushCommandBuffer(cmdBuffer);
 		}
 
 		// Filtered
@@ -267,6 +271,7 @@ namespace Lamp
 			imageSpec.usage = ImageUsage::Storage;
 			imageSpec.layers = 6;
 			imageSpec.isCubeMap = true;
+			imageSpec.mips = Utility::CalculateMipCount(cubeMapSize, cubeMapSize);
 
 			environmentFiltered = Image2D::Create(imageSpec);
 
@@ -275,10 +280,14 @@ namespace Lamp
 				environmentFiltered->CreateMipView(i);
 			}
 
+			{
+				VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+				environmentFiltered->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_GENERAL);
+				device->FlushCommandBuffer(cmdBuffer);
+			}
+
 			Ref<RenderPipelineCompute> filterPipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EnvironmentFiltering"));
-			filterPipeline->Bind(cmdBuffer);
-			filterPipeline->SetImage(environmentUnfiltered, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT);
-			
+
 			const float deltaRoughness = 1.f / glm::max((float)environmentFiltered->GetMipCount() - 1.f, 1.f);
 			for (uint32_t i = 0, size = cubeMapSize; i < environmentFiltered->GetMipCount(); i++, size /= 2)
 			{
@@ -287,12 +296,19 @@ namespace Lamp
 				float roughness = i * deltaRoughness;
 				roughness = glm::max(roughness, 0.05f);
 
-				filterPipeline->SetPushConstant(cmdBuffer, sizeof(float), &roughness);
-				filterPipeline->SetImage(environmentFiltered, 0, 1, i, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_GENERAL);
-				filterPipeline->Dispatch(cmdBuffer, 0, numGroups, numGroups, 6);
-			}
+				VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
 
-			filterPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+				filterPipeline->Bind(cmdBuffer);
+				
+				filterPipeline->SetImage(environmentUnfiltered, 0, 0, 0);
+				filterPipeline->SetPushConstant(cmdBuffer, sizeof(float), &roughness);
+				filterPipeline->SetImage(environmentFiltered, 0, 1, i, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
+				
+				filterPipeline->Dispatch(cmdBuffer, 0, numGroups, numGroups, 6);
+				filterPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+			
+				device->FlushCommandBuffer(cmdBuffer);
+			}
 		}
 
 		// Irradiance
@@ -304,23 +320,29 @@ namespace Lamp
 			imageSpec.usage = ImageUsage::Storage;
 			imageSpec.layers = 6;
 			imageSpec.isCubeMap = true;
+			imageSpec.copyable = true;
+			imageSpec.mips = Utility::CalculateMipCount(irradianceMapSize, irradianceMapSize);
 
 			irradianceMap = Image2D::Create(imageSpec);
-			
+
 			Ref<RenderPipelineCompute> irradiancePipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("EnvironmentGenerateIrradiance"));
 			constexpr uint32_t irradianceComputeSamples = 512;
 
+			VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+			environmentFiltered->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_GENERAL);
+
 			irradiancePipeline->Bind(cmdBuffer);
-			irradiancePipeline->SetImage(environmentFiltered, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			irradiancePipeline->SetImage(irradianceMap, 0, 1, 0, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			irradiancePipeline->SetImage(environmentFiltered, 0, 0, 0);
+			irradiancePipeline->SetImage(irradianceMap, 0, 1, 0, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			irradiancePipeline->SetPushConstant(cmdBuffer, sizeof(uint32_t), &irradianceComputeSamples);
 			irradiancePipeline->Dispatch(cmdBuffer, 0, irradianceMapSize / conversionThreadCount, irradianceMapSize / conversionThreadCount, 6);
 			irradiancePipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-			irradianceMap->GenerateMips(false);
-		}
+			irradianceMap->GenerateMips(false, cmdBuffer);
 
-		device->FlushCommandBuffer(cmdBuffer);
+			device->FlushCommandBuffer(cmdBuffer);
+		}
 
 		Skybox skybox{};
 		skybox.irradianceMap = irradianceMap;
@@ -478,7 +500,7 @@ namespace Lamp
 				const glm::vec3 globalScale = { glm::length(transform[0]), glm::length(transform[1]), glm::length(transform[2]) };
 				const glm::vec3 globalCenter = transform * glm::vec4(boundingSphere.center, 1.f);
 				const float maxScale = std::max(globalScale.x, std::max(globalScale.y, globalScale.z));
-								
+
 				objectData[i].transform = transform;
 				objectData[i].sphereBounds = glm::vec4(globalCenter, boundingSphere.radius * maxScale * 0.5f);
 			}
