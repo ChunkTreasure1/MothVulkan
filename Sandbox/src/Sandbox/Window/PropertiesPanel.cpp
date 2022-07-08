@@ -161,7 +161,7 @@ void PropertiesPanel::UpdateMainContent()
 		}
 
 		entity.SetComponents(componentData);
-	
+
 		if (ImGui::Button("Add Component"))
 		{
 			ImGui::OpenPopup("AddComponent");
@@ -182,8 +182,11 @@ void PropertiesPanel::AddComponentPopup()
 			{
 				for (auto& ent : m_selectedEntites)
 				{
-					std::vector<uint8_t> emptyData(info.size, 0);
-					m_currentScene->GetRegistry().AddComponent(emptyData, info.guid, ent.GetId());
+					if (!m_currentScene->GetRegistry().HasComponent(info.guid, ent.GetId()))
+					{
+						std::vector<uint8_t> emptyData(info.size, 0);
+						m_currentScene->GetRegistry().AddComponent(emptyData, info.guid, ent.GetId());
+					}
 				}
 
 				ImGui::CloseCurrentPopup();

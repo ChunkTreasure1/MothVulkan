@@ -391,6 +391,8 @@ namespace Lamp
 			uint32_t whiteTextureData = 0xffffffff;
 			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 			s_defaultData->whiteTexture->handle = Asset::Null();
+		
+			GenerateBRDFLut();
 		}
 	}
 
@@ -642,5 +644,29 @@ namespace Lamp
 		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
 		s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
 		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
+	}
+
+	void Renderer::GenerateBRDFLut()
+	{
+		constexpr uint32_t brdfSize = 512;
+
+		ImageSpecification imageSpec{};
+		imageSpec.format = ImageFormat::RG16F;
+		imageSpec.width = brdfSize;
+		imageSpec.height = brdfSize;
+		imageSpec.usage = ImageUsage::Storage;
+		imageSpec.filter = TextureFilter::Linear;
+
+		s_defaultData->brdfLut = Image2D::Create(imageSpec);
+
+		Ref<RenderPipelineCompute> brdfPipeline = RenderPipelineCompute::Create(ShaderRegistry::Get("BRDFGeneration"));
+
+		auto device = GraphicsContext::GetDevice();
+		VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+
+		brdfPipeline->Bind(cmdBuffer);
+		brdfPipeline->SetImage(s_defaultData->brdfLut, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		brdfPipeline->Dispatch(cmdBuffer, 0, brdfSize / 32, brdfSize / 32, 1);
+		brdfPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 	}
 }

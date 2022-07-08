@@ -48,6 +48,7 @@ namespace Lamp
 		{
 			Ref<Texture2D> whiteTexture;
 			Ref<Image2D> blackCubeImage;
+			Ref<Image2D> brdfLut;
 		};
 
 		struct Capabilities
@@ -90,6 +91,8 @@ namespace Lamp
 		static void SortRenderCommands();
 		static void UploadRenderCommands();
 		static void CullRenderCommands();
+
+		static void GenerateBRDFLut();
 
 		struct RendererData
 		{

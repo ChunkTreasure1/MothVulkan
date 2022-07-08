@@ -26,6 +26,10 @@ layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
     DirectionalLight u_directionalLight;
 };
 
+layout(set = 1, binding = 0) uniform sampler2D u_irradianceTexture;
+layout(set = 1, binding = 1) uniform sampler2D u_radianceTexture;
+layout(set = 1, binding = 2) uniform sampler2D u_BRDFLut;
+
 layout(set = 3, binding = 0) uniform sampler2D u_albedoTexture;
 layout(set = 3, binding = 1) uniform sampler2D u_materialNormalTexture;
 
