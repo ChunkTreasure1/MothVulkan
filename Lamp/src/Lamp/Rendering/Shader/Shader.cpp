@@ -444,8 +444,22 @@ namespace Lamp
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				layoutBinding.stageFlags = stage;
 
-				VkDescriptorImageInfo& imageInfo = m_resources.imageInfos[set][binding];
-				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				SampledImage& imageInfo = m_resources.imageInfos[set][binding];
+				
+				const auto& type = compiler.get_type(image.type_id);
+
+				switch (type.image.dim)
+				{
+					case spv::Dim::Dim1D: imageInfo.dimension = ImageDimension::Dim1D; break;
+					case spv::Dim::Dim2D: imageInfo.dimension = ImageDimension::Dim2D; break;
+					case spv::Dim::Dim3D: imageInfo.dimension = ImageDimension::Dim3D; break;
+					case spv::Dim::DimCube: imageInfo.dimension = ImageDimension::DimCube; break;
+				
+					default: imageInfo.dimension = ImageDimension::Dim2D; break;
+				}
+
+				VkDescriptorImageInfo& descriptorInfo = imageInfo.info;
+				descriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

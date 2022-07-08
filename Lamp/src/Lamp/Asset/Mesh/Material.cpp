@@ -143,7 +143,7 @@ namespace Lamp
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
-						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding);
+						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding).info;
 					}
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];
@@ -188,10 +188,33 @@ namespace Lamp
 				}
 			}
 
-			// TODO: add support for cubic textures
+			for (auto& [set, bindings] : m_shaderResources[i].imageInfos)
+			{
+				if (set != (uint32_t)DescriptorSetType::PerMaterial)
+				{
+					for (auto& [binding, info] : bindings)
+					{
+						if (info.dimension == ImageDimension::Dim2D)
+						{
+							auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
+
+							info.info.imageView = defaultTexture->GetImage()->GetView();
+							info.info.sampler = defaultTexture->GetImage()->GetSampler();
+						}
+						else if (info.dimension == ImageDimension::DimCube)
+						{
+							auto defaultTexture = Renderer::GetDefaultData().blackCubeImage;
+
+							info.info.imageView = defaultTexture->GetView();
+							info.info.sampler = defaultTexture->GetSampler();
+						}
+					}
+				}
+			}
+
 			for (auto& input : m_renderPipeline->GetSpecification().framebufferInputs)
 			{
-				auto& imageInfo = m_shaderResources[i].imageInfos[input.set][input.binding];
+				auto& imageInfo = m_shaderResources[i].imageInfos[input.set][input.binding].info;
 				imageInfo.imageView = m_renderPipeline->GetSpecification().framebuffer->GetColorAttachment(input.attachmentIndex)->GetView();
 				imageInfo.sampler = m_renderPipeline->GetSpecification().framebuffer->GetColorAttachment(input.attachmentIndex)->GetSampler();
 			}
@@ -206,8 +229,8 @@ namespace Lamp
 						m_textures.emplace(binding, defaultTexture);
 					}
 
-					imageInfo.imageView = m_textures.at(binding)->GetImage()->GetView();
-					imageInfo.sampler = m_textures.at(binding)->GetImage()->GetSampler();
+					imageInfo.info.imageView = m_textures.at(binding)->GetImage()->GetView();
+					imageInfo.info.sampler = m_textures.at(binding)->GetImage()->GetSampler();
 				}
 			}
 		}

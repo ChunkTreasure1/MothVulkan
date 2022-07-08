@@ -78,6 +78,14 @@ namespace Lamp
 		Max
 	};
 
+	enum class ImageDimension : uint32_t
+	{
+		Dim1D,
+		Dim2D,
+		Dim3D,
+		DimCube
+	};
+
 	struct ImageSpecification
 	{
 		uint32_t width = 1;

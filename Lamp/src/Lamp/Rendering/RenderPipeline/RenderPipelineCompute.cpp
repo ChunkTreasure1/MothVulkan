@@ -152,7 +152,7 @@ namespace Lamp
 
 			for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
 			{
-				auto& info = m_shaderResources[i].imageInfos[dstSet][dstBinding];
+				auto& info = m_shaderResources[i].imageInfos[dstSet][dstBinding].info;
 				info.imageView = image->GetView(srcMip);
 				info.sampler = image->GetSampler();
 			}
@@ -328,7 +328,7 @@ namespace Lamp
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
-						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding);
+						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding).info;
 					}
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];

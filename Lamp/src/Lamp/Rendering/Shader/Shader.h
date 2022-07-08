@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Asset/Asset.h"
+#include "Lamp/Rendering/Texture/ImageCommon.h"
 
 #include <vulkan/vulkan.h>
 
@@ -39,6 +40,12 @@ namespace Lamp
 			bool writeable = true;
 		};
 
+		struct SampledImage
+		{
+			VkDescriptorImageInfo info;
+			ImageDimension dimension;
+		};
+
 		struct ShaderResources
 		{
 			std::unordered_map<uint32_t, std::string> shaderTextureDefinitions; // binding -> name
@@ -52,7 +59,7 @@ namespace Lamp
 			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, ShaderStorageBuffer>> storageBuffersInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, StorageImage>> storageImagesInfos; // set -> binding -> infos
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorImageInfo>> imageInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, SampledImage>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 
 			VkDescriptorSetAllocateInfo setAllocInfo{};
