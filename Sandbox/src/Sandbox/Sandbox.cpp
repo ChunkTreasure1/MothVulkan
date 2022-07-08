@@ -6,6 +6,7 @@
 #include "Sandbox/Window/MaterialEditorPanel.h"
 #include "Sandbox/Window/EditorIconLibrary.h"
 #include "Sandbox/Window/AssetBrowserPanel.h"
+#include "Sandbox/Window/CreatePanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -20,8 +21,7 @@
 #include <imgui.h>
 
 Sandbox::~Sandbox()
-{
-}
+{}
 
 void Sandbox::OnAttach()
 {
@@ -62,9 +62,10 @@ void Sandbox::OnAttach()
 	}
 
 	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
-	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities));
+	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
+	m_editorWindows.emplace_back(CreateRef<CreatePanel>(m_selectedEntities, m_editorScene));
 }
 
 void Sandbox::OnDetach()

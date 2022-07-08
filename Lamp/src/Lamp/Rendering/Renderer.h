@@ -2,6 +2,7 @@
 
 #include "Lamp/Core/Base.h"
 #include "Lamp/Asset/Mesh/SubMesh.h"
+#include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Rendering/DeletionQueue.hpp"
 #include "Lamp/Rendering/RendererStructs.h"
@@ -46,7 +47,7 @@ namespace Lamp
 		struct DefaultData
 		{
 			Ref<Texture2D> whiteTexture;
-			Ref<Texture2D> blackCubeTexture;
+			Ref<Image2D> blackCubeImage;
 		};
 
 		struct Capabilities
@@ -65,12 +66,13 @@ namespace Lamp
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 		static void SubmitDirectionalLight(const glm::mat4& transform, const glm::vec3& color, const float intensity);
+		static void SubmitEnvironment(const Skybox& environment);
 
 		static void DispatchRenderCommands();
 
-		static void SubmitDestroy(std::function<void()>&& function);
+		static void SubmitResourceFree(std::function<void()>&& function);
 
-		static Skybox GenerateEnvironmentMap(const std::filesystem::path& cubeMap);
+		static Skybox GenerateEnvironmentMap(AssetHandle handle);
 
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 		inline static const DefaultData& GetDefaultData() { return *s_defaultData; }

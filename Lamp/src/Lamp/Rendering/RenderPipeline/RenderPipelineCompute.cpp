@@ -28,7 +28,7 @@ namespace Lamp
 
 	RenderPipelineCompute::~RenderPipelineCompute()
 	{
-		Renderer::SubmitDestroy([pipelineLayout = m_pipelineLayout, pipelineCache = m_pipelineCache, pipeline = m_pipeline, descriptorPool = m_descriptorPool]()
+		Renderer::SubmitResourceFree([pipelineLayout = m_pipelineLayout, pipelineCache = m_pipelineCache, pipeline = m_pipeline, descriptorPool = m_descriptorPool]()
 			{
 				auto device = GraphicsContext::GetDevice();
 

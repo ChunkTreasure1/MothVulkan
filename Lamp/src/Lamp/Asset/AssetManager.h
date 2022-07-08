@@ -8,18 +8,6 @@
 #include <unordered_map>
 #include <filesystem>
 
-namespace std
-{
-	template<>
-	struct hash<std::filesystem::path>
-	{
-		inline size_t operator()(const std::filesystem::path& aPath) const
-		{
-			return std::filesystem::hash_value(aPath.string());
-		}
-	};
-}
-
 namespace Lamp
 {
 	class AssetImporter;
@@ -67,6 +55,11 @@ namespace Lamp
 	template<typename T>
 	inline Ref<T> AssetManager::GetAsset(AssetHandle assetHandle)
 	{
+		if (assetHandle == Asset::Null())
+		{
+			return nullptr;
+		}
+
 		Ref<Asset> asset;
 		Get().LoadAsset(assetHandle, asset);
 

@@ -173,7 +173,7 @@ namespace Lamp
 			return;
 		}
 
-		Renderer::SubmitDestroy([sampler = m_sampler, imageViews = m_imageViews, image = m_image, bufferAllocation = m_bufferAllocation]()
+		Renderer::SubmitResourceFree([sampler = m_sampler, imageViews = m_imageViews, image = m_image, bufferAllocation = m_bufferAllocation]()
 			{
 				auto device = GraphicsContext::GetDevice();
 

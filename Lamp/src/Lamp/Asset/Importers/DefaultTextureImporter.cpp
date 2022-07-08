@@ -68,7 +68,7 @@ namespace Lamp
 		// Create image
 		{
 			ImageSpecification imageSpec{};
-			imageSpec.format = isHDR ? ImageFormat::RGBA16F : ImageFormat::RGBA;
+			imageSpec.format = isHDR ? ImageFormat::RGBA32F : ImageFormat::RGBA;
 			imageSpec.usage = ImageUsage::Texture;
 			imageSpec.width = (uint32_t)width;
 			imageSpec.height = (uint32_t)height;

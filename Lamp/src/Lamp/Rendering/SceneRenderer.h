@@ -17,6 +17,8 @@ namespace Lamp
 		SceneRenderer(Ref<Scene> scene, const std::filesystem::path& renderGraphPath);
 
 		void OnRender(Ref<Camera> camera);
+		void OnUpdate(float deltaTime);
+
 		void Resize(uint32_t width, uint32_t height);
 
 		Ref<Framebuffer> GetFinalFramebuffer();

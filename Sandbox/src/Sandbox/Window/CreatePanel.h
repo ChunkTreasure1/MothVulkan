@@ -7,15 +7,17 @@
 
 #include <vector>
 
-class PropertiesPanel : public EditorWindow
+class CreatePanel : public EditorWindow
 {
 public:
-	PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites, Ref<Lamp::Scene>& currentScene);
+	CreatePanel(std::vector<Lamp::Entity>& selectedEntites, Ref<Lamp::Scene>& scene);
 	void UpdateMainContent() override;
 
 private:
-	void AddComponentPopup();
-
 	std::vector<Lamp::Entity>& m_selectedEntites;
-	Ref<Lamp::Scene>& m_currentScene;
+
+	Ref<Lamp::Scene>& m_scene;
+
+	bool m_brushListOpen = false;
+	const float m_buttonHeight = 24.f;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Asset/Asset.h"
+#include "Lamp/Rendering/RendererStructs.h"
 
 #include <Wire/Serialization.h>
 #include <glm/glm.hpp>
@@ -37,4 +38,14 @@ namespace Lamp
 
 		CREATE_COMPONENT_GUID("{F2E06040-9B60-4A0A-9F13-F8DC4C5A4D47}"_guid);
 	}, DirectionalLightComponent);
+
+	SERIALIZE_COMPONENT(struct EnvironmentComponent
+	{
+		PROPERTY(Name = Environment) AssetHandle environmentHandle = Asset::Null();
+		
+		AssetHandle lastEnvironmentHandle = Asset::Null();
+		Skybox currentSkybox;
+
+		CREATE_COMPONENT_GUID("{3AFCA974-E750-4BF1-99C8-A7EDF8934C52}"_guid);
+	}, EnvironmentComponent);
 }

@@ -51,7 +51,7 @@ void Sandbox::UpdateDockSpace()
 	}
 
 	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowMinSize.x = 300.f;
+	style.WindowMinSize.x = 200.f;
 
 	ImGui::End();
 }

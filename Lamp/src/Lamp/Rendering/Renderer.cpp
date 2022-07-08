@@ -174,6 +174,11 @@ namespace Lamp
 		s_rendererData->directionalLight.colorIntensity = { color, intensity };
 	}
 
+	void Renderer::SubmitEnvironment(const Skybox& environment)
+	{
+
+	}
+
 	void Renderer::DispatchRenderCommands()
 	{
 		LP_PROFILE_FUNCTION();
@@ -211,15 +216,15 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::SubmitDestroy(std::function<void()>&& function)
+	void Renderer::SubmitResourceFree(std::function<void()>&& function)
 	{
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		s_frameDeletionQueues[currentFrame].Push(function);
 	}
 
-	Skybox Renderer::GenerateEnvironmentMap(const std::filesystem::path& cubeMap)
+	Skybox Renderer::GenerateEnvironmentMap(AssetHandle handle)
 	{
-		Ref<Texture2D> equirectangularTexture = AssetManager::GetAsset<Texture2D>(cubeMap);
+		Ref<Texture2D> equirectangularTexture = AssetManager::GetAsset<Texture2D>(handle);
 		if (!equirectangularTexture || !equirectangularTexture->IsValid())
 		{
 			return Skybox{};
@@ -256,7 +261,7 @@ namespace Lamp
 			conversionPipeline->Bind(cmdBuffer);
 			conversionPipeline->SetTexture(equirectangularTexture, 0, 0);
 			conversionPipeline->SetImage(environmentUnfiltered, 0, 1, 0, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			conversionPipeline->Dispatch(cmdBuffer, 0, cubeMapSize / conversionThreadCount, cubeMapSize / conversionThreadCount, 1);
+			conversionPipeline->Dispatch(cmdBuffer, 0, cubeMapSize / conversionThreadCount, cubeMapSize / conversionThreadCount, 6);
 			conversionPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
 			device->FlushCommandBuffer(cmdBuffer);
@@ -371,8 +376,17 @@ namespace Lamp
 	{
 		// Default textures
 		{
-			//uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
-			//s_defaultData->blackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
+			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+			
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA;
+			imageSpec.width = 1;
+			imageSpec.height = 1;
+			imageSpec.usage = ImageUsage::Texture;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			s_defaultData->blackCubeImage = Image2D::Create(imageSpec, blackCubeTextureData);
 
 			uint32_t whiteTextureData = 0xffffffff;
 			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);

@@ -386,7 +386,7 @@ namespace Lamp
 
 	void RenderPipeline::Release()
 	{
-		Renderer::SubmitDestroy([pipeline = m_pipeline, pipelineLayout = m_pipelineLayout]() 
+		Renderer::SubmitResourceFree([pipeline = m_pipeline, pipelineLayout = m_pipelineLayout]() 
 			{
 				if (pipeline != VK_NULL_HANDLE)
 				{

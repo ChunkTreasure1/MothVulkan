@@ -21,6 +21,8 @@ namespace Lamp
 		: m_scene(scene)
 	{
 		m_renderGraph = AssetManager::GetAsset<RenderGraph>(renderGraphPath);
+
+		auto& registry = m_scene->GetRegistry();
 	}
 
 	Ref<Framebuffer> SceneRenderer::GetFinalFramebuffer()
@@ -58,6 +60,28 @@ namespace Lamp
 				Renderer::SubmitDirectionalLight(transform, dirLightComp.color, dirLightComp.intensity);
 			});
 
+		registry.ForEach<EnvironmentComponent>([](Wire::EntityId id, EnvironmentComponent& envComp) 
+			{
+				if (envComp.environmentHandle != envComp.lastEnvironmentHandle)
+				{
+					envComp.lastEnvironmentHandle = envComp.environmentHandle;
+					envComp.currentSkybox = Renderer::GenerateEnvironmentMap(envComp.environmentHandle);
+				}
+
+				if (envComp.environmentHandle == Asset::Null())
+				{
+					Skybox emptySkybox{};
+					emptySkybox.irradianceMap = Renderer::GetDefaultData().blackCubeImage;
+					emptySkybox.radianceMap = Renderer::GetDefaultData().blackCubeImage;
+				
+					Renderer::SubmitEnvironment(emptySkybox);
+				}
+				else
+				{
+					Renderer::SubmitEnvironment(envComp.currentSkybox);
+				}
+			});
+
 		{
 			LP_PROFILE_SCOPE("SceneRenderer::Render");
 
@@ -71,6 +95,14 @@ namespace Lamp
 			}
 
 			Renderer::End();
+		}
+	}
+
+	void SceneRenderer::OnUpdate(float deltaTime)
+	{
+		//Environment component system
+		{
+
 		}
 	}
 

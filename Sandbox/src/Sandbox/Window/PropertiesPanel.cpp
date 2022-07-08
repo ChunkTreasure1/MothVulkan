@@ -4,8 +4,10 @@
 #include <Lamp/Components/Components.h>
 #include <Lamp/Utility/UIUtility.h>
 
-PropertiesPanel::PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites)
-	: EditorWindow("Properties"), m_selectedEntites(selectedEntites)
+#include <Wire/Serialization.h>
+
+PropertiesPanel::PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites, Ref<Lamp::Scene>& currentScene)
+	: EditorWindow("Properties"), m_selectedEntites(selectedEntites), m_currentScene(currentScene)
 {
 	m_isOpen = true;
 }
@@ -159,5 +161,35 @@ void PropertiesPanel::UpdateMainContent()
 		}
 
 		entity.SetComponents(componentData);
+	
+		if (ImGui::Button("Add Component"))
+		{
+			ImGui::OpenPopup("AddComponent");
+		}
+
+		AddComponentPopup();
+	}
+}
+
+void PropertiesPanel::AddComponentPopup()
+{
+	if (ImGui::BeginPopup("AddComponent"))
+	{
+		const auto& componentInfo = Wire::ComponentRegistry::ComponentGUIDs();
+		for (const auto& [name, info] : componentInfo)
+		{
+			if (ImGui::MenuItem(name.c_str()))
+			{
+				for (auto& ent : m_selectedEntites)
+				{
+					std::vector<uint8_t> emptyData(info.size, 0);
+					m_currentScene->GetRegistry().AddComponent(emptyData, info.guid, ent.GetId());
+				}
+
+				ImGui::CloseCurrentPopup();
+			}
+		}
+
+		ImGui::EndPopup();
 	}
 }
