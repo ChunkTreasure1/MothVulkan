@@ -18,11 +18,13 @@ namespace Lamp
 		static Ref<RenderPass> Get(const std::string& name);
 		static void Register(const std::string& name, Ref<RenderPass> pipeline);
 
+		static std::map<std::string, Ref<RenderPass>> GetAllPasses();
+
 	private:
 		RenderPassRegistry() = delete;
 
 		static void LoadAllPasses();
 
-		inline static std::unordered_map<std::string, Ref<RenderPass>> s_registry;
+		inline static std::map<std::string, Ref<RenderPass>> s_registry;
 	};
 }

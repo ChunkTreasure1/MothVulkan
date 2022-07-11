@@ -84,8 +84,11 @@ namespace UI
 
 	static bool InputText(const std::string& name, std::string& text, ImGuiInputTextFlags_ flags = ImGuiInputTextFlags_None)
 	{
-		ImGui::TextUnformatted(name.c_str());
-		ImGui::SameLine();
+		if (!name.empty())
+		{
+			 ImGui::TextUnformatted(name.c_str());
+			ImGui::SameLine();
+		}
 
 		std::string id = "##" + std::to_string(s_stackId++);
 		return ImGui::InputTextString(id.c_str(), &text, flags);
@@ -136,6 +139,11 @@ namespace UI
 		s_contextId--;
 	}
 
+	static int32_t GetId()
+	{
+		return s_stackId++;
+	}
+
 	static bool BeginProperties(const std::string& name = "")
 	{
 		return ImGui::BeginTable(name.c_str(), 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Resizable);
@@ -144,6 +152,51 @@ namespace UI
 	static void EndProperties()
 	{
 		ImGui::EndTable();
+	}
+
+	static bool ComboProperty(const std::string& text, int& currentItem, const std::vector<const char*>& items, float width = 0.f)
+	{
+		bool changed = false;
+
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(text.c_str());
+
+		ImGui::TableNextColumn();
+
+		if (width == 0.f)
+		{
+			ImGui::PushItemWidth(ImGui::GetColumnWidth());
+		}
+		else
+		{
+			ImGui::PushItemWidth(width);
+		}
+		std::string id = "##" + std::to_string(s_stackId++);
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int)items.size()))
+		{
+			changed = true;
+		}
+
+		ImGui::PopItemWidth();
+
+		return changed;
+	}
+
+	static bool Combo(const std::string& text, int& currentItem, const std::vector<const char*>& items)
+	{
+		bool changed = false;
+
+		ImGui::TextUnformatted(text.c_str());
+
+		ImGui::SameLine();
+
+		std::string id = "##" + std::to_string(s_stackId++);
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int)items.size()))
+		{
+			changed = true;
+		}
+
+		return changed;
 	}
 
 	static void* DragDropTarget(const std::string& type)
@@ -181,7 +234,7 @@ namespace UI
 		}
 
 		return data;
-	}	
+	}
 
 	static bool PropertyAxisColor(const std::string& text, glm::vec3& value, float resetValue = 0.f)
 	{
@@ -314,11 +367,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_U32, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -332,11 +388,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_S16, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -350,11 +409,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_U16, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -368,11 +430,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_S8, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -386,11 +451,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_U8, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -404,11 +472,14 @@ namespace UI
 
 		ImGui::TableNextColumn();
 		std::string id = "##" + std::to_string(s_stackId++);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
 		if (ImGui::DragScalar(id.c_str(), ImGuiDataType_Double, (void*)&value, 1.f))
 		{
 			changed = true;
 		}
+
+		ImGui::PopItemWidth();
 
 		return changed;
 	}
@@ -626,14 +697,14 @@ namespace UI
 	static bool Property(const std::string& text, Lamp::AssetHandle& assetHandle)
 	{
 		bool changed = false;
-		
+
 		ImGui::TableNextColumn();
 		ImGui::TextUnformatted(text.c_str());
 
 		ImGui::TableNextColumn();
-		
+
 		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 20.f);
-		
+
 		std::string assetFileName = "Null";
 
 		const Ref<Lamp::Asset> rawAsset = Lamp::AssetManager::Get().GetAssetRaw(assetHandle);

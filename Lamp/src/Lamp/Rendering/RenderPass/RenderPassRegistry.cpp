@@ -65,6 +65,11 @@ namespace Lamp
 		s_registry[lowName] = pipeline;
 	}
 
+	std::map<std::string, Ref<RenderPass>> RenderPassRegistry::GetAllPasses()
+	{
+		return s_registry;
+	}
+
 	void RenderPassRegistry::LoadAllPasses()
 	{
 		auto shaderSearchFolder = FileSystem::GetRenderPassesPath();

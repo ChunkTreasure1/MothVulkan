@@ -1,6 +1,8 @@
 #include "sbpch.h"
 #include "Sandbox.h"
 
+#include "Sandbox/Window/EditorWindow.h"
+
 #include <imgui.h>
 
 void Sandbox::UpdateDockSpace()
@@ -52,6 +54,21 @@ void Sandbox::UpdateDockSpace()
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowMinSize.x = 200.f;
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("Tools"))
+		{
+			for (auto window : m_editorWindows)
+			{
+				ImGui::MenuItem(window->GetTitle().c_str(), "", &const_cast<bool&>(window->IsOpen()));
+			}
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();
+	}
 
 	ImGui::End();
 }

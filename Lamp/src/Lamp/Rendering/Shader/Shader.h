@@ -88,6 +88,11 @@ namespace Lamp
 		static Ref<Shader> Create(const std::string& name, std::vector<std::filesystem::path> paths, bool forceCompile = false);
 	
 	private:
+		struct TypeCount
+		{
+			uint32_t count = 0;
+		};
+
 		void GenerateHash();
 		void LoadShaderFromFiles();
 		void Release();
@@ -107,10 +112,10 @@ namespace Lamp
 		ShaderResources m_resources;
 		std::string m_name;
 
-		uint32_t m_uboCount = 0;
-		uint32_t m_ssboCount = 0;
-		uint32_t m_storageImageCount = 0;
-		uint32_t m_imageCount = 0;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageUBOCount;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageSSBOCount;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageStorageImageCount;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageImageCount;
 
 		size_t m_hash;
 	};

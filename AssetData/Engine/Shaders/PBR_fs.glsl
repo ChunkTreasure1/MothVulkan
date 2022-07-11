@@ -101,29 +101,29 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
     return result;
 }
 
-vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
-{    
-    const vec3 normal = m_pbrParameters.normal;
+// vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
+// {    
+//     const vec3 normal = m_pbrParameters.normal;
 
-    const vec3 fresnel = FresnelSchlickRoughness(max(dot(normal, dirToCamera), 0.f), baseReflectivity, m_pbrParameters.roughness);
-    const vec3 reflectVec = reflect(-dirToCamera, normal);
+//     const vec3 fresnel = FresnelSchlickRoughness(max(dot(normal, dirToCamera), 0.f), baseReflectivity, m_pbrParameters.roughness);
+//     const vec3 reflectVec = reflect(-dirToCamera, normal);
     
-    const int maxReflectionLOD = textureQueryLevels(u_radianceTexture);
-    const vec3 radianceColor = textureLod(u_radianceTexture, reflectVec, m_pbrParameters.roughness * float(maxReflectionLOD)).rgb;
+//     const int maxReflectionLOD = textureQueryLevels(u_radianceTexture);
+//     const vec3 radianceColor = textureLod(u_radianceTexture, reflectVec, m_pbrParameters.roughness * float(maxReflectionLOD)).rgb;
 
-    const vec2 envBRDF = texture(u_BRDFLut, vec2(max(dot(normal, dirToCamera), 0.f), m_pbrParameters.roughness)).rg;
-    const vec3 irradiance = texture(u_irradianceTexture, normal).rgb;
+//     const vec2 envBRDF = texture(u_BRDFLut, vec2(max(dot(normal, dirToCamera), 0.f), m_pbrParameters.roughness)).rg;
+//     const vec3 irradiance = texture(u_irradianceTexture, normal).rgb;
 
-    vec3 diffuse = m_pbrParameters.albedo.xyz * irradiance;
-    vec3 specular = radianceColor * (fresnel * envBRDF.x + envBRDF.y);
+//     vec3 diffuse = m_pbrParameters.albedo.xyz * irradiance;
+//     vec3 specular = radianceColor * (fresnel * envBRDF.x + envBRDF.y);
 
-    vec3 kS = FresnelSchlickRoughness(max(dot(normal, dirToCamera), 0.f), baseReflectivity, m_pbrParameters.roughness);
-    vec3 kD = 1.f - kS;
-    kD *= 1.f - m_pbrParameters.metallic;
+//     vec3 kS = FresnelSchlickRoughness(max(dot(normal, dirToCamera), 0.f), baseReflectivity, m_pbrParameters.roughness);
+//     vec3 kD = 1.f - kS;
+//     kD *= 1.f - m_pbrParameters.metallic;
 
-    vec3 ambiance = (kD * diffuse + specular);
-    return ambiance;
-}
+//     vec3 ambiance = (kD * diffuse + specular);
+//     return ambiance;
+// }
 
 vec3 ReconstructNormal(vec3 normal)
 {
@@ -151,7 +151,7 @@ void main()
     vec3 lightAccumulation = vec3(0.0);
 
     lightAccumulation += CalculateDirectionalLight(u_directionalLight, dirToCamera, baseReflectivity);
-    lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
+    //lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
     o_color.xyz = lightAccumulation;
     o_color.w = 1;

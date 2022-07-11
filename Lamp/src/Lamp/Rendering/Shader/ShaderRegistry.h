@@ -16,11 +16,13 @@ namespace Lamp
 		static Ref<Shader> Get(const std::string& name);
 		static void Register(const std::string& name, Ref<Shader> shader);
 
+		static std::map<std::string, Ref<Shader>> GetAllShaders();
+
 	private:
 		ShaderRegistry() = delete;
 
 		static void LoadAllShaders();
 
-		inline static std::unordered_map<std::string, Ref<Shader>> s_registry;
+		inline static std::map<std::string, Ref<Shader>> s_registry;
 	};
 }

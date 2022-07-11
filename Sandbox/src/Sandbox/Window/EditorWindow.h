@@ -20,7 +20,7 @@ public:
 	virtual void OnEvent(Lamp::Event& e) {}
 
 	inline const std::string& GetTitle() const { return m_title; }
-	inline const bool IsOpen() const { return m_isOpen; }
+	inline const bool& IsOpen() const { return m_isOpen; }
 	inline const bool IsFocused() const { return m_isFocused; }
 
 protected:

@@ -47,6 +47,11 @@ namespace Lamp
 		s_registry[lowName] = shader;
 	}
 
+	std::map<std::string, Ref<Shader>> ShaderRegistry::GetAllShaders()
+	{
+		return s_registry;
+	}
+
 	void ShaderRegistry::LoadAllShaders()
 	{
 		auto shaderSearchFolder = FileSystem::GetShadersPath();

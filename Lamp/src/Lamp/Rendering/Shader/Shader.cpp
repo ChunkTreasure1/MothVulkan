@@ -140,9 +140,11 @@ namespace Lamp
 		}
 
 		m_pipelineShaderStageInfos.clear();
-		m_uboCount = 0;
-		m_ssboCount = 0;
-		m_imageCount = 0;
+
+		m_perStageUBOCount.clear();
+		m_perStageSSBOCount.clear();
+		m_perStageImageCount.clear();
+		m_perStageStorageImageCount.clear();
 	}
 
 	void Shader::CompileOrGetBinary(std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& outShaderData, bool forceCompile)
@@ -325,7 +327,7 @@ namespace Lamp
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				m_uboCount++;
+				m_perStageUBOCount[stage].count++;
 			}
 			else
 			{
@@ -364,7 +366,7 @@ namespace Lamp
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-				m_ssboCount++;
+				m_perStageSSBOCount[stage].count++;
 			}
 			else
 			{
@@ -422,7 +424,7 @@ namespace Lamp
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
-				m_storageImageCount++;
+				m_perStageStorageImageCount[stage].count++;
 			}
 			else
 			{
@@ -445,7 +447,7 @@ namespace Lamp
 				layoutBinding.stageFlags = stage;
 
 				SampledImage& imageInfo = m_resources.imageInfos[set][binding];
-				
+
 				const auto& type = compiler.get_type(image.type_id);
 
 				switch (type.image.dim)
@@ -454,13 +456,13 @@ namespace Lamp
 					case spv::Dim::Dim2D: imageInfo.dimension = ImageDimension::Dim2D; break;
 					case spv::Dim::Dim3D: imageInfo.dimension = ImageDimension::Dim3D; break;
 					case spv::Dim::DimCube: imageInfo.dimension = ImageDimension::DimCube; break;
-				
+
 					default: imageInfo.dimension = ImageDimension::Dim2D; break;
 				}
 
 				VkDescriptorImageInfo& descriptorInfo = imageInfo.info;
 				descriptorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				
+
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;
@@ -468,7 +470,7 @@ namespace Lamp
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-				m_imageCount++;
+				m_perStageImageCount[stage].count++;
 			}
 			else
 			{
@@ -476,10 +478,10 @@ namespace Lamp
 			}
 		}
 
-		LP_CORE_INFO("		Uniform Buffers: {0}", m_uboCount);
-		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_ssboCount);
-		LP_CORE_INFO("		Sampled Images: {0}", m_imageCount);
-		LP_CORE_INFO("		Storage Images: {0}", m_storageImageCount);
+		LP_CORE_INFO("		Uniform Buffers: {0}", m_perStageUBOCount[stage].count);
+		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_perStageSSBOCount[stage].count);
+		LP_CORE_INFO("		Sampled Images: {0}", m_perStageImageCount[stage].count);
+		LP_CORE_INFO("		Storage Images: {0}", m_perStageStorageImageCount[stage].count);
 	}
 
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
@@ -518,24 +520,34 @@ namespace Lamp
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 
-		if (m_uboCount > 0)
+		uint32_t uboCount = 0;
+		uint32_t ssboCount = 0;
+		uint32_t storageImageCount = 0;
+		uint32_t imageCount = 0;
+
+		std::for_each(m_perStageUBOCount.begin(), m_perStageUBOCount.end(), [&](auto pair) { uboCount += pair.second.count; });
+		std::for_each(m_perStageSSBOCount.begin(), m_perStageSSBOCount.end(), [&](auto pair) { ssboCount += pair.second.count; });
+		std::for_each(m_perStageStorageImageCount.begin(), m_perStageStorageImageCount.end(), [&](auto pair) { storageImageCount += pair.second.count; });
+		std::for_each(m_perStageImageCount.begin(), m_perStageImageCount.end(), [&](auto pair) { imageCount += pair.second.count; });
+
+		if (uboCount > 0)
 		{
-			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_uboCount * framesInFlight);
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, uboCount * framesInFlight);
 		}
 
-		if (m_ssboCount > 0)
+		if (ssboCount > 0)
 		{
-			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_ssboCount * framesInFlight);
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, ssboCount * framesInFlight);
 		}
 
-		if (m_storageImageCount > 0)
+		if (storageImageCount > 0)
 		{
-			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_storageImageCount * framesInFlight);
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, storageImageCount * framesInFlight);
 		}
 
-		if (m_imageCount > 0)
+		if (imageCount > 0)
 		{
-			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_imageCount * framesInFlight);
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount * framesInFlight);
 		}
 	}
 

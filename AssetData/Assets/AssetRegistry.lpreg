@@ -7,6 +7,8 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
   - Handle: 7625587265189312090
@@ -15,8 +17,6 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -259,3 +259,5 @@ Assets:
     Path: Engine/Shaders\Definitions\equirectangularConversion.lpsdef
   - Handle: 402235490816366393
     Path: Assets\Textures\HDRIs\brightForest.hdr
+  - Handle: 17224684258346697250
+    Path: Engine/Shaders\Definitions\brdfGeneration.lpsdef

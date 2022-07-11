@@ -67,6 +67,7 @@ namespace Lamp
 		BufferLayout vertexLayout;
 		BufferLayout instanceLayout;
 		std::string name;
+		std::string renderPass;
 
 		std::vector<FramebufferInput> framebufferInputs;
 	};

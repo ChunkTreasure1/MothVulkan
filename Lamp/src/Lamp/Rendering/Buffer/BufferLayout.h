@@ -8,9 +8,9 @@
 
 namespace Lamp
 {
-	enum class ElementType
+	enum class ElementType : uint32_t
 	{
-		Bool,
+		Bool = 0,
 		Int,
 
 		UInt,
