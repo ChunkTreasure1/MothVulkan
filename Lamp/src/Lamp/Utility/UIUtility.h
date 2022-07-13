@@ -154,6 +154,38 @@ namespace UI
 		ImGui::EndTable();
 	}
 
+	static bool ComboProperty(const std::string& text, int& currentItem, const std::vector<std::string>& strItems, float width = 0.f)
+	{
+		bool changed = false;
+
+		ImGui::TableNextColumn();
+		ImGui::TextUnformatted(text.c_str());
+
+		ImGui::TableNextColumn();
+
+		if (width == 0.f)
+		{
+			ImGui::PushItemWidth(ImGui::GetColumnWidth());
+		}
+		else
+		{
+			ImGui::PushItemWidth(width);
+		}
+		std::string id = "##" + std::to_string(s_stackId++);
+
+		std::vector<const char*> items;
+		std::for_each(strItems.begin(), strItems.end(), [&](const std::string& string) { items.emplace_back(string.c_str()); });
+
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int32_t)items.size()))
+		{
+			changed = true;
+		}
+
+		ImGui::PopItemWidth();
+
+		return changed;
+	}
+
 	static bool ComboProperty(const std::string& text, int& currentItem, const std::vector<const char*>& items, float width = 0.f)
 	{
 		bool changed = false;
@@ -172,7 +204,7 @@ namespace UI
 			ImGui::PushItemWidth(width);
 		}
 		std::string id = "##" + std::to_string(s_stackId++);
-		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int)items.size()))
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int32_t)items.size()))
 		{
 			changed = true;
 		}
@@ -191,7 +223,7 @@ namespace UI
 		ImGui::SameLine();
 
 		std::string id = "##" + std::to_string(s_stackId++);
-		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int)items.size()))
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int32_t)items.size()))
 		{
 			changed = true;
 		}

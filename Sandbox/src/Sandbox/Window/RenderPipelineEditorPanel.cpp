@@ -15,8 +15,8 @@ RenderPipelineEditorPanel::RenderPipelineEditorPanel()
 	: EditorWindow("Render Pipeline Editor")
 {
 	m_windowFlags = ImGuiWindowFlags_MenuBar;
-
 	m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>("Engine/RenderPipelines/pbrPipeline.lprpdef");
+	m_assetBrowser = CreateRef<SelectiveAssetBrowserPanel>(Lamp::AssetType::RenderPipeline);
 }
 
 void RenderPipelineEditorPanel::UpdateMainContent()
@@ -51,14 +51,16 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 
 			// Shader
 			{
-				std::vector<const char*> items;
+				std::vector<std::string> items;
 				items.emplace_back("None");
-				for (auto [name, shader] : Lamp::ShaderRegistry::GetAllShaders())
+				for (const auto& [name, shader] : Lamp::ShaderRegistry::GetAllShaders())
 				{
-					items.emplace_back(name.c_str());
+					items.emplace_back(name);
+				
 				}
 
-
+				int32_t currentItem = 0;
+				UI::ComboProperty("Shader", currentItem, items);
 			}
 
 			// Topology
@@ -167,4 +169,11 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 			}
 		}
 	}
+}
+
+void RenderPipelineEditorPanel::UpdateContent()
+{
+	m_assetBrowser->Begin();
+	m_assetBrowser->UpdateMainContent();
+	//m_assetBrowser->End();
 }

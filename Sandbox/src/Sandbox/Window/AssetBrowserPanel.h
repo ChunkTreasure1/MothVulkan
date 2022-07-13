@@ -1,29 +1,7 @@
 #pragma once
 
 #include "Sandbox/Window/EditorWindow.h"
-
-#include <Lamp/Asset/Asset.h>
-
-#include <filesystem>
-
-struct AssetData
-{
-	Lamp::AssetHandle handle;
-	Lamp::AssetType type;
-	std::filesystem::path path;
-};
-
-struct DirectoryData
-{
-	Lamp::AssetHandle handle;
-	std::filesystem::path path;
-	
-	DirectoryData* parentDir;
-	bool selected = false;
-
-	std::vector<AssetData> assets;
-	std::vector<Ref<DirectoryData>> subDirectories;
-};
+#include "Sandbox/Window/AssetCommon.h"
 
 class AssetBrowserPanel : public EditorWindow
 {

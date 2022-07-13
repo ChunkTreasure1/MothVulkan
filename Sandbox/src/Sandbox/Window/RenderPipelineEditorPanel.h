@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Sandbox/Window/EditorWindow.h"
+#include "Sandbox/Window/SelectiveAssetBrowserPanel.h"
 
 namespace Lamp
 {
@@ -13,7 +14,9 @@ public:
 	RenderPipelineEditorPanel();
 
 	void UpdateMainContent() override;
+	void UpdateContent() override;
 
 private:
 	Ref<Lamp::RenderPipeline> m_loadedRenderPipeline;
+	Ref<SelectiveAssetBrowserPanel> m_assetBrowser;
 };
