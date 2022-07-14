@@ -9,9 +9,11 @@
 
 static uint32_t s_assetBrowserCount;
 
-SelectiveAssetBrowserPanel::SelectiveAssetBrowserPanel(Lamp::AssetType assetType)
-	: EditorWindow("Asset Browser##" + std::to_string(s_assetBrowserCount++)), m_selectiveAssetType(assetType)
+SelectiveAssetBrowserPanel::SelectiveAssetBrowserPanel(Lamp::AssetType assetType, const std::string& id)
+	: EditorWindow("Asset Browser##" + id), m_selectiveAssetType(assetType)
 {
+	m_isOpen = true;
+	m_windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	UpdateAssetList();
 }
 
@@ -42,6 +44,19 @@ void SelectiveAssetBrowserPanel::UpdateMainContent()
 				Ref<Lamp::Texture2D> icon = EditorIconLibrary::GetIcon(EditorIcon::GenericFile);
 
 				UI::ImageButton(asset.path.filename().string(), UI::GetTextureID(icon), { m_thumbnailSize, m_thumbnailSize });
+				if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+				{
+					if (m_openFileCallback)
+					{
+						m_openFileCallback(asset.handle);
+					}
+				}
+
+				if (ImGui::BeginDragDropSource())
+				{
+					ImGui::SetDragDropPayload("ASSET_BROWSER_ITEM", &asset.handle, sizeof(Lamp::AssetHandle), ImGuiCond_Once);
+					ImGui::EndDragDropSource();
+				}
 
 				ImGui::TextWrapped(asset.path.filename().string().c_str());
 				ImGui::NextColumn();
@@ -81,16 +96,28 @@ void SelectiveAssetBrowserPanel::UpdateAssetList()
 void SelectiveAssetBrowserPanel::RenderControlsBar()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
-	
+
 	UI::ScopedColor childColor{ ImGuiCol_ChildBg, { 0.2f, 0.2f, 0.2f, 1.f } };
 	ImGui::BeginChild("##controlsBar", { 0.f, m_controlsBarHeight });
 	{
 		const float buttonSizeOffset = 10.f;
-		
-		UI::ShiftCursor(5.f, 4.f);
+
+		UI::ShiftCursor(5.f, 2.f);
 		{
 			UI::ScopedColor buttonBackground(ImGuiCol_Button, { 0.f, 0.f, 0.f, 0.f });
-		
+			ImGui::Image(UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Search)), { m_controlsBarHeight - buttonSizeOffset, m_controlsBarHeight - buttonSizeOffset });
+
+			ImGui::SameLine();
+			ImGui::PushItemWidth(200.f);
+
+			std::string REMOVE_TEXT;
+			if (UI::InputText("", REMOVE_TEXT, ImGuiInputTextFlags_EnterReturnsTrue))
+			{
+			}
+
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+
 			if (UI::ImageButton("##reloadButton", UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Reload)), { m_controlsBarHeight - buttonSizeOffset, m_controlsBarHeight - buttonSizeOffset }))
 			{
 				UpdateAssetList();

@@ -17,6 +17,9 @@ public:
 	void UpdateContent() override;
 
 private:
+	void UpdateEditor();
+	void SaveAs();
+
 	Ref<Lamp::RenderPipeline> m_loadedRenderPipeline;
 	Ref<SelectiveAssetBrowserPanel> m_assetBrowser;
 };

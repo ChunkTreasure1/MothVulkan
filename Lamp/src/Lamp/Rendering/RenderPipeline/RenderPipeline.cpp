@@ -71,6 +71,11 @@ namespace Lamp
 		GenerateHash();
 	}
 
+	RenderPipeline::RenderPipeline()
+	{
+		m_specification.name = "New Pipeline";
+	}
+
 	RenderPipeline::~RenderPipeline()
 	{
 		Release();
@@ -91,6 +96,11 @@ namespace Lamp
 	Ref<RenderPipeline> RenderPipeline::Create(const RenderPipelineSpecification& pipelineSpec)
 	{
 		return CreateRef<RenderPipeline>(pipelineSpec);
+	}
+
+	Ref<RenderPipeline> RenderPipeline::Create()
+	{
+		return CreateRef<RenderPipeline>();
 	}
 
 	void RenderPipeline::SetVertexLayout()

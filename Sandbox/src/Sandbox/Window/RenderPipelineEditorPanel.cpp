@@ -12,11 +12,16 @@
 #include <imgui.h>
 
 RenderPipelineEditorPanel::RenderPipelineEditorPanel()
-	: EditorWindow("Render Pipeline Editor")
+	: EditorWindow("Render Pipeline Editor", true)
 {
 	m_windowFlags = ImGuiWindowFlags_MenuBar;
 	m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>("Engine/RenderPipelines/pbrPipeline.lprpdef");
-	m_assetBrowser = CreateRef<SelectiveAssetBrowserPanel>(Lamp::AssetType::RenderPipeline);
+	m_assetBrowser = CreateRef<SelectiveAssetBrowserPanel>(Lamp::AssetType::RenderPipeline, "renderPipelinePanel");
+
+	m_assetBrowser->SetOpenFileCallback([this](Lamp::AssetHandle asset)
+		{
+			m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>(asset);
+		});
 }
 
 void RenderPipelineEditorPanel::UpdateMainContent()
@@ -29,8 +34,34 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 			{
 			}
 
+			if (ImGui::MenuItem("New", "Ctrl + N"))
+			{
+				if (m_loadedRenderPipeline && !m_loadedRenderPipeline->path.empty())
+				{
+					Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
+				}
+
+				m_loadedRenderPipeline = Lamp::RenderPipeline::Create();
+			}
+
 			if (ImGui::MenuItem("Save", "Ctrl + S"))
 			{
+				if (m_loadedRenderPipeline)
+				{
+					if (m_loadedRenderPipeline->path.empty())
+					{
+						SaveAs();
+					}
+					else
+					{
+						Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
+					}
+				}
+			}
+
+			if (ImGui::MenuItem("Save As", "Ctrl + Shift + S"))
+			{
+				SaveAs();
 			}
 
 			ImGui::EndMenu();
@@ -38,11 +69,25 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 
 		ImGui::EndMenuBar();
 	}
+}
 
+void RenderPipelineEditorPanel::UpdateContent()
+{
+	UpdateEditor();
+
+	if (m_assetBrowser->Begin())
+	{
+		m_assetBrowser->UpdateMainContent();
+		m_assetBrowser->End();
+	}
+}
+
+void RenderPipelineEditorPanel::UpdateEditor()
+{
+	ImGui::Begin("Editor");
 	if (m_loadedRenderPipeline)
 	{
 		auto& specification = const_cast<Lamp::RenderPipelineSpecification&>(m_loadedRenderPipeline->GetSpecification());
-
 
 		UI::PushId();
 		if (UI::BeginProperties())
@@ -56,7 +101,7 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 				for (const auto& [name, shader] : Lamp::ShaderRegistry::GetAllShaders())
 				{
 					items.emplace_back(name);
-				
+
 				}
 
 				int32_t currentItem = 0;
@@ -156,7 +201,6 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 					ImGui::Combo(typeId.c_str(), (int32_t*)&element.type, types.data(), (int32_t)types.size());
 				}
 
-
 				ImGui::SameLine();
 
 				std::string buttId = "-##rem" + std::to_string(UI::GetId());
@@ -169,11 +213,25 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 			}
 		}
 	}
+	ImGui::End();
 }
 
-void RenderPipelineEditorPanel::UpdateContent()
+void RenderPipelineEditorPanel::SaveAs()
 {
-	m_assetBrowser->Begin();
-	m_assetBrowser->UpdateMainContent();
-	//m_assetBrowser->End();
+	std::filesystem::path path = FileSystem::OpenFile("Render Pipeline (*.lprpdef)\0*.lprpdef\0");
+	if (!path.empty())
+	{
+		if (!m_loadedRenderPipeline->path.empty())
+		{
+			Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
+			FileSystem::Copy(m_loadedRenderPipeline->path, path);
+		
+			m_loadedRenderPipeline = Lamp::AssetManager::Get().GetAsset<Lamp::RenderPipeline>(path);
+		}
+		else
+		{
+			m_loadedRenderPipeline->path = path;
+			Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
+		}
+	}
 }

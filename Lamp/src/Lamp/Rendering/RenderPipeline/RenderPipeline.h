@@ -76,7 +76,7 @@ namespace Lamp
 	{
 	public:
 		RenderPipeline(const RenderPipelineSpecification& pipelineSpec);
-		RenderPipeline() = default;
+		RenderPipeline();
 		~RenderPipeline();
 
 		void Invalidate();
@@ -98,6 +98,7 @@ namespace Lamp
 		AssetType GetType() override { return GetStaticType(); }
 
 		static Ref<RenderPipeline> Create(const RenderPipelineSpecification& pipelineSpec);
+		static Ref<RenderPipeline> Create();
 
 	private:
 		void Release();

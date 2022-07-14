@@ -13,7 +13,6 @@
 MaterialEditorPanel::MaterialEditorPanel()
 	: EditorWindow("Material Editor", true)
 {
-	m_isOpen = true;
 }
 
 void MaterialEditorPanel::UpdateMainContent()
