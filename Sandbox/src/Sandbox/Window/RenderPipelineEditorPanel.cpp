@@ -218,7 +218,7 @@ void RenderPipelineEditorPanel::UpdateEditor()
 
 void RenderPipelineEditorPanel::SaveAs()
 {
-	std::filesystem::path path = FileSystem::OpenFile("Render Pipeline (*.lprpdef)\0*.lprpdef\0");
+	std::filesystem::path path = FileSystem::SaveFile("Render Pipeline (*.lprpdef)\0*.lprpdef\0");
 	if (!path.empty())
 	{
 		if (!m_loadedRenderPipeline->path.empty())

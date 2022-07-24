@@ -19,6 +19,9 @@
 #include <Lamp/Scene/Entity.h>
 #include <Lamp/Scene/Scene.h>
 
+#include <Lamp/Input/KeyCodes.h>
+#include <Lamp/Input/Input.h>
+
 #include <imgui.h>
 
 Sandbox::~Sandbox()
@@ -93,6 +96,25 @@ void Sandbox::OnEvent(Lamp::Event& e)
 	}
 }
 
+void Sandbox::ExecuteUndo()
+{
+	EditorCommandStack* cmdStack = nullptr;
+
+	for (const auto window : m_editorWindows)
+	{
+		if (window->IsFocused())
+		{
+			cmdStack = &window->GetCommandStack();
+			break;
+		}
+	}
+
+	if (cmdStack)
+	{
+		cmdStack->Undo();
+	}
+}
+
 bool Sandbox::OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e)
 {
 	UpdateDockSpace();
@@ -114,6 +136,29 @@ bool Sandbox::OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e)
 bool Sandbox::OnRenderEvent(Lamp::AppRenderEvent& e)
 {
 	m_sceneRenderer->OnRender(m_editorCameraController->GetCamera());
+
+	return false;
+}
+
+bool Sandbox::OnKeyPressedEvent(Lamp::KeyPressedEvent& e)
+{
+	const bool ctrlPressed = Lamp::Input::IsKeyDown(LP_KEY_LEFT_SHIFT);
+
+	switch (e.GetKeyCode())
+	{
+		case LP_KEY_Z:
+		{
+			if (ctrlPressed)
+			{
+				ExecuteUndo();
+			}
+
+			break;
+		}
+
+		default:
+			break;
+	}
 
 	return false;
 }

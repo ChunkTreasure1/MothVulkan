@@ -18,7 +18,7 @@ namespace Lamp
 		Input(const Input&) = delete;
 		Input& operator=(const Input&) = delete;
 
-		inline static bool IsKeyPressed(int keyCode) 
+		inline static bool IsKeyDown(int keyCode) 
 		{ 
 			auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow()->GetNativeWindow());
 			auto state = glfwGetKey(window, keyCode);
@@ -26,7 +26,7 @@ namespace Lamp
 			return state == GLFW_PRESS || state == GLFW_REPEAT;
 		}
 		
-		inline static bool IsKeyReleased(int keyCode) 
+		inline static bool IsKeyUp(int keyCode) 
 		{ 
 			auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow()->GetNativeWindow());
 			auto state = glfwGetKey(window, keyCode);

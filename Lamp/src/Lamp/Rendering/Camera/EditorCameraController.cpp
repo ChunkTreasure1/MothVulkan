@@ -72,19 +72,19 @@ namespace Lamp
 
 			m_camera->SetRotation(rot);
 
-			if (Lamp::Input::IsKeyPressed(LP_KEY_W))
+			if (Lamp::Input::IsKeyDown(LP_KEY_W))
 			{
 				m_position += m_translationSpeed * m_camera->GetForward() * e.GetTimestep();
 			}
-			if (Lamp::Input::IsKeyPressed(LP_KEY_S))
+			if (Lamp::Input::IsKeyDown(LP_KEY_S))
 			{
 				m_position -= m_translationSpeed * m_camera->GetForward() * e.GetTimestep();
 			}
-			if (Lamp::Input::IsKeyPressed(LP_KEY_A))
+			if (Lamp::Input::IsKeyDown(LP_KEY_A))
 			{
 				m_position -= m_translationSpeed * m_camera->GetRight() * e.GetTimestep();
 			}
-			if (Lamp::Input::IsKeyPressed(LP_KEY_D))
+			if (Lamp::Input::IsKeyDown(LP_KEY_D))
 			{
 				m_position += m_translationSpeed * m_camera->GetRight() * e.GetTimestep();
 			}
@@ -95,7 +95,7 @@ namespace Lamp
 			m_lastRightUp = true;
 		}
 
-		if (Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_MIDDLE) && !Lamp::Input::IsKeyPressed(LP_KEY_LEFT_ALT))
+		if (Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_MIDDLE) && !Lamp::Input::IsKeyDown(LP_KEY_LEFT_ALT))
 		{
 			m_position += -m_camera->GetRight() * deltaPos.x;
 			m_position += m_camera->GetUp() * deltaPos.y;

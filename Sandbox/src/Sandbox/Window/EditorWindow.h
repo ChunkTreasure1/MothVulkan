@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Lamp/Event/Event.h>
+#include "Sandbox/EditorCommandStack.h"
 
+#include <Lamp/Event/Event.h>
 #include <imgui.h>
 
 #include <string>
@@ -23,9 +24,12 @@ public:
 	inline const bool& IsOpen() const { return m_isOpen; }
 	inline const bool IsFocused() const { return m_isFocused; }
 
+	inline EditorCommandStack& GetCommandStack() { return m_commandStack; }
+
 protected:
 	std::string m_title;
-	
+	EditorCommandStack m_commandStack{};
+
 	ImGuiWindowFlags m_windowFlags = 0;
 
 	bool m_isOpen = false;
