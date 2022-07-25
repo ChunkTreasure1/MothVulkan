@@ -94,12 +94,12 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
+
 		s_frameDeletionQueues[currentFrame].Flush();
 
 		SortRenderCommands();
 		PrepareForIndirectDraw(s_rendererData->renderCommands);
 		UploadRenderCommands();
-
 		UpdatePerFrameBuffers();
 	}
 
@@ -108,6 +108,8 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
+
+		s_invalidationQueue.Flush();
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
@@ -220,6 +222,11 @@ namespace Lamp
 	{
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		s_frameDeletionQueues[currentFrame].Push(function);
+	}
+
+	void Renderer::SubmitInvalidation(std::function<void()>&& function)
+	{
+		s_invalidationQueue.Push(function);
 	}
 
 	Skybox Renderer::GenerateEnvironmentMap(AssetHandle handle)

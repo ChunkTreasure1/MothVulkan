@@ -13,6 +13,9 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 
+#include <imgui_notify.h>
+#include <tahoma.h>
+
 namespace Lamp
 {
 	static std::vector<VkCommandBuffer> s_imGuiCommandBuffer;
@@ -41,22 +44,24 @@ namespace Lamp
 
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;	//Enable keyboard controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;	//Enable gamepad controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;		//Enable docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;		//Enable multiple viewports
 		
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
 		m_font = io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-light.ttf", 18.f);
 		io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-bold.otf", 18.f);
 
-		//Setup ImGui style
+		// imgui-notify font
+		{
+			ImFontConfig fontCfg;
+			fontCfg.FontDataOwnedByAtlas = false;
+			io.Fonts->AddFontFromMemoryTTF((void*)tahoma, sizeof(tahoma), 17.f, &fontCfg);
+			ImGui::MergeIconsWithLatestFont(16.f, false);
+		}
+
 		ImGui::StyleColorsDark();
 
-		//When viewports are enabled tweak WindowRounding 
-		//so platform windows can look identical to regular one
 		ImGuiStyle& style = ImGui::GetStyle();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -228,7 +233,16 @@ namespace Lamp
 
 	void ImGuiImplementation::End()
 	{
+		// Render notifications
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.f);
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(43.f / 255.f, 43.f / 255.f, 43.f / 255.f, 100.f / 255.f));
+			ImGui::RenderNotifications();
+			ImGui::PopStyleVar();
+			ImGui::PopStyleColor();
+		}
 		ImGui::Render();
+
 
 		auto& swapchain = Application::Get().GetWindow()->GetSwapchain();
 

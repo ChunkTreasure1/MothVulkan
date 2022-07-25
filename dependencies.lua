@@ -16,6 +16,7 @@ IncludeDir["shaderc_glslc"] = "%{wks.location}/Lamp/vendor/shaderc/glslc"
 IncludeDir["Optick"] = "%{wks.location}/Lamp/vendor/Optick/src"
 IncludeDir["TinyGLTF"] = "%{wks.location}/Lamp/vendor/tiny_gltf/"
 IncludeDir["tinyddsloader"] = "%{wks.location}/Lamp/vendor/tinyddsloader/"
+IncludeDir["imgui_notify"] = "%{wks.location}/Lamp/vendor/imgui-notify/"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

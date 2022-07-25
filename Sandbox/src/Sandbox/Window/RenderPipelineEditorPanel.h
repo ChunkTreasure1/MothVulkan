@@ -18,8 +18,16 @@ public:
 
 private:
 	void UpdateEditor();
+	void InvalidateLoadedPipeline();
+	void UpdateCurrentShaderAndRenderPass();
+
 	void SaveAs();
+	void Save();
 
 	Ref<Lamp::RenderPipeline> m_loadedRenderPipeline;
 	Ref<SelectiveAssetBrowserPanel> m_assetBrowser;
+
+	int32_t m_currentlySelectedShader = 0;
+	int32_t m_currentlySelectedRenderPass = 0;
+
 };

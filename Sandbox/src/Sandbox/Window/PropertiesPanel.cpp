@@ -162,10 +162,14 @@ void PropertiesPanel::UpdateMainContent()
 
 		entity.SetComponents(componentData);
 
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.2f, 0.2f, 1.f });
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.f);
 		if (ImGui::Button("Add Component"))
 		{
 			ImGui::OpenPopup("AddComponent");
 		}
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
 
 		AddComponentPopup();
 	}

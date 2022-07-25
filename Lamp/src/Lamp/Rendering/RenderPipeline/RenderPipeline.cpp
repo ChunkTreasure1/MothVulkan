@@ -9,6 +9,7 @@
 #include "Lamp/Rendering/Framebuffer.h"
 #include "Lamp/Rendering/Shader/Shader.h"
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
+#include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/Renderer.h"
 
 #include "Lamp/Utility/ImageUtility.h"
@@ -68,7 +69,26 @@ namespace Lamp
 		m_specification.framebuffer->AddReference(this);
 
 		Invalidate();
-		GenerateHash();
+	}
+
+	RenderPipeline::RenderPipeline(const RenderPipeline& source)
+	{
+		m_specification = source.m_specification;
+
+		if (m_specification.shader)
+		{
+			m_specification.shader->AddReference(this);
+		}
+
+		if (m_specification.framebuffer)
+		{
+			m_specification.framebuffer->AddReference(this);
+		}
+
+		if (m_specification.framebuffer && m_specification.shader)
+		{
+			Invalidate();
+		}
 	}
 
 	RenderPipeline::RenderPipeline()
@@ -89,7 +109,7 @@ namespace Lamp
 		{
 			m_specification.framebuffer->RemoveReference(this);
 		}
-		
+
 		m_materialReferences.clear();
 	}
 
@@ -101,6 +121,28 @@ namespace Lamp
 	Ref<RenderPipeline> RenderPipeline::Create()
 	{
 		return CreateRef<RenderPipeline>();
+	}
+
+	void RenderPipeline::SetShader(Ref<Shader> shader)
+	{
+		if (m_specification.shader)
+		{
+			m_specification.shader->RemoveReference(this);
+		}
+
+		shader->AddReference(this);
+		m_specification.shader = shader;
+	}
+
+	void RenderPipeline::SetRenderPass(Ref<RenderPass> renderPass)
+	{
+		if (m_specification.framebuffer)
+		{
+			m_specification.framebuffer->RemoveReference(this);
+		}
+
+		renderPass->framebuffer->AddReference(this);
+		m_specification.framebuffer = renderPass->framebuffer;
 	}
 
 	void RenderPipeline::SetVertexLayout()
@@ -321,6 +363,7 @@ namespace Lamp
 		}
 
 		InvalidateMaterials();
+		GenerateHash();
 	}
 
 	void RenderPipeline::InvalidateMaterials()
@@ -396,7 +439,7 @@ namespace Lamp
 
 	void RenderPipeline::Release()
 	{
-		Renderer::SubmitResourceFree([pipeline = m_pipeline, pipelineLayout = m_pipelineLayout]() 
+		Renderer::SubmitResourceFree([pipeline = m_pipeline, pipelineLayout = m_pipelineLayout]()
 			{
 				if (pipeline != VK_NULL_HANDLE)
 				{

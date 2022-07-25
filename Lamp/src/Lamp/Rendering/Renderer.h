@@ -4,7 +4,7 @@
 #include "Lamp/Asset/Mesh/SubMesh.h"
 #include "Lamp/Asset/Asset.h"
 
-#include "Lamp/Rendering/DeletionQueue.hpp"
+#include "Lamp/Rendering/FunctionQueue.hpp"
 #include "Lamp/Rendering/RendererStructs.h"
 
 #include <vulkan/vulkan.h>
@@ -72,6 +72,7 @@ namespace Lamp
 		static void DispatchRenderCommands();
 
 		static void SubmitResourceFree(std::function<void()>&& function);
+		static void SubmitInvalidation(std::function<void()>&& function);
 
 		static Skybox GenerateEnvironmentMap(AssetHandle handle);
 
@@ -119,6 +120,7 @@ namespace Lamp
 
 		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
-		inline static std::vector<DeletionQueue> s_frameDeletionQueues;
+		inline static std::vector<FunctionQueue> s_frameDeletionQueues;
+		inline static FunctionQueue s_invalidationQueue;
 	};
 }

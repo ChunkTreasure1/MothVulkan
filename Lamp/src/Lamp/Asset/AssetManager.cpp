@@ -99,9 +99,10 @@ namespace Lamp
 
 	void AssetManager::LoadAsset(AssetHandle assetHandle, Ref<Asset>& asset)
 	{
-		if (m_assetCache.find(assetHandle) != m_assetCache.end())
+		auto it = m_assetCache.find(assetHandle);
+		if (it != m_assetCache.end())
 		{
-			asset = m_assetCache[assetHandle];
+			asset = it->second;
 			return;
 		}
 

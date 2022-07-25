@@ -11,11 +11,21 @@
 #include <imgui_internal.h>
 #include <imgui_stdlib.h>
 
+#include <imgui_notify.h>
+
 namespace Lamp
 {
 	class Texture2D;
 	class Image2D;
 }
+
+enum class NotificationType
+{
+	Info,
+	Warning,
+	Error,
+	Success
+};
 
 namespace UI
 {
@@ -75,6 +85,18 @@ namespace UI
 	ImTextureID GetTextureID(Ref<Lamp::Texture2D> texture);
 	ImTextureID GetTextureID(Ref<Lamp::Image2D> texture);
 	ImTextureID GetTextureID(Lamp::Texture2D* texture);
+
+	static ImGuiToastType ToastTypeFromNotificationType(NotificationType type)
+	{
+		switch (type)
+		{
+			case NotificationType::Info: return ImGuiToastType_Info;
+			case NotificationType::Warning: return ImGuiToastType_Warning;
+			case NotificationType::Error: return ImGuiToastType_Error;
+			case NotificationType::Success: return ImGuiToastType_Success;
+			default: return ImGuiToastType_None;
+		}
+	}
 
 	static void ShiftCursor(float x, float y)
 	{
@@ -266,6 +288,15 @@ namespace UI
 		}
 
 		return data;
+	}
+
+	static void Notify(NotificationType type, const std::string& title, const std::string& content, int32_t duration = 2000)
+	{
+		ImGuiToast toast{ ToastTypeFromNotificationType(type), duration };
+		toast.set_title(title.c_str());
+		toast.set_content(content.c_str());
+
+		ImGui::InsertNotification(toast);
 	}
 
 	static bool PropertyAxisColor(const std::string& text, glm::vec3& value, float resetValue = 0.f)

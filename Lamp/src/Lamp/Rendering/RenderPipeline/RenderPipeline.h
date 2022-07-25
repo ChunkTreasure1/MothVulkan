@@ -9,6 +9,7 @@ namespace Lamp
 {
 	class Shader;
 	class Framebuffer;
+	class RenderPass;
 	class Material;
 
 	enum class Topology : uint32_t
@@ -76,6 +77,7 @@ namespace Lamp
 	{
 	public:
 		RenderPipeline(const RenderPipelineSpecification& pipelineSpec);
+		RenderPipeline(const RenderPipeline& source);
 		RenderPipeline();
 		~RenderPipeline();
 
@@ -87,6 +89,8 @@ namespace Lamp
 		void BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t set) const;
 
 		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const;
+		void SetShader(Ref<Shader> shader);
+		void SetRenderPass(Ref<RenderPass> renderPass);
 
 		void AddReference(Material* material);
 		void RemoveReference(Material* material);
