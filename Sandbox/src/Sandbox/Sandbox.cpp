@@ -8,6 +8,7 @@
 #include "Sandbox/Window/AssetBrowserPanel.h"
 #include "Sandbox/Window/CreatePanel.h"
 #include "Sandbox/Window/RenderPipelineEditorPanel.h"
+#include "Sandbox/Window/RenderPassEditorPanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -71,6 +72,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
 	m_editorWindows.emplace_back(CreateRef<CreatePanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<RenderPipelineEditorPanel>());
+	m_editorWindows.emplace_back(CreateRef<RenderPassEditorPanel>());
 }
 
 void Sandbox::OnDetach()

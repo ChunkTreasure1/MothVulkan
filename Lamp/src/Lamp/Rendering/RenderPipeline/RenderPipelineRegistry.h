@@ -14,6 +14,7 @@ namespace Lamp
 		static void Shutdown();
 
 		static Ref<RenderPipeline> Get(const std::string& name);
+		static std::map<std::string, Ref<RenderPipeline>> GetAllPipelines();
 		static void Register(const std::string& name, Ref<RenderPipeline> pipeline);
 
 	private:
@@ -21,6 +22,6 @@ namespace Lamp
 
 		static void LoadAllPipelines();
 
-		inline static std::unordered_map<std::string, Ref<RenderPipeline>> s_registry;
+		inline static std::map<std::string, Ref<RenderPipeline>> s_registry;
 	};
 }

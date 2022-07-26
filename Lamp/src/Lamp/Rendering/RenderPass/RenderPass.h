@@ -9,9 +9,9 @@ namespace Lamp
 	class Framebuffer;
 	class RenderPipeline;
 
-	enum class DrawType
+	enum class DrawType : uint32_t
 	{
-		FullscreenQuad,
+		FullscreenQuad = 0,
 		Opaque
 	};
 

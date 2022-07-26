@@ -34,6 +34,11 @@ namespace Lamp
 		return it->second;
 	}
 
+	std::map<std::string, Ref<RenderPipeline>> RenderPipelineRegistry::GetAllPipelines()
+	{
+		return s_registry;
+	}
+
 	void RenderPipelineRegistry::Register(const std::string& name, Ref<RenderPipeline> pipeline)
 	{
 		auto it = s_registry.find(name);

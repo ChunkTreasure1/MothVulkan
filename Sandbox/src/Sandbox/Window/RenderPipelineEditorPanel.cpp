@@ -18,11 +18,6 @@ RenderPipelineEditorPanel::RenderPipelineEditorPanel()
 {
 	m_windowFlags = ImGuiWindowFlags_MenuBar;
 	
-	{
-		m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>("Engine/RenderPipelines/pbrPipeline.lprpdef");
-		UpdateCurrentShaderAndRenderPass();
-	}
-
 	m_assetBrowser = CreateRef<SelectiveAssetBrowserPanel>(Lamp::AssetType::RenderPipeline, "renderPipelinePanel");
 	m_assetBrowser->SetOpenFileCallback([this](Lamp::AssetHandle asset)
 		{

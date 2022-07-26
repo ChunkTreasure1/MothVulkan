@@ -9,7 +9,7 @@ namespace Lamp
 
 	enum class ClearMode : uint32_t
 	{
-		Clear,
+		Clear = 0,
 		Load,
 		DontCare
 	};
