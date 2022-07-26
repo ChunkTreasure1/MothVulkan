@@ -45,6 +45,7 @@ namespace Lamp
 	struct FramebufferInput
 	{
 		Ref<Framebuffer> framebuffer;
+		std::string renderPass;
 		uint32_t attachmentIndex = 0;
 		uint32_t set = 0;
 		uint32_t binding = 0;

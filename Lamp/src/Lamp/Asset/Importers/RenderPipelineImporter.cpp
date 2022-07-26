@@ -12,6 +12,7 @@
 
 #include "Lamp/Rendering/RenderPass/RenderPassRegistry.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
+#include "Lamp/Rendering/Shader/Shader.h"
 
 namespace Lamp
 {
@@ -92,6 +93,56 @@ namespace Lamp
 
 			return DepthMode::ReadWrite;
 		}
+
+		inline std::string StringFromTopology(Topology topology)
+		{
+			switch (topology)
+			{
+				case Topology::LineList: return "LineList";
+				case Topology::PatchList: return "PatchList";
+				case Topology::TriangleList: return "TriangleList";
+				case Topology::TriangleStrip: return "TriangleStrip";
+			}
+
+			return "";
+		}
+
+		inline std::string StringFromCullMode(CullMode cullMode)
+		{
+			switch (cullMode)
+			{
+				case CullMode::Front: return "Front";
+				case CullMode::Back: return "Back";
+				case CullMode::FrontAndBack: return "FrontAndBack";
+				case CullMode::None: return "None";
+			}
+
+			return "";
+		}
+
+		inline std::string StringFromFillMode(FillMode fillMode)
+		{
+			switch (fillMode)
+			{
+				case FillMode::Wireframe: return "Wireframe";
+				case FillMode::Solid: return "Solid";
+			}
+
+			return "";
+		}
+
+		inline std::string StringFromDepthMode(DepthMode depthMode)
+		{
+			switch (depthMode)
+			{
+				case DepthMode::Read: return "Read";
+				case DepthMode::Write: return "Write";
+				case DepthMode::ReadWrite: return "ReadWrite";
+				case DepthMode::None: return "None";
+			}
+
+			return "";
+		}
 	}
 
 	bool RenderPipelineImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
@@ -151,7 +202,7 @@ namespace Lamp
 				asset->SetFlag(AssetFlag::Invalid, true);
 				return false;
 			}
-
+			pipelineSpec.renderPass = renderPassName;
 			pipelineSpec.framebuffer =  framebuffer;
 
 			std::string topologyName;
@@ -198,14 +249,14 @@ namespace Lamp
 						continue;
 					}
 
-					Ref<RenderPass> renderPass = RenderPassRegistry::Get(renderPassName);
+					Ref<RenderPass> renderPass = RenderPassRegistry::Get(renderPassInputName);
 					if (!renderPass)
 					{
-						LP_CORE_ERROR("Render pass with name {0} not found! Using default texture!", renderPassName.c_str());
+						LP_CORE_ERROR("Render pass with name {0} not found! Using default texture!", renderPassInputName.c_str());
 						continue;
 					}
 					
-					framebufferInputs.emplace_back(FramebufferInput{ renderPass->framebuffer, attachmentIndex, shaderSet, shaderBinding });
+					framebufferInputs.emplace_back(FramebufferInput{ renderPass->framebuffer, renderPassInputName, attachmentIndex, shaderSet, shaderBinding });
 				}
 
 				pipelineSpec.framebufferInputs = framebufferInputs;
@@ -224,7 +275,7 @@ namespace Lamp
 					std::string elementName;
 					LP_DESERIALIZE_PROPERTY(name, elementName, element, std::string());
 
-					bufferElements.emplace_back(GetTypeFromString(typeName), elementName);
+					bufferElements.emplace_back(BufferElement::GetTypeFromString(typeName), elementName);
 				}
 
 				pipelineSpec.vertexLayout = BufferLayout(bufferElements);
@@ -247,7 +298,7 @@ namespace Lamp
 					std::string elementName;
 					LP_DESERIALIZE_PROPERTY(name, elementName, element, std::string());
 
-					bufferElements.emplace_back(GetTypeFromString(typeName), elementName);
+					bufferElements.emplace_back(BufferElement::GetTypeFromString(typeName), elementName);
 				}
 
 				pipelineSpec.instanceLayout = BufferLayout(bufferElements);
@@ -270,5 +321,71 @@ namespace Lamp
 
 	void RenderPipelineImporter::Save(const Ref<Asset>& asset) const
 	{
+		Ref<RenderPipeline> pipeline = std::reinterpret_pointer_cast<RenderPipeline>(asset);
+		
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "RenderPipeline" << YAML::Value;
+		{
+			out << YAML::BeginMap;
+			LP_SERIALIZE_PROPERTY(name, pipeline->GetSpecification().name, out);
+			LP_SERIALIZE_PROPERTY(shader, pipeline->GetSpecification().shader->GetName(), out);
+			LP_SERIALIZE_PROPERTY(renderPass, pipeline->GetSpecification().renderPass, out);
+			LP_SERIALIZE_PROPERTY(topology, Utility::StringFromTopology(pipeline->GetSpecification().topology), out);
+			LP_SERIALIZE_PROPERTY(cullMode, Utility::StringFromCullMode(pipeline->GetSpecification().cullMode), out);
+			LP_SERIALIZE_PROPERTY(depthMode, Utility::StringFromDepthMode(pipeline->GetSpecification().depthMode), out);
+			LP_SERIALIZE_PROPERTY(depthTest, pipeline->GetSpecification().depthTest, out);
+			LP_SERIALIZE_PROPERTY(depthWrite, pipeline->GetSpecification().depthWrite, out);
+			LP_SERIALIZE_PROPERTY(lineWidth, pipeline->GetSpecification().lineWidth, out);
+			LP_SERIALIZE_PROPERTY(tessellationControlPoints, pipeline->GetSpecification().tessellationControlPoints, out);
+
+			// Vertex Layout
+			{
+				out << YAML::Key << "vertexLayout" << YAML::BeginSeq;
+				for (const auto& element : pipeline->GetSpecification().vertexLayout.GetElements())
+				{
+					out << YAML::BeginMap;
+					LP_SERIALIZE_PROPERTY(type, BufferElement::GetStringFromElementType(element.type), out);
+					LP_SERIALIZE_PROPERTY(name, element.name, out);
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+			}
+
+			// Instance Layout
+			{
+				out << YAML::Key << "instanceLayout" << YAML::BeginSeq;
+				for (const auto& element : pipeline->GetSpecification().instanceLayout.GetElements())
+				{
+					out << YAML::BeginMap;
+					LP_SERIALIZE_PROPERTY(type, BufferElement::GetStringFromElementType(element.type), out);
+					LP_SERIALIZE_PROPERTY(name, element.name, out);
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+			}
+
+			// Framebuffer Inputs
+			{
+				out << YAML::Key << "framebufferInputs" << YAML::BeginSeq;
+				for (const auto& input : pipeline->GetSpecification().framebufferInputs)
+				{
+					out << YAML::BeginMap;
+					LP_SERIALIZE_PROPERTY(renderPass, input.renderPass, out);
+					LP_SERIALIZE_PROPERTY(attachment, input.attachmentIndex, out);
+					LP_SERIALIZE_PROPERTY(set, input.set, out);
+					LP_SERIALIZE_PROPERTY(binding, input.binding, out);
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+			}
+
+			out << YAML::EndMap;
+		}
+		out << YAML::EndMap;
+
+		std::ofstream fout(asset->path);
+		fout << out.c_str();
+		fout.close();
 	}
 }

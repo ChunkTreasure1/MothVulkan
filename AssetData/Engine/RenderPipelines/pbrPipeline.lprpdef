@@ -1,23 +1,26 @@
-RenderPipeline: 
-  name: "PBR"
-  shader: "pbr"
-  renderPass: "forward"
-  topology: "TriangleList"
-  cullMode: "Back"
-  fillMode: "Solid"
-  depthMode: "ReadWrite"
+RenderPipeline:
+  name: PBR
+  shader: pbr
+  renderPass: forward
+  topology: TriangleList
+  cullMode: Back
+  depthMode: ReadWrite
   depthTest: true
   depthWrite: true
-  lineWidth: 1.0
+  lineWidth: 1
   tessellationControlPoints: 4
   vertexLayout:
-    - type: "Float3"
-      name: "a_position"
-    - type: "Float3"
-      name: "a_normal"
-    - type: "Float3"
-      name: "a_tangent"
-    - type: "Float3"
-      name: "a_bitangent"
-    - type: "Float2"
-      name: "a_texCoords"
+    - type: Float3
+      name: a_position
+    - type: Float3
+      name: a_normal
+    - type: Float3
+      name: a_tangent
+    - type: Float3
+      name: a_bitangent
+    - type: Float2
+      name: a_texCoords
+  instanceLayout:
+    []
+  framebufferInputs:
+    []

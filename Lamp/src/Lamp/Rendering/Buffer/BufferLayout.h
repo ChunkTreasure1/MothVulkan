@@ -27,107 +27,128 @@ namespace Lamp
 		Mat4
 	};
 
-	static uint32_t GetSizeFromType(ElementType elementType)
-	{
-		switch (elementType)
-		{
-			case ElementType::Bool: return 1;
-			case ElementType::Int: return 4;
-			case ElementType::UInt: return 4;
-			case ElementType::UInt2: return 4 * 2;
-			case ElementType::UInt3: return 4 * 3;
-			case ElementType::UInt4: return 4 * 4;
-			case ElementType::Float: return 4;
-			case ElementType::Float2: return 4 * 2;
-			case ElementType::Float3: return 4 * 3;
-			case ElementType::Float4: return 4 * 4;
-			case ElementType::Mat3: return 4 * 3 * 3;
-			case ElementType::Mat4: return 4 * 4 * 4;
-		}
-
-		return 0;
-	}
-
-	static ElementType GetTypeFromString(const std::string& string)
-	{
-		if (string == "Bool")
-		{
-			return ElementType::Bool;
-		}
-		else if (string == "Int")
-		{
-			return ElementType::Int;
-		}
-		else if (string == "UInt")
-		{
-			return ElementType::UInt;
-		}
-		else if (string == "UInt2")
-		{
-			return ElementType::UInt2;
-		}
-		else if (string == "UInt3")
-		{
-			return ElementType::UInt3;
-		}
-		else if (string == "UInt4")
-		{
-			return ElementType::UInt4;
-		}
-		else if (string == "Float")
-		{
-			return ElementType::Float;
-		}
-		else if (string == "Float2")
-		{
-			return ElementType::Float2;
-		}
-		else if (string == "Float3")
-		{
-			return ElementType::Float3;
-		}
-		else if (string == "Float4")
-		{
-			return ElementType::Float4;
-		}
-		else if (string == "Mat3")
-		{
-			return ElementType::Mat3;
-		}
-		else if (string == "Mat4")
-		{
-			return ElementType::Mat4;
-		}
-
-		return ElementType::Float;
-	}
-
-	static VkFormat LampToVulkanFormat(ElementType type)
-	{
-		switch (type)
-		{
-			case ElementType::Bool: return VK_FORMAT_R8_UINT;
-			case ElementType::Int: return VK_FORMAT_R8_SINT;
-			case ElementType::UInt: return VK_FORMAT_R32_UINT;
-			case ElementType::UInt2: return VK_FORMAT_R32G32_UINT;
-			case ElementType::UInt3: return VK_FORMAT_R32G32B32_UINT;
-			case ElementType::UInt4: return VK_FORMAT_R32G32B32A32_UINT;
-			case ElementType::Float: return VK_FORMAT_R32_SFLOAT;
-			case ElementType::Float2: return VK_FORMAT_R32G32_SFLOAT;
-			case ElementType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
-			case ElementType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
-			case ElementType::Mat3: return VK_FORMAT_R32G32B32_SFLOAT;
-			case ElementType::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT;
-		}
-
-		return VK_FORMAT_R8G8B8A8_UNORM;
-	}
-
 	struct BufferElement
 	{
 		BufferElement(ElementType aElementType, const std::string& aName)
 			: name(aName), type(aElementType), size(GetSizeFromType(aElementType)), offset(0)
 		{
+		}
+
+		static uint32_t GetSizeFromType(ElementType elementType)
+		{
+			switch (elementType)
+			{
+				case ElementType::Bool: return 1;
+				case ElementType::Int: return 4;
+				case ElementType::UInt: return 4;
+				case ElementType::UInt2: return 4 * 2;
+				case ElementType::UInt3: return 4 * 3;
+				case ElementType::UInt4: return 4 * 4;
+				case ElementType::Float: return 4;
+				case ElementType::Float2: return 4 * 2;
+				case ElementType::Float3: return 4 * 3;
+				case ElementType::Float4: return 4 * 4;
+				case ElementType::Mat3: return 4 * 3 * 3;
+				case ElementType::Mat4: return 4 * 4 * 4;
+			}
+
+			return 0;
+		}
+
+		static std::string GetStringFromElementType(ElementType type)
+		{
+			switch (type)
+			{
+				case ElementType::Bool: return "Bool";
+				case ElementType::Int: return "Int";
+				case ElementType::UInt: return "UInt";
+				case ElementType::UInt2: return "UInt2";
+				case ElementType::UInt3: return "UInt3";
+				case ElementType::UInt4: return "UInt4";
+				case ElementType::Float: return "Float";
+				case ElementType::Float2: return "Float2";
+				case ElementType::Float3: return "Float3";
+				case ElementType::Float4: return "Float4";
+				case ElementType::Mat3: return "Mat3";
+				case ElementType::Mat4: return "Mat4";
+			}
+
+			return "";
+		}
+
+		static ElementType GetTypeFromString(const std::string& string)
+		{
+			if (string == "Bool")
+			{
+				return ElementType::Bool;
+			}
+			else if (string == "Int")
+			{
+				return ElementType::Int;
+			}
+			else if (string == "UInt")
+			{
+				return ElementType::UInt;
+			}
+			else if (string == "UInt2")
+			{
+				return ElementType::UInt2;
+			}
+			else if (string == "UInt3")
+			{
+				return ElementType::UInt3;
+			}
+			else if (string == "UInt4")
+			{
+				return ElementType::UInt4;
+			}
+			else if (string == "Float")
+			{
+				return ElementType::Float;
+			}
+			else if (string == "Float2")
+			{
+				return ElementType::Float2;
+			}
+			else if (string == "Float3")
+			{
+				return ElementType::Float3;
+			}
+			else if (string == "Float4")
+			{
+				return ElementType::Float4;
+			}
+			else if (string == "Mat3")
+			{
+				return ElementType::Mat3;
+			}
+			else if (string == "Mat4")
+			{
+				return ElementType::Mat4;
+			}
+
+			return ElementType::Float;
+		}
+
+		static VkFormat LampToVulkanFormat(ElementType type)
+		{
+			switch (type)
+			{
+				case ElementType::Bool: return VK_FORMAT_R8_UINT;
+				case ElementType::Int: return VK_FORMAT_R8_SINT;
+				case ElementType::UInt: return VK_FORMAT_R32_UINT;
+				case ElementType::UInt2: return VK_FORMAT_R32G32_UINT;
+				case ElementType::UInt3: return VK_FORMAT_R32G32B32_UINT;
+				case ElementType::UInt4: return VK_FORMAT_R32G32B32A32_UINT;
+				case ElementType::Float: return VK_FORMAT_R32_SFLOAT;
+				case ElementType::Float2: return VK_FORMAT_R32G32_SFLOAT;
+				case ElementType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+				case ElementType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+				case ElementType::Mat3: return VK_FORMAT_R32G32B32_SFLOAT;
+				case ElementType::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+			}
+
+			return VK_FORMAT_R8G8B8A8_UNORM;
 		}
 
 		uint32_t GetComponentCount(ElementType elementType)
@@ -176,6 +197,7 @@ namespace Lamp
 
 		inline const uint32_t GetStride() const { return m_stride; }
 		inline std::vector<BufferElement>& GetElements() { return m_elements; }
+		inline const std::vector<BufferElement>& GetElements() const { return m_elements; }
 
 	private:
 		void CalculateOffsetAndStride()

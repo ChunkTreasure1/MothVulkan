@@ -167,7 +167,7 @@ namespace Lamp
 			VkVertexInputAttributeDescription& desc = m_vertexAttributeDescriptions.emplace_back();
 			desc.binding = 0;
 			desc.location = numAttributes;
-			desc.format = LampToVulkanFormat(attr.type);
+			desc.format = BufferElement::LampToVulkanFormat(attr.type);
 			desc.offset = (uint32_t)attr.offset;
 
 			numAttributes++;
@@ -185,7 +185,7 @@ namespace Lamp
 				VkVertexInputAttributeDescription& desc = m_vertexAttributeDescriptions.emplace_back();
 				desc.binding = 1;
 				desc.location = numAttributes;
-				desc.format = LampToVulkanFormat(attr.type);
+				desc.format = BufferElement::LampToVulkanFormat(attr.type);
 				desc.offset = (uint32_t)attr.offset;
 
 				numAttributes++;

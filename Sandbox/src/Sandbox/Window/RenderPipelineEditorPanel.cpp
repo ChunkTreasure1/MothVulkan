@@ -272,6 +272,11 @@ void RenderPipelineEditorPanel::SaveAs()
 	std::filesystem::path path = FileSystem::SaveFile("Render Pipeline (*.lprpdef)\0*.lprpdef\0");
 	if (!path.empty())
 	{
+		if (path.extension().string() != ".lprpdef")
+		{
+			path += ".lprpdef";
+		}
+
 		Ref<Lamp::RenderPipeline> newPipeline = CreateRef<Lamp::RenderPipeline>(*m_loadedRenderPipeline);
 		m_loadedRenderPipeline = newPipeline;
 
