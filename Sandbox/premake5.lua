@@ -59,7 +59,8 @@ project "Sandbox"
 		"%{IncludeDir.vma}",
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.TinyGLTF}",
-		"%{IncludeDir.imgui_notify}"
+		"%{IncludeDir.imgui_notify}",
+		"%{IncludeDir.imgui_node_editor}"
 	}
 
     links
@@ -70,6 +71,7 @@ project "Sandbox"
 		"ImGui",
 		"Wire",
 		"Optick",
+		"ImGuiNodeEditor",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",

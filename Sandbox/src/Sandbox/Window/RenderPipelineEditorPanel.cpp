@@ -21,6 +21,7 @@ RenderPipelineEditorPanel::RenderPipelineEditorPanel()
 	m_assetBrowser = CreateRef<SelectiveAssetBrowserPanel>(Lamp::AssetType::RenderPipeline, "renderPipelinePanel");
 	m_assetBrowser->SetOpenFileCallback([this](Lamp::AssetHandle asset)
 		{
+			Save();
 			m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>(asset);
 		});
 }
@@ -93,7 +94,7 @@ void RenderPipelineEditorPanel::UpdateContent()
 
 void RenderPipelineEditorPanel::UpdateEditor()
 {
-	ImGui::Begin("Editor");
+	ImGui::Begin("Editor##renderPipline");
 	if (m_loadedRenderPipeline)
 	{
 		auto& specification = const_cast<Lamp::RenderPipelineSpecification&>(m_loadedRenderPipeline->GetSpecification());

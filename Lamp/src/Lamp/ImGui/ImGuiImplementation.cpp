@@ -50,14 +50,17 @@ namespace Lamp
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 		m_font = io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-light.ttf", 18.f);
+		ImGui::MergeIconsWithLatestFont(16.f, false);
+
 		io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-bold.otf", 18.f);
+		ImGui::MergeIconsWithLatestFont(16.f, false);
+
 
 		// imgui-notify font
 		{
-			ImFontConfig fontCfg;
+			/*ImFontConfig fontCfg;
 			fontCfg.FontDataOwnedByAtlas = false;
-			io.Fonts->AddFontFromMemoryTTF((void*)tahoma, sizeof(tahoma), 17.f, &fontCfg);
-			ImGui::MergeIconsWithLatestFont(16.f, false);
+			io.Fonts->AddFontFromMemoryTTF((void*)tahoma, sizeof(tahoma), 17.f, &fontCfg);*/
 		}
 
 		ImGui::StyleColorsDark();

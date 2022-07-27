@@ -23,6 +23,7 @@ include "Lamp/vendor/glfw"
 include "Lamp/vendor/imgui"
 include "Lamp/vendor/Wire/Wire"
 include "Lamp/vendor/Optick"
+include "Lamp/vendor/imgui-node-editor"
 
 group "Core"
 include "Lamp"

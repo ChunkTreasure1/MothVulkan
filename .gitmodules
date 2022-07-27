@@ -7,3 +7,6 @@
 [submodule "Lamp/vendor/Wire"]
 	path = Lamp/vendor/Wire
 	url = https://github.com/ChunkTreasure1/Wire
+[submodule "Lamp/vendor/imgui-node-editor"]
+	path = Lamp/vendor/imgui-node-editor
+	url = https://github.com/ChunkTreasure1/imgui-node-editor

@@ -19,6 +19,9 @@ public:
 private:
 	void UpdateEditor();
 
+	void Save();
+	void SaveAs();
+
 	int32_t m_currentOverridePipeline = 0;
 
 	Ref<Lamp::RenderPass> m_loadedRenderPass;
