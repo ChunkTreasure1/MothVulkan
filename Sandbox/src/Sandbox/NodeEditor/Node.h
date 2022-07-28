@@ -36,8 +36,8 @@ struct Pin
 	PinType type;
 	PinMode mode;
 
-	Pin(int32_t aId, const std::string& aName, PinType aType)
-		: id(aId), name(aName), type(aType), mode(PinMode::Input), node(nullptr)
+	Pin(int32_t aId, const std::string& aName, PinType aType, PinMode aMode)
+		: id(aId), name(aName), type(aType), mode(aMode), node(nullptr)
 	{}
 };
 

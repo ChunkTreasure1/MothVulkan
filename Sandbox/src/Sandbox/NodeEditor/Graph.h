@@ -2,13 +2,8 @@
 
 #include "Node.h"
 
-class Graph
+struct Graph
 {
-public:
-	Graph() = default;
-	~Graph() = default;
-
-private:
-	std::vector<Node> m_nodes;
-	std::vector<Link> m_links;
+	std::vector<Node> nodes;
+	std::vector<Link> links;
 };
