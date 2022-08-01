@@ -236,7 +236,7 @@ namespace UI
 		return changed;
 	}
 
-	static bool Combo(const std::string& text, int& currentItem, const std::vector<const char*>& items)
+	static bool Combo(const std::string& text, int& currentItem, const std::vector<const char*>& items, float width = 100.f)
 	{
 		bool changed = false;
 
@@ -245,6 +245,8 @@ namespace UI
 		ImGui::SameLine();
 
 		std::string id = "##" + std::to_string(s_stackId++);
+
+		ImGui::SetNextItemWidth(width);
 		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int32_t)items.size()))
 		{
 			changed = true;
@@ -288,6 +290,14 @@ namespace UI
 		}
 
 		return data;
+	}
+
+	static bool ImageSelectable(Ref<Lamp::Texture2D> texture, const std::string& text, bool selected)
+	{
+		ImVec2 size = ImGui::CalcTextSize(text.c_str());
+		ImGui::Image(GetTextureID(texture), { size.y, size.y }, { 0, 1 }, { 1, 0 });
+		ImGui::SameLine();
+		return ImGui::Selectable(text.c_str(), selected, ImGuiSelectableFlags_SpanAvailWidth);
 	}
 
 	static void Notify(NotificationType type, const std::string& title, const std::string& content, int32_t duration = 2000)

@@ -46,6 +46,8 @@ struct Node
 	ed::NodeId id;
 	std::string name;
 	
+	std::function<void()> customContent;
+
 	std::vector<Pin> inputs;
 	std::vector<Pin> outputs;
 

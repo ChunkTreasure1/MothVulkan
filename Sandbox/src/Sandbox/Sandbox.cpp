@@ -10,6 +10,7 @@
 #include "Sandbox/Window/RenderPipelineEditorPanel.h"
 #include "Sandbox/Window/RenderPassEditorPanel.h"
 #include "Sandbox/Window/RenderGraphEditorPanel.h"
+#include "Sandbox/Window/SceneViewPanel.h"
 
 #include <Lamp/Rendering/SceneRenderer.h>
 #include <Lamp/Rendering/Camera/EditorCameraController.h>
@@ -37,24 +38,24 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	for (uint32_t i = 0; i < 1; i++)
-	{
-		for (uint32_t j = 0; j < 1; j++)
-		{
-			auto entity = m_editorScene->CreateEntity();
-			auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-			mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
+	//for (uint32_t i = 0; i < 1; i++)
+	//{
+	//	for (uint32_t j = 0; j < 1; j++)
+	//	{
+	//		auto entity = m_editorScene->CreateEntity();
+	//		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+	//		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
 
-			auto& transform = entity.AddComponent<Lamp::TransformComponent>();
-			transform.scale = { 1.f, 1.f, 1.f };
-			transform.position = { i * 40, 0.f, j * 40 };
+	//		auto& transform = entity.AddComponent<Lamp::TransformComponent>();
+	//		transform.scale = { 1.f, 1.f, 1.f };
+	//		transform.position = { i * 40, 0.f, j * 40 };
 
-			auto& tag = entity.AddComponent<Lamp::TagComponent>();
-			tag.tag = "Entity";
+	//		auto& tag = entity.AddComponent<Lamp::TagComponent>();
+	//		tag.tag = "Entity";
 
-			m_selectedEntities.emplace_back(entity);
-		}
-	}
+	//		m_selectedEntities.emplace_back(entity);
+	//	}
+	//}
 
 	// Light
 	{
@@ -75,6 +76,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<RenderPipelineEditorPanel>());
 	m_editorWindows.emplace_back(CreateRef<RenderPassEditorPanel>());
 	m_editorWindows.emplace_back(CreateRef<RenderGraphEditorPanel>());
+	m_editorWindows.emplace_back(CreateRef<SceneViewPanel>(m_selectedEntities, m_editorScene));
 }
 
 void Sandbox::OnDetach()
