@@ -21,6 +21,9 @@ namespace Lamp
 		glm::vec3 rotation;
 		glm::vec3 scale;
 
+		bool visible = true;
+		bool locked = false;
+
 		CREATE_COMPONENT_GUID("{E1B8016B-1CAA-4782-927E-C17C29B25893}"_guid);
 	}, TransformComponent);
 

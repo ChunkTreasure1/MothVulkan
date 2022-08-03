@@ -18,7 +18,12 @@ enum class EditorIcon
 	Search,
 	Play,
 	Stop,
-	GenericFile
+	GenericFile,
+
+	Locked,
+	Unlocked,
+	Visible,
+	Hidden
 };
 
 class EditorIconLibrary

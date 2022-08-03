@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Sandbox/Utility/Helpers.h"
+
 #include <Lamp/Scene/Entity.h>
 #include <Lamp/Core/Layer/Layer.h>
 #include <Lamp/Event/ApplicationEvent.h>
@@ -37,6 +39,7 @@ private:
 	///////////////
 
 	std::vector<Ref<EditorWindow>> m_editorWindows;
+
 	std::vector<Lamp::Entity> m_selectedEntities;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;

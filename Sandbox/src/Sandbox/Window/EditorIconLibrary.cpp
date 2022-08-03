@@ -13,7 +13,13 @@ void EditorIconLibrary::Initialize()
 	TryLoadIcon(EditorIcon::Settings, "Editor/Textures/Icons/icon_settings.dds");
 	TryLoadIcon(EditorIcon::Play, "Editor/Textures/Icons/icon_play.dds");
 	TryLoadIcon(EditorIcon::Stop, "Editor/Textures/Icons/icon_stop.dds");
-	TryLoadIcon(EditorIcon::GenericFile, "Editor/Textures/Icons/icon_file.dds");
+	TryLoadIcon(EditorIcon::GenericFile, "Editor/Textures/Icons/icon_file.dds");      
+
+	TryLoadIcon(EditorIcon::Unlocked, "Editor/Textures/Icons/icon_unlocked.dds");
+	TryLoadIcon(EditorIcon::Locked, "Editor/Textures/Icons/icon_locked.dds");
+
+	TryLoadIcon(EditorIcon::Hidden, "Editor/Textures/Icons/icon_hidden.dds");
+	TryLoadIcon(EditorIcon::Visible, "Editor/Textures/Icons/icon_visible.dds");
 }
 
 void EditorIconLibrary::Shutdown()

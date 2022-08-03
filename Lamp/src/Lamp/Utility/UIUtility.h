@@ -108,7 +108,7 @@ namespace UI
 	{
 		if (!name.empty())
 		{
-			 ImGui::TextUnformatted(name.c_str());
+			ImGui::TextUnformatted(name.c_str());
 			ImGui::SameLine();
 		}
 

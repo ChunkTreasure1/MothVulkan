@@ -38,7 +38,7 @@ namespace Lamp
 
 		registry.ForEach<MeshComponent, TransformComponent>([](Wire::EntityId id, const MeshComponent& meshComp, TransformComponent& transformComp)
 			{
-				if (meshComp.handle != Asset::Null())
+				if (meshComp.handle != Asset::Null() && transformComp.visible)
 				{
 					auto mesh = AssetManager::GetAsset<Mesh>(meshComp.handle);
 					const glm::mat4 transform = glm::translate(glm::mat4(1.f), transformComp.position) *
@@ -53,14 +53,17 @@ namespace Lamp
 
 		registry.ForEach<DirectionalLightComponent, TransformComponent>([](Wire::EntityId id, const DirectionalLightComponent& dirLightComp, const TransformComponent& transformComp)
 			{
-				const glm::mat4 transform = glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1));
+				if (transformComp.visible)
+				{
+					const glm::mat4 transform = glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1));
 
-				Renderer::SubmitDirectionalLight(transform, dirLightComp.color, dirLightComp.intensity);
+					Renderer::SubmitDirectionalLight(transform, dirLightComp.color, dirLightComp.intensity);
+				}
 			});
 
-		registry.ForEach<EnvironmentComponent>([](Wire::EntityId id, EnvironmentComponent& envComp) 
+		registry.ForEach<EnvironmentComponent>([](Wire::EntityId id, EnvironmentComponent& envComp)
 			{
 				if (envComp.environmentHandle != envComp.lastEnvironmentHandle)
 				{
@@ -73,7 +76,7 @@ namespace Lamp
 					Skybox emptySkybox{};
 					emptySkybox.irradianceMap = Renderer::GetDefaultData().blackCubeImage;
 					emptySkybox.radianceMap = Renderer::GetDefaultData().blackCubeImage;
-				
+
 					Renderer::SubmitEnvironment(emptySkybox);
 				}
 				else
