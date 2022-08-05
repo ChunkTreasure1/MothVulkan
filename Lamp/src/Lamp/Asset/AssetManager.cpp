@@ -8,6 +8,7 @@
 #include "Lamp/Asset/Importers/RenderPipelineImporter.h"
 #include "Lamp/Asset/Importers/RenderPassImporter.h"
 #include "Lamp/Asset/Importers/RenderGraphImporter.h"
+#include "Lamp/Asset/Importers/SceneImporter.h"
 
 #include "Lamp/Core/Base.h"
 #include "Lamp/Log/Log.h"
@@ -46,6 +47,7 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::RenderPass, CreateScope<RenderPassImporter>());
 		m_assetImporters.emplace(AssetType::RenderGraph, CreateScope<RenderGraphImporter>());
 		m_assetImporters.emplace(AssetType::Material, CreateScope<MultiMaterialImporter>());
+		m_assetImporters.emplace(AssetType::Scene, CreateScope<SceneImporter>());
 
 		LoadAssetRegistry();
 	}
@@ -149,6 +151,11 @@ namespace Lamp
 		}
 
 		return nullptr;
+	}
+
+	AssetType AssetManager::GetAssetTypeFromHandle(const AssetHandle& handle)
+	{
+		return GetAssetTypeFromExtension(GetPathFromAssetHandle(handle).extension().string());
 	}
 
 	AssetType AssetManager::GetAssetTypeFromPath(const std::filesystem::path& path)

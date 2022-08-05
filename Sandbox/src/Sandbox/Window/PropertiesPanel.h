@@ -10,12 +10,12 @@
 class PropertiesPanel : public EditorWindow
 {
 public:
-	PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites, Ref<Lamp::Scene>& currentScene);
+	PropertiesPanel(std::vector<Wire::EntityId>& selectedEntites, Ref<Lamp::Scene>& currentScene);
 	void UpdateMainContent() override;
 
 private:
 	void AddComponentPopup();
 
-	std::vector<Lamp::Entity>& m_selectedEntites;
+	std::vector<Wire::EntityId>& m_selectedEntites;
 	Ref<Lamp::Scene>& m_currentScene;
 };

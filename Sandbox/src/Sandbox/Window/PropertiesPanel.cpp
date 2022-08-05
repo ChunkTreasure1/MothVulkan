@@ -6,7 +6,7 @@
 
 #include <Wire/Serialization.h>
 
-PropertiesPanel::PropertiesPanel(std::vector<Lamp::Entity>& selectedEntites, Ref<Lamp::Scene>& currentScene)
+PropertiesPanel::PropertiesPanel(std::vector<Wire::EntityId>& selectedEntites, Ref<Lamp::Scene>& currentScene)
 	: EditorWindow("Properties"), m_selectedEntites(selectedEntites), m_currentScene(currentScene)
 {
 	m_isOpen = true;
@@ -20,13 +20,14 @@ void PropertiesPanel::UpdateMainContent()
 	}
 
 	const bool singleSelected = !(m_selectedEntites.size() > 1);
+	auto& registry = m_currentScene->GetRegistry();
+	const auto firstEntity = m_selectedEntites.front();
 
 	if (singleSelected)
 	{
-		Lamp::Entity& entity = m_selectedEntites[0];
-		if (entity.HasComponent<Lamp::TagComponent>())
+		if (registry.HasComponent<Lamp::TagComponent>(firstEntity))
 		{
-			auto& tag = entity.GetComponent<Lamp::TagComponent>();
+			auto& tag = registry.GetComponent<Lamp::TagComponent>(firstEntity);
 			UI::InputText("Name", tag.tag);
 		}
 	}
@@ -37,16 +38,16 @@ void PropertiesPanel::UpdateMainContent()
 		std::string firstName;
 		bool sameName = true;
 
-		if (m_selectedEntites[0].HasComponent<Lamp::TagComponent>())
+		if (registry.HasComponent<Lamp::TagComponent>(firstEntity))
 		{
-			firstName = m_selectedEntites[0].GetComponent<Lamp::TagComponent>().tag;
+			firstName = registry.GetComponent<Lamp::TagComponent>(firstEntity).tag;
 		}
 
 		for (auto& entity : m_selectedEntites)
 		{
-			if (entity.HasComponent<Lamp::TagComponent>())
+			if (registry.HasComponent<Lamp::TagComponent>(entity))
 			{
-				auto& tag = entity.GetComponent<Lamp::TagComponent>();
+				auto& tag = registry.GetComponent<Lamp::TagComponent>(entity);
 				if (tag.tag != firstName)
 				{
 					sameName = false;
@@ -69,9 +70,9 @@ void PropertiesPanel::UpdateMainContent()
 		{
 			for (auto& entity : m_selectedEntites)
 			{
-				if (entity.HasComponent<Lamp::TagComponent>())
+				if (registry.HasComponent<Lamp::TagComponent>(entity))
 				{
-					entity.GetComponent<Lamp::TagComponent>().tag = inputText;
+					registry.GetComponent<Lamp::TagComponent>(entity).tag = inputText;
 				}
 			}
 		}
@@ -85,9 +86,9 @@ void PropertiesPanel::UpdateMainContent()
 		{
 			auto& entity = m_selectedEntites.front();
 
-			if (entity.HasComponent<Lamp::TransformComponent>())
+			if (registry.HasComponent<Lamp::TransformComponent>(entity))
 			{
-				auto& transform = entity.GetComponent<Lamp::TransformComponent>();
+				auto& transform = registry.GetComponent<Lamp::TransformComponent>(entity);
 
 				UI::PropertyAxisColor("Position", transform.position);
 				UI::PropertyAxisColor("Rotation", transform.rotation);
@@ -103,7 +104,7 @@ void PropertiesPanel::UpdateMainContent()
 	{
 		auto& entity = m_selectedEntites[0];
 
-		auto componentData = entity.GetComponents();
+		auto componentData = registry.GetComponents(entity);
 
 		for (auto& [guid, data] : componentData)
 		{
@@ -160,7 +161,7 @@ void PropertiesPanel::UpdateMainContent()
 			}
 		}
 
-		entity.SetComponents(componentData);
+		registry.SetComponents(componentData, entity);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.2f, 0.2f, 1.f });
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.f);
@@ -186,10 +187,10 @@ void PropertiesPanel::AddComponentPopup()
 			{
 				for (auto& ent : m_selectedEntites)
 				{
-					if (!m_currentScene->GetRegistry().HasComponent(info.guid, ent.GetId()))
+					if (!m_currentScene->GetRegistry().HasComponent(info.guid, ent))
 					{
 						std::vector<uint8_t> emptyData(info.size, 0);
-						m_currentScene->GetRegistry().AddComponent(emptyData, info.guid, ent.GetId());
+						m_currentScene->GetRegistry().AddComponent(emptyData, info.guid, ent);
 					}
 				}
 

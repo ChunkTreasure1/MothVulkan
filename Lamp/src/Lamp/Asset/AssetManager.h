@@ -25,6 +25,7 @@ namespace Lamp
 		void SaveAsset(const Ref<Asset> asset);
 		Ref<Asset> GetAssetRaw(AssetHandle assetHandle);
 
+		AssetType GetAssetTypeFromHandle(const AssetHandle& handle);
 		AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
 		AssetType GetAssetTypeFromExtension(const std::string& extension);
 		AssetHandle GetAssetHandleFromPath(const std::filesystem::path& path);

@@ -11,7 +11,7 @@
 class SceneViewPanel : public EditorWindow
 {
 public:
-	SceneViewPanel(std::vector<Lamp::Entity>& selectedEntities, Ref<Lamp::Scene>& scene);
+	SceneViewPanel(std::vector<Wire::EntityId>& selectedEntities, Ref<Lamp::Scene>& scene);
 	void UpdateMainContent() override;
 
 private:
@@ -22,7 +22,7 @@ private:
 	bool m_hasSearchQuery = false;
 
 	std::vector<Wire::EntityId> m_entities;
-	std::vector<Lamp::Entity>& m_selectedEntities;
+	std::vector<Wire::EntityId>& m_selectedEntities;
 
 	Ref<Lamp::Scene>& m_scene;
 };

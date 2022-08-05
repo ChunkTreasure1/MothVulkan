@@ -17,12 +17,12 @@ namespace Lamp
 
 	SERIALIZE_COMPONENT(struct TransformComponent
 	{
-		glm::vec3 position;
-		glm::vec3 rotation;
-		glm::vec3 scale;
+		PROPERTY(Name = Position) glm::vec3 position;
+		PROPERTY(Name = Rotation) glm::vec3 rotation;
+		PROPERTY(Name = Scale) glm::vec3 scale;
 
-		bool visible = true;
-		bool locked = false;
+		PROPERTY(Visible = false) bool visible = true;
+		PROPERTY(Visible = false) bool locked = false;
 
 		CREATE_COMPONENT_GUID("{E1B8016B-1CAA-4782-927E-C17C29B25893}"_guid);
 	}, TransformComponent);

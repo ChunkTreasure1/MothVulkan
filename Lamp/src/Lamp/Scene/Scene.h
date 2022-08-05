@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lamp/Core/Base.h"
+#include "Lamp/Asset/Asset.h"
 
 #include <Wire/Registry.h>
 
@@ -15,7 +16,7 @@ namespace Lamp
 		Ref<TextureCube> radianceMap;
 	};
 
-	class Scene
+	class Scene : public Asset
 	{
 	public:
 		Scene() = default;
@@ -28,14 +29,18 @@ namespace Lamp
 		Entity CreateEntity();
 		void RemoveEntity(const Entity & entity);
 
+		static AssetType GetStaticType() { return AssetType::Scene; }
+		AssetType GetType() { return GetStaticType(); }
+
 		inline Wire::Registry& GetRegistry() { return m_registry; }
+		inline const std::string& GetName() const { return m_name; }
 
 	private:
 		friend class Entity;
 
 		SceneEnvironment m_environment;
 
-		std::string m_name;
+		std::string m_name = "New Scene";
 		Wire::Registry m_registry;
 	};
 }

@@ -8,6 +8,7 @@
 
 #include "Lamp/Utility/YAMLSerializationHelpers.h"
 #include "Lamp/Utility/SerializationMacros.h"
+
 #include <yaml-cpp/yaml.h>
 
 namespace Lamp

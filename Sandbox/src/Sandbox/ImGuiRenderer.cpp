@@ -3,6 +3,8 @@
 
 #include "Sandbox/Window/EditorWindow.h"
 
+#include <Lamp/Asset/AssetManager.h>
+
 #include <imgui.h>
 
 void Sandbox::UpdateDockSpace()
@@ -57,6 +59,54 @@ void Sandbox::UpdateDockSpace()
 
 	if (ImGui::BeginMainMenuBar())
 	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("New scene", "Ctrl + N"))
+			{
+				NewScene();
+			}
+
+			if (ImGui::MenuItem("Open scene", "Ctrl + O"))
+			{
+				OpenScene();
+			}
+
+			if (ImGui::MenuItem("Save scene as", "Ctrl + Shift + S"))
+			{
+				SaveSceneAs();
+			}
+
+			if (ImGui::MenuItem("Save", "Ctrl + S"))
+			{
+				SaveScene();
+			}
+
+			if (ImGui::MenuItem("Save Scene"))
+			{
+				if (m_editorScene)
+				{
+					m_editorScene->path = "Assets/Scenes/TestScene";
+					Lamp::AssetManager::Get().SaveAsset(m_editorScene);
+				}
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Edit"))
+		{
+			if (ImGui::MenuItem("Undo", "Ctrl + Z"))
+			{
+				ExecuteUndo();
+			}
+
+			if (ImGui::MenuItem("Redo", "Ctrl + Y"))
+			{
+			}
+
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("Tools"))
 		{
 			for (auto window : m_editorWindows)

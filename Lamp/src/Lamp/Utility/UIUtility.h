@@ -135,12 +135,34 @@ namespace UI
 		ScopedStyleFloat2 frame{ ImGuiStyleVar_FramePadding, { 0.f, 0.f } };
 		ScopedStyleFloat2 spacing{ ImGuiStyleVar_ItemSpacing, { 0.f, 0.f } };
 
-		ImVec2 size = ImGui::CalcTextSize(text.c_str());
+		const ImVec2 size = ImGui::CalcTextSize(text.c_str());
 
 		ImGui::Image(GetTextureID(texture), { size.y, size.y });
 		ImGui::SameLine();
 
 		return ImGui::TreeNodeEx(text.c_str(), flags);
+	}
+
+	static bool ImageSelectable(Ref<Lamp::Texture2D> texture, const std::string& text, bool& selected)
+	{
+		const ImVec2 size = ImGui::CalcTextSize(text.c_str());
+
+		ImGui::Image(GetTextureID(texture), { size.y, size.y });
+		ImGui::SameLine();
+
+		return ImGui::Selectable(text.c_str(), &selected);
+	}
+
+	static bool ImageSelectable(Ref<Lamp::Texture2D> texture, const std::string& text)
+	{
+		const ImVec2 size = ImGui::CalcTextSize(text.c_str());
+
+		ImGui::Image(GetTextureID(texture), { size.y - 2.f, size.y - 2.f });
+		ImGui::SameLine();
+
+		UI::ShiftCursor(5.f, 0.f);
+
+		return ImGui::Selectable(text.c_str());
 	}
 
 	static void TreeNodePop()

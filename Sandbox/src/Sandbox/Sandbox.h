@@ -29,6 +29,10 @@ public:
 
 private:
 	void ExecuteUndo();
+	void NewScene();
+	void OpenScene();
+	void SaveScene();
+	void SaveSceneAs();
 
 	bool OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e);
 	bool OnRenderEvent(Lamp::AppRenderEvent& e);
@@ -40,7 +44,7 @@ private:
 
 	std::vector<Ref<EditorWindow>> m_editorWindows;
 
-	std::vector<Lamp::Entity> m_selectedEntities;
+	std::vector<Wire::EntityId> m_selectedEntities;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;
 	Lamp::EditorCameraController* m_editorCameraController;

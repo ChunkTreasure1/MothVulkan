@@ -25,6 +25,8 @@
 #include <Lamp/Input/KeyCodes.h>
 #include <Lamp/Input/Input.h>
 
+#include <Lamp/Utility/FileSystem.h>
+
 #include <imgui.h>
 
 Sandbox::~Sandbox()
@@ -64,11 +66,9 @@ void Sandbox::OnAttach()
 		auto& lightComp = entity.AddComponent<Lamp::DirectionalLightComponent>();
 		lightComp.color = { 1.f, 1.f, 1.f };
 		lightComp.intensity = 1.f;
-		
-		entity.AddComponent<Lamp::TransformComponent>();
 	}
 
-	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorCameraController));
+	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorScene, m_editorCameraController));
 	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
@@ -93,6 +93,7 @@ void Sandbox::OnEvent(Lamp::Event& e)
 	Lamp::EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<Lamp::AppImGuiUpdateEvent>(LP_BIND_EVENT_FN(Sandbox::OnImGuiUpdateEvent));
 	dispatcher.Dispatch<Lamp::AppRenderEvent>(LP_BIND_EVENT_FN(Sandbox::OnRenderEvent));
+	dispatcher.Dispatch<Lamp::KeyPressedEvent>(LP_BIND_EVENT_FN(Sandbox::OnKeyPressedEvent));
 
 	m_editorCameraController->OnEvent(e);
 
@@ -118,6 +119,48 @@ void Sandbox::ExecuteUndo()
 	if (cmdStack)
 	{
 		cmdStack->Undo();
+	}
+}
+
+void Sandbox::NewScene()
+{
+	SaveScene();
+	m_editorScene = CreateRef<Lamp::Scene>("New Scene");
+}
+
+void Sandbox::OpenScene()
+{
+	SaveScene();
+
+	const std::filesystem::path loadPath = FileSystem::OpenFile("Scene (*.scene)\0*.scene\0");
+	if (!loadPath.empty() && FileSystem::Exists(loadPath))
+	{
+		m_editorScene = Lamp::AssetManager::GetAsset<Lamp::Scene>(loadPath);
+	}
+}
+
+void Sandbox::SaveScene()
+{
+	if (m_editorScene)
+	{
+		if (!m_editorScene->path.empty())
+		{
+			Lamp::AssetManager::Get().SaveAsset(m_editorScene);
+		}
+		else
+		{
+			SaveSceneAs();
+		}
+	}
+}
+
+void Sandbox::SaveSceneAs()
+{
+	std::filesystem::path savePath = FileSystem::OpenFolder();
+	if (!savePath.empty() && FileSystem::Exists(savePath))
+	{
+		m_editorScene->path = savePath;
+		Lamp::AssetManager::Get().SaveAsset(m_editorScene);
 	}
 }
 
@@ -148,7 +191,8 @@ bool Sandbox::OnRenderEvent(Lamp::AppRenderEvent& e)
 
 bool Sandbox::OnKeyPressedEvent(Lamp::KeyPressedEvent& e)
 {
-	const bool ctrlPressed = Lamp::Input::IsKeyDown(LP_KEY_LEFT_SHIFT);
+	const bool ctrlPressed = Lamp::Input::IsKeyDown(LP_KEY_LEFT_CONTROL);
+	const bool shiftPressed = Lamp::Input::IsKeyDown(LP_KEY_LEFT_SHIFT);
 
 	switch (e.GetKeyCode())
 	{
@@ -157,6 +201,40 @@ bool Sandbox::OnKeyPressedEvent(Lamp::KeyPressedEvent& e)
 			if (ctrlPressed)
 			{
 				ExecuteUndo();
+			}
+
+			break;
+		}
+
+		case LP_KEY_S:
+		{
+			if (ctrlPressed && !shiftPressed)
+			{
+				SaveScene();
+			}
+			else if (ctrlPressed && shiftPressed)
+			{
+				SaveSceneAs();
+			}
+
+			break;
+		}
+
+		case LP_KEY_O:
+		{
+			if (ctrlPressed)
+			{
+				OpenScene();
+			}
+
+			break;
+		}
+
+		case LP_KEY_N:
+		{
+			if (ctrlPressed)
+			{
+				NewScene();
 			}
 
 			break;

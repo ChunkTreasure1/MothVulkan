@@ -3,12 +3,15 @@
 
 #include "Sandbox/Window/EditorIconLibrary.h"
 
+#include <Lamp/Input/Input.h>
+#include <Lamp/Input/KeyCodes.h>
+
 #include <Lamp/Utility/UIUtility.h>
 #include <Lamp/Utility/StringUtility.h>
 
 #include <Lamp/Components/Components.h>
 
-SceneViewPanel::SceneViewPanel(std::vector<Lamp::Entity>& selectedEntities, Ref<Lamp::Scene>& scene)
+SceneViewPanel::SceneViewPanel(std::vector<Wire::EntityId>& selectedEntities, Ref<Lamp::Scene>& scene)
 	: EditorWindow("Scene View"), m_selectedEntities(selectedEntities), m_scene(scene)
 {
 	m_isOpen = true;
@@ -76,8 +79,35 @@ void SceneViewPanel::UpdateMainContent()
 				}
 
 				name += "##" + std::to_string(entity);
-				if (ImGui::Selectable(name.c_str()))
+
+				auto it = std::find(m_selectedEntities.begin(), m_selectedEntities.end(), entity);
+				bool selected = it != m_selectedEntities.end() ? true : false;
+
+				if (ImGui::Selectable(name.c_str(), selected))
 				{
+					if (Lamp::Input::IsKeyDown(LP_KEY_LEFT_CONTROL))
+					{
+						if (it != m_selectedEntities.end())
+						{
+							m_selectedEntities.erase(it);
+						}
+						else
+						{
+							m_selectedEntities.emplace_back(entity);
+						}
+					}
+					else
+					{
+						if (it != m_selectedEntities.end() && m_selectedEntities.size() == 1)
+						{
+							m_selectedEntities.erase(it);
+						}
+						else
+						{
+							m_selectedEntities.clear();
+							m_selectedEntities.emplace_back(entity);
+						}
+					}
 				}
 
 				ImGui::TableNextColumn();

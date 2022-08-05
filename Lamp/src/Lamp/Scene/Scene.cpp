@@ -3,6 +3,8 @@
 
 #include "Entity.h"
 
+#include "Lamp/Components/Components.h"
+
 namespace Lamp
 {
 	Scene::Scene(const std::string& name)
@@ -26,7 +28,17 @@ namespace Lamp
 	Entity Scene::CreateEntity()
 	{
 		Wire::EntityId id = m_registry.CreateEntity();
-		return Entity(id, this);
+
+		Entity newEntity = Entity(id, this);
+		auto& transform = newEntity.AddComponent<TransformComponent>();
+		transform.position = { 0.f, 0.f, 0.f };
+		transform.rotation = { 0.f, 0.f, 0.f };
+		transform.scale = { 1.f, 1.f, 1.f };
+
+		auto& tag = newEntity.AddComponent<TagComponent>();
+		tag.tag = "New Entity";
+
+		return newEntity;
 	}
 
 	void Scene::RemoveEntity(const Entity& entity)

@@ -32,6 +32,7 @@ namespace Lamp
 		RenderPipeline,
 		RenderPass,
 		RenderGraph,
+		Scene
 	};
 
 	inline static std::unordered_map<std::string, AssetType> s_assetExtensionsMap =
@@ -57,6 +58,8 @@ namespace Lamp
 		{ ".lprp", AssetType::RenderPass },
 		{ ".lprg", AssetType::RenderGraph },
 		{ ".lpmat", AssetType::Material },
+
+		{ ".lpscene", AssetType::Scene }
 	};
 
 	class Asset
