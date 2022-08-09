@@ -104,6 +104,21 @@ namespace UI
 		ImGui::SetCursorPos(pos);
 	}
 
+	static bool BeginPopup(const std::string& id = "")
+	{
+		if (id.empty())
+		{
+			return ImGui::BeginPopupContextItem();
+		}
+
+		return ImGui::BeginPopupContextItem(id.c_str());
+	}
+
+	static void EndPopup()
+	{
+		ImGui::EndPopup();
+	}
+
 	static bool InputText(const std::string& name, std::string& text, ImGuiInputTextFlags_ flags = ImGuiInputTextFlags_None)
 	{
 		if (!name.empty())

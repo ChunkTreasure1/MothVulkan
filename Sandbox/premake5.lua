@@ -60,7 +60,8 @@ project "Sandbox"
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.TinyGLTF}",
 		"%{IncludeDir.imgui_notify}",
-		"%{IncludeDir.imgui_node_editor}"
+		"%{IncludeDir.imgui_node_editor}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
     links
@@ -72,6 +73,7 @@ project "Sandbox"
 		"Wire",
 		"Optick",
 		"ImGuiNodeEditor",
+		"ImGuizmo",
 
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",

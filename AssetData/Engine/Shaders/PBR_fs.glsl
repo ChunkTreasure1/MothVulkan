@@ -78,7 +78,7 @@ vec3 FresnelSchlickRoughness(float cosTheta, vec3 baseReflectivity, float roughn
 
 vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 baseReflectivity)
 {
-    const vec3 lightDir = normalize(light.direction.xyz);
+    const vec3 lightDir = normalize(vec3(0.2, 0.2, 0.2));
     const vec3 H = normalize(dirToCamera + lightDir);
 
     // Cook-Torrance BRDF
@@ -101,8 +101,8 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
     return result;
 }
 
-// vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
-// {    
+vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
+{    
 //     const vec3 normal = m_pbrParameters.normal;
 
 //     const vec3 fresnel = FresnelSchlickRoughness(max(dot(normal, dirToCamera), 0.f), baseReflectivity, m_pbrParameters.roughness);
@@ -123,7 +123,9 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
 
 //     vec3 ambiance = (kD * diffuse + specular);
 //     return ambiance;
-// }
+
+    return vec3(0.1);
+}
 
 vec3 ReconstructNormal(vec3 normal)
 {
@@ -151,7 +153,7 @@ void main()
     vec3 lightAccumulation = vec3(0.0);
 
     lightAccumulation += CalculateDirectionalLight(u_directionalLight, dirToCamera, baseReflectivity);
-    //lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
+    lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
     o_color.xyz = lightAccumulation;
     o_color.w = 1;

@@ -17,6 +17,7 @@ private:
 	void RenderControlsBar(float height);
 	void RenderDirectory(const Ref<DirectoryData> dirData);
 	void RenderView(const std::vector<Ref<DirectoryData>>& dirData, const std::vector<AssetData>& assetData);
+	void RenderFilePopup(const AssetData& data);
 	void Reload();
 	
 	void Search(const std::string& query);
@@ -32,8 +33,12 @@ private:
 	DirectoryData* m_currentDirectory = nullptr;
 	DirectoryData* m_nextDirectory = nullptr;
 
+	DirectoryData* m_engineDirectory = nullptr;
+	DirectoryData* m_assetsDirectory = nullptr;
+
 	float m_thumbnailPadding = 16.f;
 	float m_thumbnailSize = 100.f;
+	bool m_showEngineAssets = false;
 
 	std::string m_searchQuery;
 	std::vector<Ref<DirectoryData>> m_searchDirectories;

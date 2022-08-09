@@ -61,17 +61,24 @@ void Sandbox::UpdateDockSpace()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("New scene", "Ctrl + N"))
+			if (ImGui::MenuItem("New Scene", "Ctrl + N"))
 			{
 				NewScene();
 			}
 
-			if (ImGui::MenuItem("Open scene", "Ctrl + O"))
+			if (ImGui::MenuItem("Open...", "Ctrl + O"))
 			{
-				OpenScene();
+				//if (m_editorScene)
+				//{
+				//	ImGui::OpenPopup("OpenSavePopup");
+				//}
+				//else
+				{
+					OpenScene();
+				}
 			}
 
-			if (ImGui::MenuItem("Save scene as", "Ctrl + Shift + S"))
+			if (ImGui::MenuItem("Save As", "Ctrl + Shift + S"))
 			{
 				SaveSceneAs();
 			}
@@ -79,15 +86,6 @@ void Sandbox::UpdateDockSpace()
 			if (ImGui::MenuItem("Save", "Ctrl + S"))
 			{
 				SaveScene();
-			}
-
-			if (ImGui::MenuItem("Save Scene"))
-			{
-				if (m_editorScene)
-				{
-					m_editorScene->path = "Assets/Scenes/TestScene";
-					Lamp::AssetManager::Get().SaveAsset(m_editorScene);
-				}
 			}
 
 			ImGui::EndMenu();
@@ -121,4 +119,35 @@ void Sandbox::UpdateDockSpace()
 	}
 
 	ImGui::End();
+}
+
+void Sandbox::ShouldSavePopup()
+{
+	bool saved = false;
+
+	if (ImGui::BeginPopupModal("OpenSavePopup"))
+	{
+		/*if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+			return;
+		}
+
+		ImGui::SameLine();
+
+		saved = ImGui::Button("Save");
+
+		if (saved)
+		{
+			SaveScene();
+			ImGui::CloseCurrentPopup();
+		}*/
+
+		ImGui::EndPopup();
+	}
+
+	if (saved)
+	{
+		OpenScene();
+	}
 }

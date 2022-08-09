@@ -37,6 +37,7 @@ namespace Lamp
 
 	private:
 		friend class Entity;
+		friend class SceneImporter;
 
 		SceneEnvironment m_environment;
 

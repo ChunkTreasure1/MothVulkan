@@ -40,6 +40,7 @@ private:
 
 	/////ImGui/////
 	void UpdateDockSpace();
+	void ShouldSavePopup();
 	///////////////
 
 	std::vector<Ref<EditorWindow>> m_editorWindows;

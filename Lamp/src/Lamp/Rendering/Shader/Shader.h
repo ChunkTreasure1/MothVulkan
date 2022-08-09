@@ -30,20 +30,20 @@ namespace Lamp
 	public:
 		struct ShaderStorageBuffer
 		{
-			VkDescriptorBufferInfo info;
+			VkDescriptorBufferInfo info{};
 			bool writeable = true;
 		};
 
 		struct StorageImage
 		{
-			VkDescriptorImageInfo info;
+			VkDescriptorImageInfo info{};
 			bool writeable = true;
 		};
 
 		struct SampledImage
 		{
-			VkDescriptorImageInfo info;
-			ImageDimension dimension;
+			VkDescriptorImageInfo info{};
+			ImageDimension dimension{};
 		};
 
 		struct ShaderResources

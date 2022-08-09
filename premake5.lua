@@ -24,6 +24,7 @@ include "Lamp/vendor/imgui"
 include "Lamp/vendor/Wire/Wire"
 include "Lamp/vendor/Optick"
 include "Lamp/vendor/imgui-node-editor"
+include "Lamp/vendor/ImGuizmo"
 
 group "Core"
 include "Lamp"

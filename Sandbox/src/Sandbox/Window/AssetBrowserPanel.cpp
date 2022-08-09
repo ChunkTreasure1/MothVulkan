@@ -4,6 +4,8 @@
 #include "Sandbox/Window/EditorIconLibrary.h"
 
 #include <Lamp/Asset/AssetManager.h>
+#include <Lamp/Rendering/Shader/Shader.h>
+
 #include <Lamp/Utility/FileSystem.h>
 #include <Lamp/Utility/UIUtility.h>
 
@@ -14,7 +16,12 @@ AssetBrowserPanel::AssetBrowserPanel()
 	m_isOpen = true;
 
 	m_directories[FileSystem::GetAssetsPath().string()] = ProcessDirectory(FileSystem::GetAssetsPath().string(), nullptr);
-	m_currentDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+	m_directories[FileSystem::GetEnginePath().string()] = ProcessDirectory(FileSystem::GetEnginePath().string(), nullptr);
+
+	m_engineDirectory = m_directories[FileSystem::GetEnginePath().string()].get();
+	m_assetsDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+
+	m_currentDirectory = m_assetsDirectory;
 
 	m_directoryButtons.emplace_back(m_currentDirectory);
 }
@@ -63,21 +70,21 @@ void AssetBrowserPanel::UpdateMainContent()
 
 		{
 			UI::ShiftCursor(5.f, 5.f);
-			auto flags = (m_directories[FileSystem::GetAssetsPath().string()]->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+			auto flags = (m_assetsDirectory ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
 
 			bool open = UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), "Assets", flags);
 
 			if (ImGui::IsItemClicked())
 			{
-				m_directories[FileSystem::GetAssetsPath().string()]->selected = true;
-				m_nextDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+				m_assetsDirectory->selected = true;
+				m_nextDirectory = m_assetsDirectory;
 			}
 
 			if (open)
 			{
 				UI::ScopedStyleFloat2 spacing(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-				for (const auto& subDir : m_directories[FileSystem::GetAssetsPath().string()]->subDirectories)
+				for (const auto& subDir : m_assetsDirectory->subDirectories)
 				{
 					RenderDirectory(subDir);
 				}
@@ -250,10 +257,37 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 			ImGui::SameLine();
 
+			// Asset type
+			{
+				const char* items = "Game\0Engine";
+				
+				int32_t currentValue = (int32_t)m_showEngineAssets;
+
+				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - height - 150.f - buttonSizeOffset / 2.f, 0.f);
+
+				ImGui::PushItemWidth(150.f);
+				if (ImGui::Combo("##assetType", &currentValue, items))
+				{
+					m_showEngineAssets = (bool)currentValue;
+					if (currentValue == 0)
+					{
+						m_currentDirectory = m_assetsDirectory;
+					}
+					else
+					{
+						m_currentDirectory = m_engineDirectory;
+					}
+
+				}
+				ImGui::PopItemWidth();
+			} 
+
+			ImGui::SameLine();
+
+			// Settings button
 			{
 				UI::ScopedColor buttonBackground(ImGuiCol_Button, { 0.f, 0.f, 0.f, 0.f });
 
-				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - height - buttonSizeOffset / 2.f, 0.f);
 				if (ImGui::ImageButton(UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Settings)), { height - buttonSizeOffset, height - buttonSizeOffset }))
 				{
 				}
@@ -317,7 +351,7 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 		ImGui::PushID(dir->path.filename().string().c_str());
 
 		UI::ImageButton(dir->path.filename().string(), UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Directory)), { m_thumbnailSize, m_thumbnailSize });
-		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) 
 		{
 			dir->selected = true;
 			m_nextDirectory = dir.get();
@@ -348,12 +382,42 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 			ImGui::SetDragDropPayload("ASSET_BROWSER_ITEM", &asset.handle, sizeof(Lamp::AssetHandle), ImGuiCond_Once);
 			ImGui::EndDragDropSource();
 		}
-		//RenderFilePopup(asset);
+		RenderFilePopup(asset);
 
 		ImGui::TextWrapped(asset.path.filename().string().c_str());
 
 		ImGui::NextColumn();
 		ImGui::PopID();
+	}
+}
+
+void AssetBrowserPanel::RenderFilePopup(const AssetData& data)
+{
+	if (UI::BeginPopup())
+	{
+		if (ImGui::MenuItem("Open Externally"))
+		{
+			FileSystem::OpenFileExternally(data.path);
+		}
+
+		switch (data.type)
+		{
+			case Lamp::AssetType::Shader:
+			{
+				if (ImGui::MenuItem("Recompile"))
+				{
+					Ref<Lamp::Shader> shader = Lamp::AssetManager::GetAsset<Lamp::Shader>(data.path);
+					shader->Reload(true);
+				}
+
+				break;
+			}
+
+			default:
+				break;
+		}
+
+		UI::EndPopup();
 	}
 }
 
@@ -365,12 +429,16 @@ void AssetBrowserPanel::Reload()
 	m_nextDirectory = nullptr;
 
 	m_directories[FileSystem::GetAssetsPath().string()] = ProcessDirectory(FileSystem::GetAssetsPath().string(), nullptr);
+	m_directories[FileSystem::GetEnginePath().string()] = ProcessDirectory(FileSystem::GetEnginePath().string(), nullptr);
+
+	m_engineDirectory = m_directories[FileSystem::GetEnginePath().string()].get();
+	m_assetsDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
 
 	//Find directory
 	m_currentDirectory = FindDirectoryWithPath(currentPath);
 	if (!m_currentDirectory)
 	{
-		m_currentDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
+		m_currentDirectory = m_assetsDirectory;
 	}
 
 	//Setup new file path buttons
@@ -407,7 +475,7 @@ void AssetBrowserPanel::Search(const std::string& query)
 	m_searchAssets.clear();
 	for (const auto& query : queries)
 	{
-		FindFoldersAndFilesWithQuery(m_directories[FileSystem::GetAssetsPath().string()]->subDirectories, m_searchDirectories, m_searchAssets, query);
+		FindFoldersAndFilesWithQuery(m_assetsDirectory->subDirectories, m_searchDirectories, m_searchAssets, query);
 	}
 }
 

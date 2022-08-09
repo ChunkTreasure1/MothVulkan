@@ -7,16 +7,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
+  - Handle: 13717396777666668695
+    Path: Assets\Meshes\Sponza\sponzamat.lpmat
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 1249971563143443831
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
   - Handle: 13461233730205319078
     Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 13717396777666668695
-    Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -45,6 +47,8 @@ Assets:
     Path: Engine/RenderPipelines\pbrPipeline.lprpdef
   - Handle: 8193205504869265655
     Path: Editor/Textures/Icons/icon_stop.dds
+  - Handle: 16663391296907981347
+    Path: Engine\Shaders\Cache\PBR_vs.glsl.vertex.cached
   - Handle: 10847345471036476924
     Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_n.dds
   - Handle: 104636927086174237
@@ -225,6 +229,8 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_1stfloor_materialNormal.dds
   - Handle: 11566361249794305466
     Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_materialNormal.dds
+  - Handle: 18105833981138012669
+    Path: Engine\Shaders\Cache\EnvironmentFiltering_cs.glsl.compute.cached
   - Handle: 16605861160291563046
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_materialNormal.dds
   - Handle: 3434824630969020684
@@ -247,10 +253,16 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_materialNormal.dds
   - Handle: 14977105164640407251
     Path: Assets\Meshes\Sponza\Textures\stone_trims_01_materialNormal.dds
+  - Handle: 13731376584961346642
+    Path: Editor/Textures/Icons/icon_locked.dds
+  - Handle: 18199131934693891348
+    Path: Engine\Fonts\Futura\futura-light.ttf
   - Handle: 15689025092329343871
     Path: Assets\Meshes\Sponza\Textures\stone_trims_02_materialNormal.dds
   - Handle: 4285905638287371977
     Path: Assets\Meshes\Sponza\Textures\wood_door_01_materialNormal.dds
+  - Handle: 15749245590283680238
+    Path: Engine\Shaders\BRDFGeneration_cs.glsl
   - Handle: 4598058952105464720
     Path: Engine/Shaders\Definitions\environmentFiltering.lpsdef
   - Handle: 1122308003897149090
@@ -263,3 +275,39 @@ Assets:
     Path: Engine/Shaders\Definitions\brdfGeneration.lpsdef
   - Handle: 7829466757563940291
     Path: C:\Programming\MothVulkan\AssetData\Engine\RenderPipelines\pbrPipeline.lprpdef
+  - Handle: 4258206864201889639
+    Path: Editor/Textures/Icons/icon_unlocked.dds
+  - Handle: 4945839815267153824
+    Path: Editor/Textures/Icons/icon_hidden.dds
+  - Handle: 7176174130477341686
+    Path: Editor/Textures/Icons/icon_visible.dds
+  - Handle: 15299534788199211377
+    Path: Assets\Scenes\TestScene\TestScene.lpscene
+  - Handle: 4673643233036484372
+    Path: C:\Programming\MothVulkan\AssetData\Assets\Scenes\TestScene
+  - Handle: 9560870947596528588
+    Path: Assets\Scenes\TestScene\Entities\Entity_1.ent
+  - Handle: 9401752927046154286
+    Path: Engine\Fonts\Futura\futura-bold.otf
+  - Handle: 8371921818167448834
+    Path: Engine\Shaders\Cache\cull_cs.glsl.compute.cached
+  - Handle: 3362820890106920097
+    Path: Engine\Shaders\Cache\EnvironmentGenerateIrradiance_cs.glsl.compute.cached
+  - Handle: 3964230307200206230
+    Path: Engine\Shaders\Cache\EquirectangularConversion_cs.glsl.compute.cached
+  - Handle: 6939524608836070393
+    Path: Engine\Shaders\Cache\PBR_fs.glsl.fragment.cached
+  - Handle: 17569062708011315501
+    Path: Engine\Shaders\cull_cs.glsl
+  - Handle: 5368227484795027995
+    Path: Engine\Shaders\Environment\EnvironmentFiltering_cs.glsl
+  - Handle: 11343833262890148151
+    Path: Engine\Shaders\Environment\EnvironmentGenerateIrradiance_cs.glsl
+  - Handle: 7383674991992866078
+    Path: Engine\Shaders\Environment\EquirectangularConversion_cs.glsl
+  - Handle: 684302056822652433
+    Path: Engine\Shaders\PBR_fs.glsl
+  - Handle: 5658993734941985290
+    Path: Engine\Shaders\PBR_vs.glsl
+  - Handle: 12036731231661063437
+    Path: Engine\Shaders\Structures.glslh

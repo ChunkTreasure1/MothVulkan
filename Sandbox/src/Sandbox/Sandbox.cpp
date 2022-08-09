@@ -30,7 +30,8 @@
 #include <imgui.h>
 
 Sandbox::~Sandbox()
-{}
+{
+}
 
 void Sandbox::OnAttach()
 {
@@ -40,24 +41,12 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	//for (uint32_t i = 0; i < 1; i++)
-	//{
-	//	for (uint32_t j = 0; j < 1; j++)
-	//	{
-	//		auto entity = m_editorScene->CreateEntity();
-	//		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-	//		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
-
-	//		auto& transform = entity.AddComponent<Lamp::TransformComponent>();
-	//		transform.scale = { 1.f, 1.f, 1.f };
-	//		transform.position = { i * 40, 0.f, j * 40 };
-
-	//		auto& tag = entity.AddComponent<Lamp::TagComponent>();
-	//		tag.tag = "Entity";
-
-	//		m_selectedEntities.emplace_back(entity);
-	//	}
-	//}
+	// Sponza 
+	{
+		auto entity = m_editorScene->CreateEntity();
+		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
+	}
 
 	// Light
 	{
@@ -130,9 +119,7 @@ void Sandbox::NewScene()
 
 void Sandbox::OpenScene()
 {
-	SaveScene();
-
-	const std::filesystem::path loadPath = FileSystem::OpenFile("Scene (*.scene)\0*.scene\0");
+	const std::filesystem::path loadPath = FileSystem::OpenFile("Scene (*.lpscene)\0*.lpscene\0");
 	if (!loadPath.empty() && FileSystem::Exists(loadPath))
 	{
 		m_editorScene = Lamp::AssetManager::GetAsset<Lamp::Scene>(loadPath);
@@ -166,6 +153,7 @@ void Sandbox::SaveSceneAs()
 
 bool Sandbox::OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e)
 {
+	ShouldSavePopup();
 	UpdateDockSpace();
 
 	for (auto& window : m_editorWindows)
@@ -224,7 +212,14 @@ bool Sandbox::OnKeyPressedEvent(Lamp::KeyPressedEvent& e)
 		{
 			if (ctrlPressed)
 			{
-				OpenScene();
+				if (m_editorScene)
+				{
+					ImGui::OpenPopup("OpenSavePopup");
+				}
+				else
+				{
+					OpenScene();
+				}
 			}
 
 			break;
