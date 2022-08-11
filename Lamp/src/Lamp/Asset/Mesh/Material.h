@@ -8,6 +8,8 @@ namespace Lamp
 {
 	class RenderPipeline;
 	class Texture2D;
+	class TextureCube;
+	class Image2D;
 
 	class Material
 	{
@@ -20,6 +22,8 @@ namespace Lamp
 		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const;
 		void SetTexture(uint32_t binding, Ref<Texture2D> texture);
 		void Invalidate();
+
+		void UpdateInternalTexture(uint32_t set, uint32_t binding, uint32_t frameIndex, Ref<Image2D> image);
 
 		inline const std::string& GetName() const { return m_name; }
 		inline const std::map<uint32_t, Ref<Texture2D>>& GetTextures() const { return m_textures; }

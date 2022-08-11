@@ -15,6 +15,7 @@ namespace Lamp
 	// 1 - Per pass
 	// 2 - Per object -- Unused for now
 	// 3 - Per material -- All textures for now
+	// 4 - Mesh data
 
 	enum class DescriptorSetType : uint32_t
 	{

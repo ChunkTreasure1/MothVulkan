@@ -490,7 +490,7 @@ namespace Lamp
 
 		for (const auto& [set, bindings] : setLayoutBindings)
 		{
-			if (set > lastSet + 1)
+			while (set > lastSet + 1)
 			{
 				VkDescriptorSetLayoutCreateInfo layoutInfo{};
 				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -499,6 +499,7 @@ namespace Lamp
 				layoutInfo.pBindings = nullptr;
 
 				vkCreateDescriptorSetLayout(GraphicsContext::GetDevice()->GetHandle(), &layoutInfo, nullptr, &m_resources.paddedSetLayouts.emplace_back());
+				lastSet++;
 			}
 
 			VkDescriptorSetLayoutCreateInfo layoutInfo{};

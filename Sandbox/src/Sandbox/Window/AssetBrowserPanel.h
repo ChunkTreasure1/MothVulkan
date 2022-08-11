@@ -3,6 +3,11 @@
 #include "Sandbox/Window/EditorWindow.h"
 #include "Sandbox/Window/AssetCommon.h"
 
+namespace Lamp
+{
+	class Texture2D;
+}
+
 class AssetBrowserPanel : public EditorWindow
 {
 public:
@@ -44,4 +49,6 @@ private:
 	std::vector<Ref<DirectoryData>> m_searchDirectories;
 	std::vector<AssetData> m_searchAssets;
 	bool m_hasSearchQuery = false;
+
+	std::unordered_map<Lamp::AssetType, Ref<Lamp::Texture2D>> m_assetIcons;
 };

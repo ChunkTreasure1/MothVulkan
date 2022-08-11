@@ -110,6 +110,7 @@ namespace Lamp
 			std::vector<IndirectBatch> indirectBatches;
 
 			Ref<Camera> passCamera;
+			Skybox skyboxData;
 
 			std::vector<VkDescriptorPool> descriptorPools;
 

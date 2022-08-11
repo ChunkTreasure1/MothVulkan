@@ -3,10 +3,10 @@ RenderPass:
   drawType: Opaque
   priority: 0
   resizeable: true
-  Framebuffer:
+  framebuffer:
     width: 1280
     height: 720
-    Attachments:
+    attachments:
       - format: RGBA
         filter: Linear
         wrapMode: Repeat

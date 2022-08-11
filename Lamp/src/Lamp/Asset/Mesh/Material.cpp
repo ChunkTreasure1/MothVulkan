@@ -58,12 +58,13 @@ namespace Lamp
 
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
-			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex][i]);
+			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex].at(i));
 		}
 	}
 
 	void Material::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
 	{
+		LP_PROFILE_FUNCTION();
 		m_renderPipeline->SetPushConstant(cmdBuffer, offset, size, data);
 	}
 
@@ -75,6 +76,8 @@ namespace Lamp
 
 	void Material::Invalidate()
 	{
+		LP_PROFILE_FUNCTION();
+
 		if (m_descriptorPool)
 		{
 			vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), m_descriptorPool, 0);
@@ -87,6 +90,27 @@ namespace Lamp
 		m_shaderResources.clear();
 		SetupMaterialFromPipeline();
 		AllocateAndSetupDescriptorSets();
+	}
+
+	void Material::UpdateInternalTexture(uint32_t set, uint32_t binding, uint32_t frameIndex, Ref<Image2D> image)
+	{
+		LP_PROFILE_FUNCTION();
+		auto& shaderResource = m_shaderResources.at(frameIndex);
+		
+		auto setIt = shaderResource.imageInfos.find(set);
+		if (setIt == shaderResource.imageInfos.end())
+		{
+			return;
+		}
+
+		auto bindingIt = setIt->second.find(binding);
+		if (bindingIt == setIt->second.end())
+		{
+			return;
+		}
+
+		bindingIt->second.info.imageView = image->GetView();
+		bindingIt->second.info.sampler = image->GetSampler();
 	}
 
 	Ref<Material> Material::Create(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline)
@@ -146,7 +170,7 @@ namespace Lamp
 						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding).info;
 					}
 
-					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];
+					writeDescriptor.dstSet = sets[index];
 				}
 
 				m_descriptorSetBindings[i].emplace_back(set);

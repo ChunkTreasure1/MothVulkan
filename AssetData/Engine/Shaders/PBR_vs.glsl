@@ -25,12 +25,12 @@ layout(std140, set = 0, binding = 0) uniform CameraBuffer
     CameraData u_cameraData;
 };
 
-layout(std430, set = 1, binding = 0) readonly buffer ObjectBuffer
+layout(std430, set = 4, binding = 0) readonly buffer ObjectBuffer
 {
     ObjectData u_objectBuffer[];
 };
 
-layout(std430, set = 1, binding = 1) readonly buffer ObjectMapBuffer
+layout(std430, set = 4, binding = 1) readonly buffer ObjectMapBuffer
 {
 	uint u_objectMap[];
 };

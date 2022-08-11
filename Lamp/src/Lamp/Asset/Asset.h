@@ -29,6 +29,7 @@ namespace Lamp
 		Texture,
 		Material,
 		Shader,
+		ShaderSource,
 		RenderPipeline,
 		RenderPass,
 		RenderGraph,
@@ -54,6 +55,11 @@ namespace Lamp
 		{ ".hdr", AssetType::Texture },
 		
 		{ ".lpsdef", AssetType::Shader },
+		{ ".glsl", AssetType::ShaderSource },
+		{ ".glslh", AssetType::ShaderSource },
+		{ ".hlsl", AssetType::ShaderSource },
+		{ ".hlslh", AssetType::ShaderSource },
+
 		{ ".lprpdef", AssetType::RenderPipeline },
 		{ ".lprp", AssetType::RenderPass },
 		{ ".lprg", AssetType::RenderGraph },

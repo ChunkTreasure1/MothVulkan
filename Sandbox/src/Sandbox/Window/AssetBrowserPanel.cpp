@@ -21,6 +21,10 @@ AssetBrowserPanel::AssetBrowserPanel()
 	m_engineDirectory = m_directories[FileSystem::GetEnginePath().string()].get();
 	m_assetsDirectory = m_directories[FileSystem::GetAssetsPath().string()].get();
 
+	m_assetIcons[Lamp::AssetType::Material] = Lamp::AssetManager::GetAsset<Lamp::Texture2D>("Editor/Textures/Icons/AssetIcons/icon_material.dds");
+	m_assetIcons[Lamp::AssetType::Mesh] = Lamp::AssetManager::GetAsset<Lamp::Texture2D>("Editor/Textures/Icons/AssetIcons/icon_mesh.dds");
+	m_assetIcons[Lamp::AssetType::MeshSource] = Lamp::AssetManager::GetAsset<Lamp::Texture2D>("Editor/Textures/Icons/AssetIcons/icon_meshSource.dds");
+
 	m_currentDirectory = m_assetsDirectory;
 
 	m_directoryButtons.emplace_back(m_currentDirectory);
@@ -367,13 +371,11 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 	{
 		ImGui::PushID(asset.path.filename().string().c_str());
 
-		//Ref<Texture2D> icon = m_icons[g_pEnv->pAssetManager->GetAssetTypeFromPath(asset.path)];
-		//if (!icon)
-		//{
-		//	icon = m_fileTexture;
-		//}
-
-		Ref<Lamp::Texture2D> icon = EditorIconLibrary::GetIcon(EditorIcon::GenericFile);
+		Ref<Lamp::Texture2D> icon = m_assetIcons[asset.type];
+		if (!icon)
+		{
+			icon = EditorIconLibrary::GetIcon(EditorIcon::GenericFile);
+		}
 
 		UI::ImageButton(asset.path.filename().string(), UI::GetTextureID(icon), { m_thumbnailSize, m_thumbnailSize });
 		if (ImGui::BeginDragDropSource())

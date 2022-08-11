@@ -373,7 +373,7 @@ namespace Lamp
 			LP_SERIALIZE_PROPERTY(priority, renderPass->priority, out);
 			LP_SERIALIZE_PROPERTY(resizeable, renderPass->resizeable, out);
 
-			out << YAML::Key << "Framebuffer" << YAML::Value;
+			out << YAML::Key << "framebuffer" << YAML::Value;
 			out << YAML::BeginMap;
 			auto framebuffer = renderPass->framebuffer;
 			if (framebuffer)
@@ -381,7 +381,7 @@ namespace Lamp
 				LP_SERIALIZE_PROPERTY(width, framebuffer->GetSpecification().width, out);
 				LP_SERIALIZE_PROPERTY(height, framebuffer->GetSpecification().height, out);
 
-				out << YAML::Key << "Attachments" << YAML::BeginSeq;
+				out << YAML::Key << "attachments" << YAML::BeginSeq;
 				for (const auto& attachment : framebuffer->GetSpecification().attachments)
 				{
 					out << YAML::BeginMap;
