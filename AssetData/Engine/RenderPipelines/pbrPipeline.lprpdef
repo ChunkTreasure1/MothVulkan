@@ -1,6 +1,6 @@
 RenderPipeline:
   name: PBR
-  shader: pbr
+  shader: PBR
   renderPass: forward
   topology: TriangleList
   cullMode: Back

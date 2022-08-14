@@ -33,6 +33,10 @@
 #include "Lamp/Rendering/Shader/ShaderRegistry.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+
+#include "Lamp/Rendering/RenderPass/RenderPassRegistry.h"
+#include "Lamp/Rendering/RenderPass/RenderPass.h"
 
 #include "Lamp/Utility/Math.h"
 #include "Lamp/Utility/ImageUtility.h"
@@ -100,6 +104,7 @@ namespace Lamp
 	void Renderer::Begin()
 	{
 		LP_PROFILE_FUNCTION();
+
 		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
@@ -379,6 +384,7 @@ namespace Lamp
 			irradiancePipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 			irradianceMap->GenerateMips(false, cmdBuffer);
+			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
 
 			device->FlushCommandBuffer(cmdBuffer);
 		}
@@ -427,6 +433,25 @@ namespace Lamp
 			s_defaultData->whiteTexture->handle = Asset::Null();
 
 			GenerateBRDFLut();
+		}
+
+		// Default pipeline
+		{
+			RenderPipelineSpecification renderPipelineSpec{};
+			renderPipelineSpec.name = "Default";
+			renderPipelineSpec.shader = ShaderRegistry::Get("Default");
+			renderPipelineSpec.framebuffer = RenderPassRegistry::Get("forward")->framebuffer;
+			renderPipelineSpec.renderPass = "forward";
+			renderPipelineSpec.vertexLayout =
+			{
+				{ ElementType::Float3, "a_position" },
+				{ ElementType::Float3, "a_normal" },
+				{ ElementType::Float3, "a_tangent" },
+				{ ElementType::Float3, "a_bitangent" },
+				{ ElementType::Float2, "a_texCoords" }
+			};
+
+			s_defaultData->defaultPipeline = RenderPipeline::Create(renderPipelineSpec);
 		}
 	}
 
@@ -703,5 +728,7 @@ namespace Lamp
 		brdfPipeline->SetImage(s_defaultData->brdfLut, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		brdfPipeline->Dispatch(cmdBuffer, 0, brdfSize / 32, brdfSize / 32, 1);
 		brdfPipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+		device->FlushCommandBuffer(cmdBuffer);
 	}
 }

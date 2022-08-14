@@ -205,9 +205,10 @@ namespace Lamp
 			}
 
 			Ref<RenderPipeline> renderPipeline = RenderPipelineRegistry::Get(renderPipelineString);
-			if (!renderPipeline)
+			if (!renderPipeline || !renderPipeline->IsValid())
 			{
-				// TODO: add default render pipeline in renderer
+				renderPipeline = Renderer::GetDefaultData().defaultPipeline;
+				LP_CORE_ERROR("Render pipeline {0} not found or invalid! Fallingback to default!", renderPipelineString);
 			}
 
 			Ref<Material> material = Material::Create(materialNameString, materialIndex, renderPipeline);

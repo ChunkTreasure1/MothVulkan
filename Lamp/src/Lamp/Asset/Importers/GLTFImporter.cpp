@@ -228,7 +228,7 @@ namespace Lamp
 
 				if (outMesh->m_material->m_materials.find(subMesh.materialIndex) == outMesh->m_material->m_materials.end())
 				{
-					Ref<Material> material = Material::Create(inputModel.materials[subMesh.materialIndex].name, subMesh.materialIndex, RenderPipelineRegistry::Get("pbr")); // TODO: change to default pipeline
+					Ref<Material> material = Material::Create(inputModel.materials[subMesh.materialIndex].name, subMesh.materialIndex, RenderPipelineRegistry::Get("PBR")); // TODO: change to default pipeline
 					outMesh->m_material->m_materials[subMesh.materialIndex] = material;
 				}
 			}

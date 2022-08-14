@@ -122,7 +122,7 @@ vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
        kD *= 1.f - m_pbrParameters.metallic;
 
        vec3 ambiance = (kD * diffuse + specular);
-       return ambiance;
+       return specular;
 }
 
 vec3 ReconstructNormal(vec3 normal)

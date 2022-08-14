@@ -43,9 +43,9 @@ void Sandbox::OnAttach()
 
 	// Sponza 
 	{
-		//auto entity = m_editorScene->CreateEntity();
-		//auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-		//mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
+		auto entity = m_editorScene->CreateEntity();
+		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
 	}
 
 	// Light

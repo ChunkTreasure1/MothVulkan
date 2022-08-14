@@ -107,5 +107,8 @@ void main()
 
     vec4 integratedBRDF = vec4(IntegrateBRDF(texCoords.x, texCoords.y), 0.f, 0.f);
 
-    imageStore(o_brdf, ivec2(gl_GlobalInvocationID), integratedBRDF);
+    ivec2 outputLocation = ivec2(gl_GlobalInvocationID.xy);
+    outputLocation.y = (int(gl_WorkGroupSize.y) * int(gl_NumWorkGroups)) - outputLocation.y;
+
+    imageStore(o_brdf, outputLocation, integratedBRDF);
 }

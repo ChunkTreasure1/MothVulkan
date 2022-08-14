@@ -22,6 +22,7 @@ namespace Lamp
 	class Texture2D;
 	class Material;
 	class RenderPipelineCompute;
+	class RenderPipeline;
 
 	struct RenderCommand
 	{
@@ -46,6 +47,8 @@ namespace Lamp
 	public:
 		struct DefaultData
 		{
+			Ref<RenderPipeline> defaultPipeline;
+
 			Ref<Texture2D> whiteTexture;
 			Ref<Image2D> blackCubeImage;
 			Ref<Image2D> brdfLut;
@@ -110,7 +113,7 @@ namespace Lamp
 			std::vector<IndirectBatch> indirectBatches;
 
 			Ref<Camera> passCamera;
-			Skybox skyboxData;
+			Skybox skyboxData                                      ;
 
 			std::vector<VkDescriptorPool> descriptorPools;
 
