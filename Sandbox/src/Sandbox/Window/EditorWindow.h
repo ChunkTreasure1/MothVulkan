@@ -7,6 +7,11 @@
 
 #include <string>
 
+namespace Lamp
+{
+	class Asset;
+}
+
 class EditorWindow
 {
 public:
@@ -19,6 +24,7 @@ public:
 	virtual void UpdateMainContent() = 0;
 	virtual void UpdateContent() {}
 	virtual void OnEvent(Lamp::Event& e) {}
+	virtual void Open(Ref<Lamp::Asset> asset) {}
 
 	inline const std::string& GetTitle() const { return m_title; }
 	inline const bool& IsOpen() const { return m_isOpen; }

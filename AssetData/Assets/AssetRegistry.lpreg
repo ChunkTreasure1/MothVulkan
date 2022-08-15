@@ -7,18 +7,18 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_m.dds
   - Handle: 11533325920728509549
     Path: Assets/cube.fbx
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7921486373975219315
+    Path: Assets/Textures/peter_lambert.png
   - Handle: 1249971563143443831
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -317,3 +317,13 @@ Assets:
     Path: Editor/Textures/Icons/AssetIcons/icon_mesh.dds
   - Handle: 12602749111285238698
     Path: Editor/Textures/Icons/AssetIcons/icon_meshSource.dds
+  - Handle: 7684327436814241643
+    Path: Engine/Shaders\Definitions\default.lpsdef
+  - Handle: 2592691897210727710
+    Path: Engine\Shaders\Cache\Default_fs.glsl.fragment.cached
+  - Handle: 3707774219062751949
+    Path: Engine\Shaders\Cache\Default_vs.glsl.vertex.cached
+  - Handle: 557521438286527886
+    Path: Engine\Shaders\Default\Default_fs.glsl
+  - Handle: 4932343772043428791
+    Path: Engine\Shaders\Default\Default_vs.glsl

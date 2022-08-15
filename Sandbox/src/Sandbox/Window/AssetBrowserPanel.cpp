@@ -2,6 +2,7 @@
 #include "AssetBrowserPanel.h"
 
 #include "Sandbox/Window/EditorIconLibrary.h"
+#include "Sandbox/Window/EditorLibrary.h"
 
 #include <Lamp/Asset/AssetManager.h>
 #include <Lamp/Rendering/Shader/Shader.h>
@@ -378,6 +379,11 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 		}
 
 		UI::ImageButton(asset.path.filename().string(), UI::GetTextureID(icon), { m_thumbnailSize, m_thumbnailSize });
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+		{
+			EditorLibrary::OpenAsset(Lamp::AssetManager::Get().GetAssetRaw(asset.handle));
+		}
+
 		if (ImGui::BeginDragDropSource())
 		{
 			//Data being copied

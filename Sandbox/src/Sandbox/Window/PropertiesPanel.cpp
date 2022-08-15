@@ -115,7 +115,7 @@ void PropertiesPanel::UpdateMainContent()
 				continue;
 			}
 
-			if (ImGui::CollapsingHeader(registryInfo.name.c_str()))
+			if (ImGui::CollapsingHeader(registryInfo.name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				UI::PushId();
 				if (UI::BeginProperties())
