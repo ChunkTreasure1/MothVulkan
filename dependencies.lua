@@ -19,11 +19,13 @@ IncludeDir["tinyddsloader"] = "%{wks.location}/Lamp/vendor/tinyddsloader/"
 IncludeDir["imgui_notify"] = "%{wks.location}/Lamp/vendor/imgui-notify/"
 IncludeDir["imgui_node_editor"] = "%{wks.location}/Lamp/vendor/imgui-node-editor/"
 IncludeDir["ImGuizmo"] = "%{wks.location}/Lamp/vendor/ImGuizmo/"
+IncludeDir["P4"] = "%{wks.location}/Sandbox/vendor/p4/include/"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["fbxsdk"] = "%{wks.location}/Lamp/vendor/fbxsdk/lib/%{cfg.buildcfg}"
+LibraryDir["P4"] = "%{wks.location}/Sandbox/vendor/p4/lib/"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
@@ -43,3 +45,14 @@ Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.
 Library["fbxsdk"] = "%{LibraryDir.fbxsdk}/libfbxsdk-md.lib"
 Library["libxml2"] = "%{LibraryDir.fbxsdk}/libxml2-md.lib"
 Library["zlib"] = "%{LibraryDir.fbxsdk}/zlib-md.lib"
+
+Library["P4_client"] = "%{LibraryDir.P4}/libclient.lib"
+Library["P4_api"] = "%{LibraryDir.P4}/libp4api.lib"
+Library["P4_script"] = "%{LibraryDir.P4}/libp4script.lib"
+Library["P4_script_c"] = "%{LibraryDir.P4}/libp4script_c.lib"
+Library["P4_script_curl"] = "%{LibraryDir.P4}/libp4script_curl.lib"
+Library["P4_script_sqlite"] = "%{LibraryDir.P4}/libp4script_sqlite.lib"
+Library["P4_rpc"] = "%{LibraryDir.P4}/librpc.lib"
+Library["P4_supp"] = "%{LibraryDir.P4}/libsupp.lib"
+
+

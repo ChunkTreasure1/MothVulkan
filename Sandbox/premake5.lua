@@ -61,7 +61,8 @@ project "Sandbox"
 		"%{IncludeDir.TinyGLTF}",
 		"%{IncludeDir.imgui_notify}",
 		"%{IncludeDir.imgui_node_editor}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.P4}"
 	}
 
     links
@@ -78,7 +79,16 @@ project "Sandbox"
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",
 		"%{Library.libxml2}",
-		"%{Library.zlib}"
+		"%{Library.zlib}",
+
+		"%{Library.P4_client}",
+		"%{Library.P4_api}",
+		"%{Library.P4_script}",
+		"%{Library.P4_script_c}",
+		"%{Library.P4_script_curl}",
+		"%{Library.P4_script_sqlite}",
+		"%{Library.P4_rpc}",
+		"%{Library.P4_supp}"
     }
 
 	filter "system:windows"
