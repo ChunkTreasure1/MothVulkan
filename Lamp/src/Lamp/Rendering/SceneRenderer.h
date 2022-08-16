@@ -20,6 +20,7 @@ namespace Lamp
 		void OnUpdate(float deltaTime);
 
 		void Resize(uint32_t width, uint32_t height);
+		void SetScene(Ref<Scene> newScene);
 
 		Ref<Framebuffer> GetFinalFramebuffer();
 

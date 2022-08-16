@@ -25,7 +25,8 @@ LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["VulkanSDK_Debug"] = "%{VULKAN_SDK}/Lib"
 LibraryDir["fbxsdk"] = "%{wks.location}/Lamp/vendor/fbxsdk/lib/%{cfg.buildcfg}"
-LibraryDir["P4"] = "%{wks.location}/Sandbox/vendor/p4/lib/"
+LibraryDir["P4"] = "%{wks.location}/Sandbox/vendor/p4/lib/%{cfg.buildcfg}"
+LibraryDir["OpenSSL"] = "%{wks.location}/Sandbox/vendor/OpenSSL/lib/%{cfg.buildcfg}"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
@@ -54,5 +55,8 @@ Library["P4_script_curl"] = "%{LibraryDir.P4}/libp4script_curl.lib"
 Library["P4_script_sqlite"] = "%{LibraryDir.P4}/libp4script_sqlite.lib"
 Library["P4_rpc"] = "%{LibraryDir.P4}/librpc.lib"
 Library["P4_supp"] = "%{LibraryDir.P4}/libsupp.lib"
+
+Library["OpenSSL_Crypto"] = "%{LibraryDir.OpenSSL}/libcrypto.lib"
+Library["OpenSSL_SSL"] = "%{LibraryDir.OpenSSL}/libssl.lib"
 
 

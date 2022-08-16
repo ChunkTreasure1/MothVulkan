@@ -62,7 +62,7 @@ project "Sandbox"
 		"%{IncludeDir.imgui_notify}",
 		"%{IncludeDir.imgui_node_editor}",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.P4}"
+		"%{IncludeDir.P4}",
 	}
 
     links
@@ -76,6 +76,8 @@ project "Sandbox"
 		"ImGuiNodeEditor",
 		"ImGuizmo",
 
+		"crypt32.lib",
+
         "%{Library.Vulkan}",
 		"%{Library.fbxsdk}",
 		"%{Library.libxml2}",
@@ -88,7 +90,10 @@ project "Sandbox"
 		"%{Library.P4_script_curl}",
 		"%{Library.P4_script_sqlite}",
 		"%{Library.P4_rpc}",
-		"%{Library.P4_supp}"
+		"%{Library.P4_supp}",
+
+		"%{Library.OpenSSL_Crypto}",
+		"%{Library.OpenSSL_SSL}"
     }
 
 	filter "system:windows"

@@ -50,6 +50,8 @@ void AssetBrowserPanel::UpdateMainContent()
 
 	// Controls bar
 	{
+		UI::ScopedStyleFloat rounding(ImGuiStyleVar_FrameRounding, 2.f);
+
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
 		RenderControlsBar(controlsBarHeight);
 		ImGui::PopStyleVar();
@@ -75,7 +77,7 @@ void AssetBrowserPanel::UpdateMainContent()
 
 		{
 			UI::ShiftCursor(5.f, 5.f);
-			auto flags = (m_assetsDirectory ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
+			auto flags = (m_assetsDirectory->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
 
 			bool open = UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), "Assets", flags);
 
@@ -243,12 +245,14 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 				}
 			}
 
+
 			for (size_t i = 0; i < m_directoryButtons.size(); i++)
 			{
 				ImGui::SameLine();
 				std::string dirName = m_directoryButtons[i]->path.stem().string();
 
 				const float buttonWidth = ImGui::CalcTextSize(dirName.c_str()).x + 10.f;
+				UI::ScopedColor bgColor(ImGuiCol_Button, { 0.5f, 0.5f, 0.5f, 1.f });
 
 				if (ImGui::Button(dirName.c_str(), { buttonWidth, height - 4.f }))
 				{
@@ -264,8 +268,10 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 			// Asset type
 			{
+				UI::ScopedColor frameBg{ ImGuiCol_FrameBgHovered, { 1.000f, 1.000f, 1.000f, 0.2f } };
+
 				const char* items = "Game\0Engine";
-				
+
 				int32_t currentValue = (int32_t)m_showEngineAssets;
 
 				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - height - 150.f - buttonSizeOffset / 2.f, 0.f);
@@ -285,7 +291,7 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 				}
 				ImGui::PopItemWidth();
-			} 
+			}
 
 			ImGui::SameLine();
 
@@ -356,7 +362,7 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 		ImGui::PushID(dir->path.filename().string().c_str());
 
 		UI::ImageButton(dir->path.filename().string(), UI::GetTextureID(EditorIconLibrary::GetIcon(EditorIcon::Directory)), { m_thumbnailSize, m_thumbnailSize });
-		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) 
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
 		{
 			dir->selected = true;
 			m_nextDirectory = dir.get();
@@ -426,6 +432,23 @@ void AssetBrowserPanel::RenderFilePopup(const AssetData& data)
 		}
 
 		UI::EndPopup();
+	}
+}
+
+void AssetBrowserPanel::RenderFileInfo(const AssetData& data)
+{
+	if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+	{
+		return;
+	}
+
+	ImGui::OpenPopup("fileInfo");
+
+	if (ImGui::BeginPopup("fileInfo"))
+	{
+		ImGui::TextUnformatted("test");
+
+		ImGui::EndPopup();
 	}
 }
 

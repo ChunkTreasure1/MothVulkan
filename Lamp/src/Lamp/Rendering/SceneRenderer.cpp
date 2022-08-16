@@ -103,10 +103,6 @@ namespace Lamp
 
 	void SceneRenderer::OnUpdate(float deltaTime)
 	{
-		//Environment component system
-		{
-
-		}
 	}
 
 	void SceneRenderer::Resize(uint32_t width, uint32_t height)
@@ -118,5 +114,10 @@ namespace Lamp
 				pass.renderPass->framebuffer->Resize(width, height);
 			}
 		}
+	}
+
+	void SceneRenderer::SetScene(Ref<Scene> newScene)
+	{
+		m_scene = newScene;
 	}
 }

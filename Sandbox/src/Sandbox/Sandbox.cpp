@@ -11,6 +11,7 @@
 #include "Sandbox/Window/RenderPassEditorPanel.h"
 #include "Sandbox/Window/RenderGraphEditorPanel.h"
 #include "Sandbox/Window/SceneViewPanel.h"
+#include "Sandbox/Window/EditorSettingsPanel.h"
 
 #include "Sandbox/Window/EditorLibrary.h"
 
@@ -38,6 +39,7 @@ Sandbox::~Sandbox()
 void Sandbox::OnAttach()
 {
 	EditorIconLibrary::Initialize();
+	VersionControl::Initialize(VersionControlSystem::Perforce);
 
 	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 1000.f);
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
@@ -64,6 +66,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<CreatePanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
 	m_editorWindows.emplace_back(CreateRef<SceneViewPanel>(m_selectedEntities, m_editorScene));
+	m_editorWindows.emplace_back(CreateRef<EditorSettingsPanel>(m_settings));
 
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 	EditorLibrary::Register(Lamp::AssetType::Material, m_editorWindows.back());
@@ -84,6 +87,7 @@ void Sandbox::OnDetach()
 	delete m_editorCameraController;
 	m_editorCameraController = nullptr;
 
+	VersionControl::Shutdown();
 	EditorIconLibrary::Shutdown();
 }
 
@@ -125,6 +129,7 @@ void Sandbox::NewScene()
 {
 	SaveScene();
 	m_editorScene = CreateRef<Lamp::Scene>("New Scene");
+	m_sceneRenderer->SetScene(m_editorScene);
 }
 
 void Sandbox::OpenScene()
@@ -133,6 +138,7 @@ void Sandbox::OpenScene()
 	if (!loadPath.empty() && FileSystem::Exists(loadPath))
 	{
 		m_editorScene = Lamp::AssetManager::GetAsset<Lamp::Scene>(loadPath);
+		m_sceneRenderer->SetScene(m_editorScene);
 	}
 }
 

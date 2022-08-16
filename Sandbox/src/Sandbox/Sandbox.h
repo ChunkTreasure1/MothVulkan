@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Sandbox/Utility/Helpers.h"
+#include "Sandbox/VersionControl/VersionControl.h"
 
 #include <Lamp/Scene/Entity.h>
 #include <Lamp/Core/Layer/Layer.h>
@@ -13,6 +14,11 @@ namespace Lamp
 	class EditorCameraController;
 	class Scene;
 }
+
+struct EditorSettings
+{
+	VersionControlSettings versionControlSettings;
+};
 
 class EditorWindow;
 
@@ -44,10 +50,11 @@ private:
 	///////////////
 
 	std::vector<Ref<EditorWindow>> m_editorWindows;
-
 	std::vector<Wire::EntityId> m_selectedEntities;
 
 	Ref<Lamp::SceneRenderer> m_sceneRenderer;
 	Lamp::EditorCameraController* m_editorCameraController;
 	Ref<Lamp::Scene> m_editorScene;
+
+	EditorSettings m_settings;
 };
