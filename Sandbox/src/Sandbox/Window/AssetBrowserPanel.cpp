@@ -421,7 +421,14 @@ void AssetBrowserPanel::RenderFilePopup(const AssetData& data)
 				if (ImGui::MenuItem("Recompile"))
 				{
 					Ref<Lamp::Shader> shader = Lamp::AssetManager::GetAsset<Lamp::Shader>(data.path);
-					shader->Reload(true);
+					if (shader->Reload(true))
+					{
+						UI::Notify(NotificationType::Success, "Shader Compiled!", std::format("Shader {} compiled succesfully!", data.path.string()));
+					}
+					else
+					{
+						UI::Notify(NotificationType::Error, "Shader Compilation Failed", std::format("Shader {} failed to compile!", data.path.string()));
+					}
 				}
 
 				break;

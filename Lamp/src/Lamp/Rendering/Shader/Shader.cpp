@@ -13,6 +13,8 @@
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
+#include "ShaderCompiler.h"
+
 #include <shaderc/shaderc.hpp>
 #include <file_includer.h>
 #include <libshaderc_util/file_finder.h>
@@ -51,6 +53,7 @@ namespace Lamp
 		: m_shaderPaths(paths), m_name(name)
 	{
 		Reload(forceCompile);
+		GenerateHash();
 	}
 
 	Shader::~Shader()
@@ -59,10 +62,9 @@ namespace Lamp
 		m_renderPipelineReferences.clear();
 	}
 
-	void Shader::Reload(bool forceCompile)
+	bool Shader::Reload(bool forceCompile)
 	{
 		Utility::CreateCacheDirectoryIfNeeded();
-		Release();
 
 		m_shaderSources.clear();
 		m_pipelineShaderStageInfos.clear();
@@ -70,7 +72,13 @@ namespace Lamp
 		LoadShaderFromFiles();
 
 		std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> shaderData;
-		CompileOrGetBinary(shaderData, forceCompile);
+
+		if (!CompileOrGetBinary(shaderData, forceCompile))
+		{
+			return false;
+		}
+
+		Release();
 		LoadAndCreateShaders(shaderData);
 		ReflectAllStages(shaderData);
 
@@ -78,6 +86,8 @@ namespace Lamp
 		{
 			pipeline->Invalidate();
 		}
+
+		return true;
 	}
 
 	void Shader::AddReference(RenderPipeline* renderPipeline)
@@ -147,7 +157,7 @@ namespace Lamp
 		m_perStageStorageImageCount.clear();
 	}
 
-	void Shader::CompileOrGetBinary(std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& outShaderData, bool forceCompile)
+	bool Shader::CompileOrGetBinary(std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& outShaderData, bool forceCompile)
 	{
 		auto cacheDirectory = Utility::GetShaderCacheDirectory();
 
@@ -156,7 +166,6 @@ namespace Lamp
 		for (const auto& [stage, source] : m_shaderSources)
 		{
 			auto extension = Utility::GetShaderStageCachedFileExtension(stage);
-
 			auto& data = outShaderData[stage];
 
 			std::filesystem::path currentStagePath;
@@ -187,70 +196,11 @@ namespace Lamp
 
 			if (data.empty())
 			{
-				shaderc::Compiler compiler;
-				shaderc::CompileOptions compileOptions;
-
-				shaderc_util::FileFinder fileFinder;
-				fileFinder.search_path().emplace_back("Engine/Shaders/");
-
-				compileOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
-				compileOptions.SetWarningsAsErrors();
-				compileOptions.SetIncluder(std::make_unique<glslc::FileIncluder>(&fileFinder));
-				compileOptions.SetOptimizationLevel(shaderc_optimization_level_performance);
-
-#ifdef LP_ENABLE_SHADER_DEBUG
-				compileOptions.SetGenerateDebugInfo();
-#endif
-
-				const auto& currentPath = m_shaderPaths[index];
-
-				shaderc::PreprocessedSourceCompilationResult preProcessResult = compiler.PreprocessGlsl(source, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str(), compileOptions);
-				if (preProcessResult.GetCompilationStatus() != shaderc_compilation_status_success)
-				{
-					LP_CORE_ERROR("Failed to preprocess shader {0}!", currentPath.string().c_str());
-					LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
-					LP_CORE_ASSERT(false, "Failed to preprocess shader!");
-
-					return;
-				}
-
-				std::string proccessedSource = std::string(preProcessResult.cbegin(), preProcessResult.cend());
-
-				// Compile shader
-				{
-					shaderc::SpvCompilationResult compileResult = compiler.CompileGlslToSpv(proccessedSource, Utility::VulkanToShaderCStage(stage), currentPath.string().c_str());
-					if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success)
-					{
-						LP_CORE_ERROR("Failed to compile shader {0}!", currentPath.string().c_str());
-						LP_CORE_ERROR(compileResult.GetErrorMessage().c_str());
-						LP_CORE_ASSERT(false, "Shader compilation failed!");
-
-						return;
-					}
-
-					const uint8_t* begin = (const uint8_t*)compileResult.cbegin();
-					const uint8_t* end = (const uint8_t*)compileResult.cend();
-					const ptrdiff_t size = end - begin;
-
-					data = std::vector<uint32_t>(compileResult.cbegin(), compileResult.cend());
-				}
-
-				// Cache shader
-				{
-					std::ofstream output(cachedPath, std::ios::binary | std::ios::out);
-					if (!output.is_open())
-					{
-						LP_CORE_ERROR("Failed to open file {0} for writing!", cachedPath.string().c_str());
-						LP_CORE_ASSERT(false, "Failed to open file for writing!");
-					}
-
-					output.write((const char*)data.data(), data.size() * sizeof(uint32_t));
-					output.close();
-				}
+				return ShaderCompiler::TryCompile(outShaderData, m_shaderPaths);
 			}
-
-			index++;
 		}
+
+		return true;
 	}
 
 	void Shader::LoadAndCreateShaders(const std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& shaderData)
