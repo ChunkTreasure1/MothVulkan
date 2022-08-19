@@ -4,8 +4,8 @@
 
 struct VersionControlSettings
 {
-	std::string server;
-	std::string user;
+	std::string server = "localhost:1666";
+	std::string user = "ChunkTreasure";
 	std::string password;
 };
 

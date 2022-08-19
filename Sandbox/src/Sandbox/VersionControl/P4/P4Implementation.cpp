@@ -69,8 +69,10 @@ bool P4Implementation::ConnectImpl(const std::string& server, const std::string&
 
 void P4Implementation::AddImpl(const std::filesystem::path& file)
 {
-	std::string command = std::format("p4 add {}", file.string());
-	m_client.Run(command.c_str(), &m_streamsCU);
+	char* argv[] = { const_cast<char*>(file.string().c_str())};
+	
+	m_client.SetArgv(1, argv);
+	m_client.Run("add", &m_defaultUser);
 }
 
 void P4Implementation::DeleteImpl(const std::filesystem::path& file)
@@ -83,8 +85,7 @@ void P4Implementation::SubmitImpl(const std::string& message)
 
 void P4Implementation::SyncImpl(const std::string& depo)
 {
-	std::string command = std::format("p4 sync {}", depo);
-	m_client.Run(command.c_str(), &m_streamsCU);
+	m_client.Run("sync", &m_defaultUser);
 }
 
 void P4Implementation::SwitchStreamImpl(const std::string& newStream)
@@ -104,11 +105,6 @@ void P4Implementation::RefreshStreamsImpl()
 void P4Implementation::SwitchWorkspaceImpl(const std::string& newWorkspace)
 {
 	m_client.SetClient(newWorkspace.c_str());
-
-	const char* args[] = { "-sa", "-f" };
-
-	m_client.SetArgv(2, const_cast<char* const*>(args));
-	m_client.Run("diff", &m_defaultUser);
 }
 
 void P4Implementation::RefreshWorkspacesImpl()
