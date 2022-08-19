@@ -1,6 +1,8 @@
 #pragma once
 
-#include "VersionControl.h"
+#include "Sandbox/VersionControl/VersionControl.h"
+
+#include "ClientUsers.h"
 
 #include <p4/clientapi.h>
 #include <p4/p4libs.h>
@@ -22,15 +24,28 @@ protected:
 	void InitializeImpl() override;
 	void ShutdownImpl() override;
 	void DisconnectImpl() override;
-	void ConnectImpl(const std::string& host, const std::string& port, const std::string& user, const std::string& password) override;
+	bool ConnectImpl(const std::string& server, const std::string& user, const std::string& password) override;
 
 	void AddImpl(const std::filesystem::path& file) override;
 	void DeleteImpl(const std::filesystem::path& file) override;
 	void SubmitImpl(const std::string& message) override;
 	void SyncImpl(const std::string& depo /* = "" */) override;
 
+	void SwitchStreamImpl(const std::string& newStream) override;
+	void RefreshStreamsImpl() override;
+
+	void SwitchWorkspaceImpl(const std::string& newStream) override;
+	void RefreshWorkspacesImpl() override;
+
+	const std::vector<std::string>& GetWorkspacesImpl() override;
+	const std::vector<std::string>& GetStreamsImpl() override;
+	bool IsConnectedImpl() override;
+
 private:
-	ClientUser m_ui;
+	StreamsClientUser m_streamsCU;
+	WorkspacesClientUser m_workspacesCU;
+
+	ClientUser m_defaultUser;
 	ClientApi m_client;
 
 	bool m_isConnected = false;

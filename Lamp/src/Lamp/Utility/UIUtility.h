@@ -292,6 +292,28 @@ namespace UI
 		return changed;
 	}
 
+	static bool Combo(const std::string& text, int& currentItem, const std::vector<std::string>& strItems, float width = 100.f)
+	{
+		bool changed = false;
+
+		ImGui::TextUnformatted(text.c_str());
+
+		ImGui::SameLine();
+
+		std::string id = "##" + std::to_string(s_stackId++);
+
+		std::vector<const char*> items;
+		std::for_each(strItems.begin(), strItems.end(), [&](const std::string& string) { items.emplace_back(string.c_str()); });
+
+		ImGui::SetNextItemWidth(width);
+		if (ImGui::Combo(id.c_str(), &currentItem, items.data(), (int32_t)items.size()))
+		{
+			changed = true;
+		}
+
+		return changed;
+	}
+
 	static void* DragDropTarget(const std::string& type)
 	{
 		void* data = nullptr;

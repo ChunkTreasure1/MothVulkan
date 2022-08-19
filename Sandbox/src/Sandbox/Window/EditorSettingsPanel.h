@@ -12,5 +12,19 @@ public:
 	void UpdateMainContent();
 
 private:
+	enum class SettingsMenu
+	{
+		VersionControl
+	};
+
+	void DrawOutline();
+	void DrawView();
+
+	void DrawVersionControl();
+
 	EditorSettings& m_editorSettings;
+	SettingsMenu m_currentMenu = SettingsMenu::VersionControl;
+
+	int32_t m_currentStream = 0;
+	int32_t m_currentWorkspace = 0;
 };
