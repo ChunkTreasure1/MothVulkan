@@ -1,6 +1,9 @@
 #pragma once
 
+#include "CallbackSink.h"
+
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
 
 #include <memory>
 
@@ -12,12 +15,17 @@ namespace Lamp
 		static void Initialize();
 		static void Shutdown();
 
+		static void SetLogLevel(spdlog::level::level_enum level);
+		static void AddCallback(std::function<void(const LogCallbackData&)> callback);
+
 		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_clientLogger; }
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_coreLogger; }
 
 	private:
 		inline static std::shared_ptr<spdlog::logger> s_clientLogger;
 		inline static std::shared_ptr<spdlog::logger> s_coreLogger;
+
+		inline static std::shared_ptr<CallbackSink<std::mutex>> m_callbackSink;
 	};
 }
 

@@ -7,7 +7,7 @@ RenderPass:
     width: 1280
     height: 720
     attachments:
-      - format: RGBA
+      - format: SRGB
         filter: Linear
         wrapMode: Repeat
         blendMode: None

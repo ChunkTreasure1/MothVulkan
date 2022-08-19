@@ -34,6 +34,8 @@ namespace Lamp
 
 		m_applicationInfo = info;
 
+		Log::Initialize();
+
 		WindowProperties windowProperties{};
 		windowProperties.width = info.width;
 		windowProperties.height = info.height;
@@ -63,6 +65,7 @@ namespace Lamp
 
 	Application::~Application()
 	{
+		Log::Shutdown();
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
 
 		m_layerStack.Clear();

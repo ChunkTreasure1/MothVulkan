@@ -9,15 +9,10 @@ namespace Lamp
 {
 	int Main()
 	{
-		Lamp::Log::Initialize();
-
 		Application* app = Lamp::CreateApplication();
 		app->Run();
 
 		delete app;
-
-		Lamp::Log::Shutdown();
-
 		return 0;
 	}
 }

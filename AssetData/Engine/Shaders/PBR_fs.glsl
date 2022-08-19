@@ -153,6 +153,7 @@ void main()
     lightAccumulation += CalculateDirectionalLight(u_directionalLight, dirToCamera, baseReflectivity);
     lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
-    o_color.xyz = lightAccumulation;
+    const float gamma = 2.2;
+    o_color.xyz = pow(lightAccumulation, vec3(1.0/gamma));
     o_color.w = 1;
 }

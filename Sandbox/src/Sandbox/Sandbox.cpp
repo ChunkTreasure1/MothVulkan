@@ -12,6 +12,7 @@
 #include "Sandbox/Window/RenderGraphEditorPanel.h"
 #include "Sandbox/Window/SceneViewPanel.h"
 #include "Sandbox/Window/EditorSettingsPanel.h"
+#include "Sandbox/Window/LogPanel.h"
 
 #include "Sandbox/Window/EditorLibrary.h"
 
@@ -67,6 +68,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
 	m_editorWindows.emplace_back(CreateRef<SceneViewPanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<EditorSettingsPanel>(m_settings));
+	m_editorWindows.emplace_back(CreateRef<LogPanel>());
 
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 	EditorLibrary::Register(Lamp::AssetType::Material, m_editorWindows.back());
@@ -79,6 +81,8 @@ void Sandbox::OnAttach()
 
 	m_editorWindows.emplace_back(CreateRef<RenderGraphEditorPanel>());
 	EditorLibrary::Register(Lamp::AssetType::RenderGraph, m_editorWindows.back());
+
+	Lamp::Application::Get().GetWindow()->Maximize();
 }
 
 void Sandbox::OnDetach()
