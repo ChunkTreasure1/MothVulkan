@@ -25,7 +25,8 @@ void EditorLibrary::OpenAsset(Ref<Lamp::Asset> asset)
 		return;
 	}
 
-	it->second->Open(asset);
+	it->second->Open();
+	it->second->OpenAsset(asset);
 }
 
 Ref<EditorWindow> EditorLibrary::Get(Lamp::AssetType type)

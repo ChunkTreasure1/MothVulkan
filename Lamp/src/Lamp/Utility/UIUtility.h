@@ -114,6 +114,16 @@ namespace UI
 		return ImGui::BeginPopupContextItem(id.c_str());
 	}
 
+	static bool BeginPopupWindow(const std::string& id = "")
+	{
+		if (id.empty())
+		{
+			return ImGui::BeginPopupContextWindow();
+		}
+
+		return ImGui::BeginPopupContextWindow(id.c_str());
+	}
+
 	static void EndPopup()
 	{
 		ImGui::EndPopup();

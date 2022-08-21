@@ -10,6 +10,31 @@
 #include <Lamp/Utility/FileSystem.h>
 #include <Lamp/Utility/UIUtility.h>
 
+namespace Utility
+{
+	static ImVec4 GetColorFromType(Lamp::AssetType type)
+	{
+		switch (type)
+		{
+			case Lamp::AssetType::Mesh: return ImVec4(0.73f, 0.9f, 0.26f, 1.f);
+			case Lamp::AssetType::MeshSource: return ImVec4(0.43f, 0.9f, 0.26f, 1.f);
+			case Lamp::AssetType::Animation: break;
+			case Lamp::AssetType::Skeleton: break;
+			case Lamp::AssetType::Texture: return ImVec4(0.9f, 0.26f, 0.27f, 1.f);
+			case Lamp::AssetType::Material: return ImVec4(0.26f, 0.35f, 0.9f, 1.f);
+			case Lamp::AssetType::Shader: return ImVec4(0.26f, 0.6f, 0.9f, 1.f);
+			case Lamp::AssetType::ShaderSource: return ImVec4(0.26f, 0.72f, 0.9f, 1.f);
+			case Lamp::AssetType::RenderPipeline: break;
+			case Lamp::AssetType::RenderPass: break;
+			case Lamp::AssetType::RenderGraph: break;
+			case Lamp::AssetType::Scene: return ImVec4(0.9f, 0.54f, 0.26f, 1.f);
+			default: return ImVec4(0.f, 0.f, 0.f, 0.f);
+		}
+
+		return ImVec4(0.f, 0.f, 0.f, 0.f);
+	}
+}
+
 AssetBrowserPanel::AssetBrowserPanel()
 	: EditorWindow("Asset Browser"), m_currentDirectoryPath(FileSystem::GetAssetsPath())
 {
@@ -384,21 +409,73 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 			icon = EditorIconLibrary::GetIcon(EditorIcon::GenericFile);
 		}
 
-		UI::ImageButton(asset.path.filename().string(), UI::GetTextureID(icon), { m_thumbnailSize, m_thumbnailSize });
-		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+		const auto cursorPos = ImGui::GetCursorPos();
+		const auto windowPos = ImGui::GetWindowPos();
+		constexpr float itemHeightModifier = 40.f;
+		constexpr float itemPadding = 10.f;
+
+		const ImVec2 itemSize = { m_thumbnailSize + itemPadding, m_thumbnailSize + itemHeightModifier + itemPadding };
+		const ImVec2 minChild = cursorPos + windowPos;
+		const ImVec2 maxChild = minChild + itemSize;
+
+		const bool itemHovered = ImGui::IsMouseHoveringRect(minChild, maxChild);
+
+		ImVec4 childBgCol = ImVec4{ 0.f, 0.f, 0.f, 0.f };
+
+		if (itemHovered && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			childBgCol = ImVec4{ 0.4f, 0.4f, 0.4f, 1.f };
+		}
+		else if (itemHovered)
+		{
+			childBgCol = ImVec4{ 0.3f, 0.3f, 0.3f, 1.f };
+		}
+
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, childBgCol);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 2.f);
+		ImGui::BeginChild("item", itemSize, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		UI::ShiftCursor(itemPadding / 2.f, 10.f);
+
+		ImVec4 typeColor = Utility::GetColorFromType(asset.type);
+		typeColor.w = 0.3f;
+
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, typeColor);
+		ImGui::BeginChild("image", { m_thumbnailSize, m_thumbnailSize });
+		{
+			{
+				ImVec2 barMin = cursorPos + windowPos;
+				ImVec2 barMax = barMin + ImVec2{ 10.f, m_thumbnailSize + itemPadding };
+				typeColor.w = 1.f;
+				ImGui::GetWindowDrawList()->AddRectFilled(barMin, barMax, ImColor(typeColor));
+			}
+
+			UI::ShiftCursor(itemPadding / 2.f, itemPadding / 2.f);
+			ImGui::Image(UI::GetTextureID(icon), { m_thumbnailSize - itemPadding, m_thumbnailSize - itemPadding });
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+			{
+				//Data being copied
+				ImGui::SetDragDropPayload("ASSET_BROWSER_ITEM", &asset.handle, sizeof(Lamp::AssetHandle), ImGuiCond_Once);
+				ImGui::EndDragDropSource();
+			}
+
+			RenderFilePopup(asset);
+		}
+		ImGui::EndChild();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
+
+		UI::ShiftCursor(itemPadding / 2.f, 0.f);
+		ImGui::TextWrapped(asset.path.filename().string().c_str());
+
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && itemHovered)
 		{
 			EditorLibrary::OpenAsset(Lamp::AssetManager::Get().GetAssetRaw(asset.handle));
 		}
 
-		if (ImGui::BeginDragDropSource())
-		{
-			//Data being copied
-			ImGui::SetDragDropPayload("ASSET_BROWSER_ITEM", &asset.handle, sizeof(Lamp::AssetHandle), ImGuiCond_Once);
-			ImGui::EndDragDropSource();
-		}
-		RenderFilePopup(asset);
+		ImGui::EndChild();
 
-		ImGui::TextWrapped(asset.path.filename().string().c_str());
+		ImGui::PopStyleColor();
 
 		ImGui::NextColumn();
 		ImGui::PopID();
@@ -407,7 +484,7 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 
 void AssetBrowserPanel::RenderFilePopup(const AssetData& data)
 {
-	if (UI::BeginPopup())
+	if (UI::BeginPopup(data.path.string()))
 	{
 		if (ImGui::MenuItem("Open Externally"))
 		{

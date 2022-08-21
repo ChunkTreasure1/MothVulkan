@@ -10,6 +10,7 @@ namespace Lamp
 {
 	SERIALIZE_COMPONENT(struct TagComponent
 	{
+		float t;
 		PROPERTY(Name = Tag) std::string tag;
 
 		CREATE_COMPONENT_GUID("{282FA5FB-6A77-47DB-8340-3D34F1A1FBBD}"_guid);

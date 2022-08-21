@@ -27,11 +27,10 @@
 #include <Lamp/Scene/Scene.h>
 
 #include <Lamp/Input/KeyCodes.h>
+#include <Lamp/Input/MouseButtonCodes.h>
 #include <Lamp/Input/Input.h>
 
 #include <Lamp/Utility/FileSystem.h>
-
-#include <imgui.h>
 
 Sandbox::~Sandbox()
 {
@@ -46,23 +45,24 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	// Sponza 
-	{
-		auto entity = m_editorScene->CreateEntity();
-		auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-		mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
-	}
+	//// Sponza 
+	//{
+	//	auto entity = m_editorScene->CreateEntity();
+	//	auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+	//	mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
+	//}
 
 	// Light
 	{
 		auto entity = m_editorScene->CreateEntity();
+		entity.RemoveComponent<Lamp::TagComponent>();
 
-		auto& lightComp = entity.AddComponent<Lamp::DirectionalLightComponent>();
-		lightComp.color = { 1.f, 1.f, 1.f };
-		lightComp.intensity = 1.f;
+		//auto& lightComp = entity.AddComponent<Lamp::DirectionalLightComponent>();
+		//lightComp.color = { 1.f, 1.f, 1.f };
+		//lightComp.intensity = 1.f;
 	}
 
-	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorScene, m_editorCameraController));
+	m_editorWindows.emplace_back(CreateRef<ViewportPanel>(m_sceneRenderer, m_editorScene, m_editorCameraController, m_selectedEntities, m_gizmoOperation, m_gizmoMode));
 	m_editorWindows.emplace_back(CreateRef<PropertiesPanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<CreatePanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<AssetBrowserPanel>());
@@ -173,6 +173,8 @@ void Sandbox::SaveSceneAs()
 
 bool Sandbox::OnImGuiUpdateEvent(Lamp::AppImGuiUpdateEvent& e)
 {
+	ImGuizmo::BeginFrame();
+
 	ShouldSavePopup();
 	UpdateDockSpace();
 
@@ -252,6 +254,33 @@ bool Sandbox::OnKeyPressedEvent(Lamp::KeyPressedEvent& e)
 				NewScene();
 			}
 
+			break;
+		}
+
+		case LP_KEY_W:
+		{
+			if (!Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_RIGHT))
+			{
+				m_gizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+			}
+			break;
+		}
+
+		case LP_KEY_E:
+		{
+			if (!Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_RIGHT))
+			{
+				m_gizmoOperation = ImGuizmo::OPERATION::ROTATE;
+			}
+			break;
+		}
+
+		case LP_KEY_R:
+		{
+			if (!Lamp::Input::IsMouseButtonPressed(LP_MOUSE_BUTTON_RIGHT))
+			{
+				m_gizmoOperation = ImGuizmo::OPERATION::SCALE;
+			}
 			break;
 		}
 

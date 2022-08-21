@@ -8,6 +8,9 @@
 #include <Lamp/Event/ApplicationEvent.h>
 #include <Lamp/Event/KeyEvent.h>
 
+#include <imgui.h>
+#include <ImGuizmo.h>
+
 namespace Lamp
 {
 	class SceneRenderer;
@@ -57,4 +60,7 @@ private:
 	Ref<Lamp::Scene> m_editorScene;
 
 	EditorSettings m_settings;
+
+	ImGuizmo::OPERATION m_gizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+	ImGuizmo::MODE m_gizmoMode = ImGuizmo::MODE::WORLD;
 };

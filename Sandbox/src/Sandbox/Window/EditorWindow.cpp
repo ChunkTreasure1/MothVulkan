@@ -41,3 +41,8 @@ void EditorWindow::End()
 {
 	ImGui::End();
 }
+
+void EditorWindow::Open()
+{
+	m_isOpen = true;
+}
