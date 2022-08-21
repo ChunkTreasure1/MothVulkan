@@ -8,6 +8,7 @@
 #include "Lamp/Core/Window.h"
 
 #include "Lamp/Log/Log.h"
+#include "Lamp/Utility/FileSystem.h"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -48,21 +49,16 @@ namespace Lamp
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;		//Enable multiple viewports
 		
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
+		io.IniFilename = nullptr;
+
+		const std::filesystem::path iniPath = GetOrCreateIniPath();
+		ImGui::LoadIniSettingsFromDisk(iniPath.string().c_str());
 
 		m_font = io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-light.ttf", 18.f);
 		ImGui::MergeIconsWithLatestFont(16.f, false);
 
 		io.Fonts->AddFontFromFileTTF("Engine/Fonts/Futura/futura-bold.otf", 18.f);
 		ImGui::MergeIconsWithLatestFont(16.f, false);
-
-
-		// imgui-notify font
-		{
-			/*ImFontConfig fontCfg;
-			fontCfg.FontDataOwnedByAtlas = false;
-			io.Fonts->AddFontFromMemoryTTF((void*)tahoma, sizeof(tahoma), 17.f, &fontCfg);*/
-		}
-
 		ImGui::StyleColorsDark();
 
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -352,5 +348,33 @@ namespace Lamp
 	Scope<ImGuiImplementation> ImGuiImplementation::Create()
 	{
 		return CreateScope<ImGuiImplementation>();
+	}
+
+	std::filesystem::path ImGuiImplementation::GetOrCreateIniPath()
+	{
+		const std::filesystem::path userIniFile = "User/imgui.ini";
+		const std::filesystem::path defaultIniPath = "Editor/imgui.ini";
+
+		if (!FileSystem::Exists(userIniFile))
+		{
+			LP_CORE_INFO("User Ini file not found! Copying default!");
+			
+			std::filesystem::create_directories(userIniFile.parent_path());
+			if (!FileSystem::Exists(defaultIniPath))
+			{
+				LP_CORE_ERROR("Unable to find default ini file!");
+				
+				if (!FileSystem::Exists(defaultIniPath.parent_path()))
+				{
+					std::filesystem::create_directories(defaultIniPath.parent_path());
+				}
+
+				return defaultIniPath;
+			}
+
+			FileSystem::Copy(defaultIniPath, userIniFile);
+		}
+
+		return userIniFile;
 	}
 }

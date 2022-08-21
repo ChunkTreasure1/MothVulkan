@@ -19,6 +19,8 @@ namespace Lamp
 		static Scope<ImGuiImplementation> Create();
 
 	private:
+		std::filesystem::path GetOrCreateIniPath();
+
 		ImFont* m_font;
 		VkDescriptorPool m_descriptorPool;
 	};
