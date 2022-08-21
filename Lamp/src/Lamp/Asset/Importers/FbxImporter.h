@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MeshImporter.h"
+#include "MeshTypeImporter.h"
 
 #include "Lamp/Rendering/Vertex.h"
 
@@ -9,7 +9,7 @@
 namespace Lamp
 {
 	class Mesh;
-	class FbxImporter : public MeshImporter
+	class FbxImporter : public MeshTypeImporter
 	{
 	public:
 		FbxImporter() = default;

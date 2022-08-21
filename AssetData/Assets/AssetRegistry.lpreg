@@ -7,18 +7,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 13717396777666668695
-    Path: Assets\Meshes\Sponza\sponzamat.lpmat
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 2364318552008784800
     Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 7625587265189312090
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 1249971563143443831
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
+  - Handle: 13717396777666668695
+    Path: Assets\Meshes\Sponza\sponzamat.lpmat
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
+  - Handle: 1249971563143443831
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -187,6 +187,8 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\stones_2ndfloor_01_n.dds
   - Handle: 12562275450317383540
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_c.dds
+  - Handle: 4343160822256523224
+    Path: Assets\Meshes\Chest\SM_Particle_Chest.fbx
   - Handle: 1630721548965055897
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_m.dds
   - Handle: 12215716018415664801
@@ -325,6 +327,8 @@ Assets:
     Path: Engine\Shaders\Cache\Default_fs.glsl.fragment.cached
   - Handle: 3707774219062751949
     Path: Engine\Shaders\Cache\Default_vs.glsl.vertex.cached
+  - Handle: 5911375088574771334
+    Path: Assets\Meshes\Cube\cube.fbx
   - Handle: 557521438286527886
     Path: Engine\Shaders\Default\Default_fs.glsl
   - Handle: 4932343772043428791
@@ -333,3 +337,21 @@ Assets:
     Path: C:\Programming\MothVulkan\AssetData\Assets\Scenes\Test
   - Handle: 7771782822999759083
     Path: Assets\Scenes\Test\Test.lpscene
+  - Handle: 12594914159688814022
+    Path: Engine\Materials\default.lpmat
+  - Handle: 13838956951283021638
+    Path: Engine/RenderPipelines\default.lprpdef
+  - Handle: 8508364765910540129
+    Path: Assets\Meshes\Skull\LampSkull.glb
+  - Handle: 5287023293362031512
+    Path: Assets\Meshes\Skull\LampSkull.lpmat
+  - Handle: 6841946727673092734
+    Path: Assets\Meshes\Skull\LampSkull.lpgf
+  - Handle: 17057391180518103171
+    Path: Assets\Meshes\Cube\cube.lpmat
+  - Handle: 6294269863089911071
+    Path: Assets\Meshes\Cube\cube.lpgf
+  - Handle: 15362238174013972812
+    Path: Assets\Meshes\Chest\SM_Particle_Chest.lpmat
+  - Handle: 4302572881064992452
+    Path: Assets\Meshes\Chest\SM_Particle_Chest.lpgf

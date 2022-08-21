@@ -18,7 +18,7 @@ namespace Lamp
 			vertexStartOffset == rhs.vertexStartOffset &&
 			indexStartOffset == rhs.indexStartOffset;
 	}
-	
+
 	void SubMesh::GenerateHash()
 	{
 		m_hash = Utility::HashCombine(m_hash, std::hash<uint32_t>()(materialIndex));

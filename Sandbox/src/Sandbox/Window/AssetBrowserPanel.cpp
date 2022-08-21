@@ -5,6 +5,7 @@
 #include "Sandbox/Window/EditorLibrary.h"
 
 #include <Lamp/Asset/AssetManager.h>
+#include <Lamp/Asset/Mesh/MeshCompiler.h>
 #include <Lamp/Rendering/Shader/Shader.h>
 
 #include <Lamp/Utility/FileSystem.h>
@@ -36,7 +37,7 @@ namespace Utility
 }
 
 AssetBrowserPanel::AssetBrowserPanel()
-	: EditorWindow("Asset Browser"), m_currentDirectoryPath(FileSystem::GetAssetsPath())
+	: EditorWindow("Asset Browser")
 {
 	m_windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	m_isOpen = true;
@@ -157,13 +158,22 @@ void AssetBrowserPanel::UpdateMainContent()
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndChild();
+
+
 		}
 		ImGui::EndChild();
-
 		ImGui::EndTable();
 	}
 
 	UI::PopId();
+
+	if (m_shouldOpenMeshImportModal) 
+	{
+		ImGui::OpenPopup("Import Mesh");
+		m_shouldOpenMeshImportModal = false;
+	}
+
+	RenderMeshImportModal();
 }
 
 Ref<DirectoryData> AssetBrowserPanel::ProcessDirectory(const std::filesystem::path& path, Ref<DirectoryData> parent)
@@ -299,7 +309,7 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 				int32_t currentValue = (int32_t)m_showEngineAssets;
 
-				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - height - 150.f - buttonSizeOffset / 2.f, 0.f);
+				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - 2.f * height - 150.f - buttonSizeOffset, 0.f);
 
 				ImGui::PushItemWidth(150.f);
 				if (ImGui::Combo("##assetType", &currentValue, items))
@@ -316,6 +326,27 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 				}
 				ImGui::PopItemWidth();
+			}
+
+			ImGui::SameLine();
+
+			// Add button
+			{
+				UI::ScopedColor buttonBackground(ImGuiCol_Button, { 0.f, 0.f, 0.f, 0.f });
+				if (ImGui::Button("+", { height - buttonSizeOffset, height - buttonSizeOffset }))
+				{
+				}
+			}
+
+			if (ImGui::BeginPopupContextItem("addMenu", ImGuiPopupFlags_MouseButtonLeft))
+			{
+				if (ImGui::MenuItem("Folder"))
+				{
+					FileSystem::CreateFolder(m_currentDirectory->path / "New Folder");
+					Reload();
+				}
+
+				ImGui::EndPopup();
 			}
 
 			ImGui::SameLine();
@@ -391,6 +422,13 @@ void AssetBrowserPanel::RenderView(const std::vector<Ref<DirectoryData>>& dirDat
 		{
 			dir->selected = true;
 			m_nextDirectory = dir.get();
+		}
+
+		if (void* ptr = UI::DragDropTarget({ "ASSET_BROWSER_ITEM" }))
+		{
+			Lamp::AssetHandle handle = *(Lamp::AssetHandle*)ptr;
+			Lamp::AssetManager::Get().MoveAsset(Lamp::AssetManager::Get().GetAssetRaw(handle), dir->path);
+			Reload();
 		}
 
 		ImGui::TextWrapped(dir->path.filename().string().c_str());
@@ -491,25 +529,12 @@ void AssetBrowserPanel::RenderFilePopup(const AssetData& data)
 			FileSystem::OpenFileExternally(data.path);
 		}
 
+		ImGui::Separator();
+
 		switch (data.type)
 		{
-			case Lamp::AssetType::Shader:
-			{
-				if (ImGui::MenuItem("Recompile"))
-				{
-					Ref<Lamp::Shader> shader = Lamp::AssetManager::GetAsset<Lamp::Shader>(data.path);
-					if (shader->Reload(true))
-					{
-						UI::Notify(NotificationType::Success, "Shader Compiled!", std::format("Shader {} compiled succesfully!", data.path.string()));
-					}
-					else
-					{
-						UI::Notify(NotificationType::Error, "Shader Compilation Failed", std::format("Shader {} failed to compile!", data.path.string()));
-					}
-				}
-
-				break;
-			}
+			case Lamp::AssetType::Shader: RenderShaderPopup(data); break;
+			case Lamp::AssetType::MeshSource: RenderMeshSourcePopup(data); break;
 
 			default:
 				break;
@@ -559,6 +584,106 @@ void AssetBrowserPanel::Reload()
 	//Setup new file path buttons
 	m_directoryButtons.clear();
 	m_directoryButtons = FindParentDirectoriesOfDirectory(m_currentDirectory);
+}
+
+void AssetBrowserPanel::RenderShaderPopup(const AssetData& data)
+{
+	if (ImGui::MenuItem("Recompile"))
+	{
+		Ref<Lamp::Shader> shader = Lamp::AssetManager::GetAsset<Lamp::Shader>(data.path);
+		if (shader->Reload(true))
+		{
+			UI::Notify(NotificationType::Success, "Shader Compiled!", std::format("Shader {} compiled succesfully!", data.path.string()));
+		}
+		else
+		{
+			UI::Notify(NotificationType::Error, "Shader Compilation Failed", std::format("Shader {} failed to compile!", data.path.string()));
+		}
+	}
+}
+
+void AssetBrowserPanel::RenderMeshSourcePopup(const AssetData& data)
+{
+	if (ImGui::MenuItem("Import"))
+	{
+		m_meshImportData = {};
+
+		m_meshToImport = data;
+		m_meshImportData.destination = m_meshToImport.path.parent_path().string() + "/" + m_meshToImport.path.stem().string() + ".lpgf";
+		m_shouldOpenMeshImportModal = true;
+	}
+}
+
+void AssetBrowserPanel::RenderMeshImportModal()
+{
+	if (ImGui::BeginPopupModal("Import Mesh", nullptr))
+	{
+		const std::string srcPath = m_meshToImport.path.string();
+
+		ImGui::TextUnformatted("Mesh");
+
+		UI::PushId();
+		if (UI::BeginProperties())
+		{
+			UI::Property("Source", srcPath, true);
+			UI::Property("Destination", m_meshImportData.destination);
+
+			UI::EndProperties();
+		}
+		UI::PopId();
+
+		ImGui::Separator();
+		ImGui::TextUnformatted("Material");
+
+		UI::PushId();
+		if (UI::BeginProperties())
+		{
+			UI::Property("Create Materials", m_meshImportData.createMaterials);
+
+			UI::EndProperties();
+		}
+		UI::PopId();
+
+		if (!m_meshImportData.createMaterials)
+		{
+			UI::PushId();
+			if (UI::BeginProperties())
+			{
+				UI::Property("Material", m_meshImportData.externalMaterial);
+
+				UI::EndProperties();
+			}
+
+			UI::PopId();
+		}
+
+		if (ImGui::Button("Import"))
+		{
+			const Lamp::AssetHandle material = m_meshImportData.createMaterials ? Lamp::Asset::Null() : m_meshImportData.externalMaterial;
+			bool succeded = Lamp::MeshCompiler::TryCompile(Lamp::AssetManager::GetAsset<Lamp::Mesh>(m_meshToImport.path), m_meshImportData.destination, material);
+
+			if (succeded)
+			{
+				UI::Notify(NotificationType::Success, "Mesh compilation succeded!", std::format("Successfully compiled mesh to {}!", m_meshImportData.destination.string()));
+				Reload();
+			}
+			else
+			{
+				UI::Notify(NotificationType::Error, "Failed to compile mesh!", std::format("Failed to compile mesh to location {}!", m_meshImportData.destination.string()));
+			}
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 void AssetBrowserPanel::Search(const std::string& query)

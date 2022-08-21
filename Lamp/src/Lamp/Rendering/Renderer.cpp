@@ -453,6 +453,8 @@ namespace Lamp
 
 			s_defaultData->defaultPipeline = RenderPipeline::Create(renderPipelineSpec);
 		}
+
+		s_defaultData->defaultMaterial = AssetManager::GetAsset<MultiMaterial>("Engine/Materials/default.lpmat");
 	}
 
 	void Renderer::CreateDescriptorPools()
@@ -596,7 +598,7 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
 		{
-			return lhs.subMesh > rhs.subMesh || lhs.mesh > rhs.mesh;
+			return lhs.subMesh > rhs.subMesh;
 		});
 	}
 

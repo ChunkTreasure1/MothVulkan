@@ -1,7 +1,7 @@
 #include "lppch.h"
 #include "MeshSourceImporter.h"
 
-#include "MeshImporter.h"
+#include "MeshTypeImporter.h"
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Asset/Mesh/Mesh.h"
@@ -18,7 +18,7 @@ namespace Lamp
 			asset->SetFlag(AssetFlag::Missing, true);
 			return false;
 		}
-		auto mesh = MeshImporter::ImportMesh(path);
+		auto mesh = MeshTypeImporter::ImportMesh(path);
 
 		if (!mesh) [[unlikely]]
 		{

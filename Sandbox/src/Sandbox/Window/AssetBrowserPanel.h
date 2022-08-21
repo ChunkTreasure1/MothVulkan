@@ -16,6 +16,13 @@ public:
 	void UpdateMainContent() override;
 
 private:
+	struct MeshImportData
+	{
+		std::filesystem::path destination;
+		Lamp::AssetHandle externalMaterial;
+		bool createMaterials = true;
+	};
+
 	Ref<DirectoryData> ProcessDirectory(const std::filesystem::path& path, Ref<DirectoryData> parent);
 	std::vector<DirectoryData*> FindParentDirectoriesOfDirectory(DirectoryData* directory);
 
@@ -25,7 +32,12 @@ private:
 	void RenderFilePopup(const AssetData& data);
 	void RenderFileInfo(const AssetData& data);
 	void Reload();
-	
+
+	void RenderShaderPopup(const AssetData& data);
+	void RenderMeshSourcePopup(const AssetData& data);
+
+	void RenderMeshImportModal();
+
 	void Search(const std::string& query);
 	void FindFoldersAndFilesWithQuery(const std::vector<Ref<DirectoryData>>& dirList, std::vector<Ref<DirectoryData>>& directories, std::vector<AssetData>& assets, const std::string& query);
 
@@ -34,7 +46,6 @@ private:
 
 	std::unordered_map<std::string, Ref<DirectoryData>> m_directories;
 	std::vector<DirectoryData*> m_directoryButtons;
-	std::filesystem::path m_currentDirectoryPath;
 
 	DirectoryData* m_currentDirectory = nullptr;
 	DirectoryData* m_nextDirectory = nullptr;
@@ -52,4 +63,10 @@ private:
 	bool m_hasSearchQuery = false;
 
 	std::unordered_map<Lamp::AssetType, Ref<Lamp::Texture2D>> m_assetIcons;
+
+	// Mesh import data
+	bool m_shouldOpenMeshImportModal = false;
+
+	AssetData m_meshToImport;
+	MeshImportData m_meshImportData;
 };

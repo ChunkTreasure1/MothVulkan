@@ -12,6 +12,7 @@ namespace Lamp
 		void GenerateHash();
 
 		bool operator==(const SubMesh& rhs);
+
 		friend bool operator>(const SubMesh& lhs, const SubMesh& rhs);
 		friend bool operator<(const SubMesh& lhs, const SubMesh& rhs);
 

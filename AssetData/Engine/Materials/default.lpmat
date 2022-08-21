@@ -1,0 +1,6 @@
+MultiMaterial:
+  name: Default
+  materials:
+    - material: Default
+      index: 0
+      renderPipeline: Default

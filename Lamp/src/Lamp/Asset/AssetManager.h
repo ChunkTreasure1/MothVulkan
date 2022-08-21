@@ -23,6 +23,8 @@ namespace Lamp
 		void LoadAsset(const std::filesystem::path& path, Ref<Asset>& asset);
 		void LoadAsset(AssetHandle assetHandle, Ref<Asset>& asset);
 		void SaveAsset(const Ref<Asset> asset);
+		void MoveAsset(Ref<Asset> asset, std::filesystem::path& targetDir);
+
 		Ref<Asset> GetAssetRaw(AssetHandle assetHandle);
 
 		AssetType GetAssetTypeFromHandle(const AssetHandle& handle);

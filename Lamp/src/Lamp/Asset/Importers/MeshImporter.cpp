@@ -1,45 +1,37 @@
 #include "lppch.h"
 #include "MeshImporter.h"
 
-#include "FbxImporter.h"
-#include "GLTFImporter.h"
+#include "MeshTypeImporter.h"
+#include "Lamp/Log/Log.h"
+
+#include "Lamp/Asset/Mesh/Mesh.h"
 
 namespace Lamp
 {
-	void MeshImporter::Initialize()
+	bool MeshImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		s_importers[MeshFormat::Fbx] = CreateScope<FbxImporter>();
-		s_importers[MeshFormat::GLTF] = CreateScope<GLTFImporter>();
-	}
+		asset = CreateRef<Mesh>();
 
-	void MeshImporter::Shutdown()
-	{
-		s_importers.clear();
-	}
-
-	Ref<Mesh> MeshImporter::ImportMesh(const std::filesystem::path& path)
-	{
-		return s_importers[FormatFromExtension(path)]->ImportMeshImpl(path);
-	}
-
-	MeshImporter::MeshFormat MeshImporter::FormatFromExtension(const std::filesystem::path& path)
-	{
-		auto ext = path.extension().string();
-		
-		if (ext == ".fbx" || ext == ".FBX")
+		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
-			return MeshFormat::Fbx;
+			LP_CORE_ERROR("File {0} not found!", path.string().c_str());
+			asset->SetFlag(AssetFlag::Missing, true);
+			return false;
 		}
-		else if (ext == ".gltf" || ext == ".glb")
+		auto mesh = MeshTypeImporter::ImportMesh(path);
+
+		if (!mesh) [[unlikely]]
 		{
-			return MeshFormat::GLTF;
-		}
-		else if (ext == ".lgf")
-		{
-			return MeshFormat::LGF;
+			asset->SetFlag(AssetFlag::Invalid, true);
+			return false;
 		}
 
-		return MeshFormat::Other;
+		asset = mesh;
+		asset->path = path;
+		return true;
 	}
 
+	void MeshImporter::Save(const Ref<Asset>& asset) const
+	{
+	}
 }

@@ -19,6 +19,7 @@ namespace Lamp
 	class Camera;
 
 	class Mesh;
+	class MultiMaterial;
 	class Texture2D;
 	class Material;
 	class RenderPipelineCompute;
@@ -48,6 +49,7 @@ namespace Lamp
 		struct DefaultData
 		{
 			Ref<RenderPipeline> defaultPipeline;
+			Ref<MultiMaterial> defaultMaterial;
 
 			Ref<Texture2D> whiteTexture;
 			Ref<Image2D> blackCubeImage;

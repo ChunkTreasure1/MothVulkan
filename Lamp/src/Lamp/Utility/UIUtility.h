@@ -720,7 +720,7 @@ namespace UI
 		return changed;
 	}
 
-	static bool Property(const std::string& text, const std::string& value)
+	static bool Property(const std::string& text, const std::string& value, bool readOnly = false)
 	{
 		bool changed = false;
 
@@ -728,10 +728,9 @@ namespace UI
 		ImGui::TextUnformatted(text.c_str());
 
 		ImGui::TableNextColumn();
-		std::string id = "##" + std::to_string(s_stackId++);
 		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
-		if (InputText(id, const_cast<std::string&>(value)))
+		if (InputText("", const_cast<std::string&>(value), readOnly ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
 		{
 			changed = true;
 		}
@@ -741,7 +740,7 @@ namespace UI
 		return changed;
 	}
 
-	static bool Property(const std::string& text, std::string& value)
+	static bool Property(const std::string& text, std::string& value, bool readOnly = false)
 	{
 		bool changed = false;
 
@@ -751,7 +750,7 @@ namespace UI
 		ImGui::TableNextColumn();
 		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 
-		if (InputText("", value))
+		if (InputText("", value, readOnly ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
 		{
 			changed = true;
 		}
@@ -845,7 +844,7 @@ namespace UI
 
 		ImGui::TableNextColumn();
 
-		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 20.f);
+		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 2.f * 25.f);
 
 		std::string assetFileName = "Null";
 
@@ -869,10 +868,22 @@ namespace UI
 		ImGui::SameLine();
 
 		std::string buttonId = "X##" + std::to_string(s_stackId++);
-		if (ImGui::Button(buttonId.c_str()))
+		if (ImGui::Button(buttonId.c_str(), { 25.f, 25.f }))
 		{
 			assetHandle = Lamp::Asset::Null();
 			changed = true;
+		}
+
+		ImGui::SameLine();
+
+		std::string selectButtonId = "...##" + std::to_string(s_stackId++);
+		if (ImGui::Button(selectButtonId.c_str(), { 25.f, 25.f }))
+		{
+		}
+
+		if (UI::BeginPopup())
+		{
+			UI::EndPopup();
 		}
 
 		return changed;

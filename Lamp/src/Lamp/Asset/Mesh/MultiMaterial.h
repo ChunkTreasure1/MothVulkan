@@ -20,6 +20,7 @@ namespace Lamp
 		friend class FbxImporter;
 		friend class GLTFImporter;
 		friend class MultiMaterialImporter;
+		friend class MeshCompiler;
 
 		std::string m_name;
 		std::unordered_map<uint32_t, Ref<Material>>	m_materials;

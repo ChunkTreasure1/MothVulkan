@@ -23,7 +23,6 @@ namespace Lamp
 
 		void Construct();
 
-		inline const std::string& GetName() const { return m_name; }
 		inline const std::vector<SubMesh>& GetSubMeshes() const { return m_subMeshes; }
 		inline const Ref<MultiMaterial>& GetMaterial() const { return m_material; }
 
@@ -40,6 +39,8 @@ namespace Lamp
 	private:
 		friend class FbxImporter;
 		friend class GLTFImporter;
+		friend class LPGFImporter;
+		friend class MeshCompiler;
 
 		std::vector<SubMesh> m_subMeshes;
 
@@ -52,6 +53,5 @@ namespace Lamp
 		Ref<IndexBuffer> m_indexBuffer;
 
 		BoundingSphere m_boundingSphere;
-		std::string m_name;
 	};
 }

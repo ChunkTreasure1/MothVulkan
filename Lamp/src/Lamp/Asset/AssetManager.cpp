@@ -2,9 +2,10 @@
 #include "AssetManager.h"
 
 #include "Lamp/Asset/Importers/AssetImporter.h"
-#include "Lamp/Asset/Importers/MeshImporter.h"
+#include "Lamp/Asset/Importers/MeshTypeImporter.h"
 #include "Lamp/Asset/Importers/TextureImporter.h"
 #include "Lamp/Asset/Importers/MeshSourceImporter.h"
+#include "Lamp/Asset/Importers/MeshImporter.h"
 #include "Lamp/Asset/Importers/RenderPipelineImporter.h"
 #include "Lamp/Asset/Importers/RenderPassImporter.h"
 #include "Lamp/Asset/Importers/RenderGraphImporter.h"
@@ -14,6 +15,7 @@
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Utility/StringUtility.h"
+#include "Lamp/Utility/FileSystem.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -37,7 +39,7 @@ namespace Lamp
 
 	void AssetManager::Initialize()
 	{
-		MeshImporter::Initialize();
+		MeshTypeImporter::Initialize();
 		TextureImporter::Initialize();
 
 		m_assetImporters.emplace(AssetType::MeshSource, CreateScope<MeshSourceImporter>());
@@ -48,6 +50,7 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::RenderGraph, CreateScope<RenderGraphImporter>());
 		m_assetImporters.emplace(AssetType::Material, CreateScope<MultiMaterialImporter>());
 		m_assetImporters.emplace(AssetType::Scene, CreateScope<SceneImporter>());
+		m_assetImporters.emplace(AssetType::Mesh, CreateScope<MeshImporter>());
 
 		LoadAssetRegistry();
 	}
@@ -55,7 +58,7 @@ namespace Lamp
 	void AssetManager::Shutdown()
 	{
 		SaveAssetRegistry();
-		MeshImporter::Shutdown();
+		MeshTypeImporter::Shutdown();
 		TextureImporter::Shutdown();
 	}
 
@@ -142,6 +145,18 @@ namespace Lamp
 		m_assetImporters[asset->GetType()]->Save(asset);
 	}
 
+	void AssetManager::MoveAsset(Ref<Asset> asset, std::filesystem::path& targetDir)
+	{
+		FileSystem::Move(asset->path, targetDir);
+
+		const std::filesystem::path newPath = targetDir / asset->path.filename();
+		
+		m_assetRegistry.erase(asset->path);
+		asset->path = newPath;
+		
+		m_assetRegistry.emplace(asset->path, asset->handle);
+	}
+
 	Ref<Asset> AssetManager::GetAssetRaw(AssetHandle assetHandle)
 	{
 		auto it = m_assetCache.find(assetHandle);
@@ -150,7 +165,10 @@ namespace Lamp
 			return it->second;
 		}
 
-		return nullptr;
+		Ref<Asset> asset;
+		LoadAsset(assetHandle, asset);
+
+		return asset;
 	}
 
 	AssetType AssetManager::GetAssetTypeFromHandle(const AssetHandle& handle)

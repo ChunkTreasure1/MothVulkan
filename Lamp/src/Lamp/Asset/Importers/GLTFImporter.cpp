@@ -49,8 +49,19 @@ namespace Lamp
 		mesh->m_material = CreateRef<MultiMaterial>();
 		mesh->m_material->m_name = path.stem().string() + "_mat";
 
-		//MaterialRegistry::Register(mesh->m_material->m_name, mesh->m_material); // TODO: REMOVE
-		mesh->m_material = MaterialRegistry::Get("Sponza2022_mat"); // TODO: remove
+		if (auto mat = MaterialRegistry::Get(mesh->m_material->m_name))
+		{
+			mesh->m_material = mat;
+		}
+		else
+		{
+			uint32_t index = 0;
+			for (const auto& mat : gltfInput.materials)
+			{
+				mesh->m_material->m_materials.emplace(index, CreateRef<Material>(mat.name, index, RenderPipelineRegistry::Get("PBR")));
+				index++;
+			}
+		}
 
    		const tinygltf::Scene& scene = gltfInput.scenes[gltfInput.defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)

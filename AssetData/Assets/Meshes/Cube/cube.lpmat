@@ -1,0 +1,11 @@
+MultiMaterial:
+  name: cube_mat
+  materials:
+    - material: Cube
+      index: 0
+      renderPipeline: PBR
+      textures:
+        - binding: 0
+          handle: 0
+        - binding: 1
+          handle: 0

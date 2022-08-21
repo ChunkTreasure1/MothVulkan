@@ -88,9 +88,34 @@ public:
 			return false;
 		}
 
-		std::filesystem::path newPath = aPath.parent_path() / (aName + aPath.extension().string());
+		const std::filesystem::path newPath = aPath.parent_path() / (aName + aPath.extension().string());
 		std::filesystem::rename(aPath, newPath);
 
+		return true;
+	}
+
+	static bool Move(const std::filesystem::path& file, const std::filesystem::path& destinationFolder)
+	{
+		if (!Exists(file))
+		{
+			return false;
+		}
+
+		const std::filesystem::path newPath = destinationFolder / file.filename();
+		std::filesystem::rename(file, newPath);
+
+		return true;
+	}
+
+	static bool CreateFolder(const std::filesystem::path& folder)
+	{
+		if (Exists(folder))
+		{
+			return false;
+		}
+
+		std::filesystem::create_directories(folder);
+	
 		return true;
 	}
 
