@@ -13,3 +13,4 @@
 *.lsa filter=lfs diff=lfs merge=lfs -text
 *.glb filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
+*.lpgf filter=lfs diff=lfs merge=lfs -text

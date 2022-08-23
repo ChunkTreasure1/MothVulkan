@@ -13,16 +13,16 @@ namespace Lamp
 		static void Initialize();
 		static void Shutdown();
 
-		static Ref<MultiMaterial> Get(const std::string& name);
-		static void Register(const std::string& name, Ref<MultiMaterial> shader);
+		static const std::filesystem::path& Get(const std::string& name);
+		static void Register(const std::string& name, const std::filesystem::path& path);
 
-		inline static const std::unordered_map<std::string, Ref<MultiMaterial>>& GetMaterials() { return s_registry; }
+		inline static const std::unordered_map<std::string, std::filesystem::path>& GetMaterials() { return s_registry; }
 
 	private:
+		static void FindAllMaterials();
+
 		MaterialRegistry() = delete;
 
-		static void LoadAllMaterials();
-
-		inline static std::unordered_map<std::string, Ref<MultiMaterial>> s_registry;
+		inline static std::unordered_map<std::string, std::filesystem::path> s_registry;
 	};
 }
