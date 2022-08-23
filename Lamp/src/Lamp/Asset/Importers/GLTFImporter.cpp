@@ -5,6 +5,7 @@
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/MaterialRegistry.h"
+#include "Lamp/Asset/AssetManager.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
@@ -49,9 +50,11 @@ namespace Lamp
 		mesh->m_material = CreateRef<MultiMaterial>();
 		mesh->m_material->m_name = path.stem().string() + "_mat";
 
-		if (auto mat = MaterialRegistry::Get(mesh->m_material->m_name))
+		auto matPath = MaterialRegistry::Get(mesh->m_material->m_name);
+
+		if (!matPath.empty())
 		{
-			mesh->m_material = mat;
+			mesh->m_material = AssetManager::GetAsset<MultiMaterial>(matPath);
 		}
 		else
 		{

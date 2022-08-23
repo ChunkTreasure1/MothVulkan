@@ -28,14 +28,14 @@ void MaterialEditorPanel::UpdateContent()
 			Lamp::AssetManager::Get().SaveAsset(m_selectedMaterial);
 		}
 
-		const auto& materials = Lamp::MaterialRegistry::GetMaterials();
-		for (auto& [name, material] : materials)
-		{
-			if (ImGui::Selectable(name.c_str()))
-			{
-				m_selectedMaterial = material;
-			}
-		}
+		//const auto& materials = Lamp::MaterialRegistry::GetMaterials();
+		//for (auto& [name, material] : materials)
+		//{
+		//	if (ImGui::Selectable(name.c_str()))
+		//	{
+		//		m_selectedMaterial = material;
+		//	}
+		//}
 	}
 	ImGui::End();
 
