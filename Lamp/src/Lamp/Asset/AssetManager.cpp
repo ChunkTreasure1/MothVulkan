@@ -53,6 +53,8 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::Mesh, CreateScope<MeshImporter>());
 
 		LoadAssetRegistry();
+
+		m_
 	}
 
 	void AssetManager::Shutdown()
@@ -64,6 +66,14 @@ namespace Lamp
 
 	void AssetManager::LoadAsset(const std::filesystem::path& path, Ref<Asset>& asset)
 	{
+		{
+			std::scoped_lock lock(m_loadMutex);
+			m_loadQueue.emplace_back(LoadJob{ &asset, path });
+		}
+
+
+
+
 		AssetHandle handle = Asset::Null();
 		if (m_assetRegistry.find(path) != m_assetRegistry.end())
 		{
@@ -262,6 +272,15 @@ namespace Lamp
 			AssetHandle handle = entry["Handle"].as<uint64_t>();
 
 			m_assetRegistry.emplace(path, handle);
+		}
+	}
+
+	void AssetManager::Thread_LoadAsset()
+	{
+		m_isThreadRunning = true;
+		while (m_isThreadRunning)
+		{
+
 		}
 	}
 }

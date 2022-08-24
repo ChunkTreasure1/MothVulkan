@@ -45,14 +45,29 @@ namespace Lamp
 		static Ref<T> GetAsset(const std::filesystem::path& path);
 
 	private:
+		struct LoadJob
+		{
+			Ref<Asset>* asset;
+			std::filesystem::path path;
+		};
+
 		inline static AssetManager* s_instance = nullptr;
 
 		void SaveAssetRegistry();
 		void LoadAssetRegistry();
 
+		void Thread_LoadAsset();
+
 		std::unordered_map<AssetType, Scope<AssetImporter>> m_assetImporters;
 		std::unordered_map<std::filesystem::path, AssetHandle> m_assetRegistry;
 		std::unordered_map<AssetHandle, Ref<Asset>> m_assetCache;
+
+		std::thread m_loadThread;
+		std::mutex m_loadMutex;
+		std::atomic_bool m_isThreadRunning = false;
+		std::condition_variable m_threadConditionVar;
+
+		std::vector<LoadJob> m_loadQueue;
 	};
 
 	template<typename T>
@@ -63,7 +78,8 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset;
+		Ref<Asset> asset = CreateRef<T>();
+		asset->SetFlag(AssetFlag::Queued, true);
 		Get().LoadAsset(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
@@ -102,7 +118,8 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset;
+		Ref<Asset> asset = CreateRef<T>();
+		asset->SetFlag(AssetFlag::Queued, true);
 		Get().LoadAsset(path, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);

@@ -232,7 +232,6 @@ namespace Lamp
 
 	bool RenderPassImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		asset = CreateRef<RenderPass>();
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());

@@ -14,7 +14,6 @@ namespace Lamp
 {
 	bool RenderGraphImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		asset = CreateRef<RenderGraph>();
 		Ref<RenderGraph> renderGraph = std::reinterpret_pointer_cast<RenderGraph>(asset);
 
 		if (!std::filesystem::exists(path)) [[unlikely]]
