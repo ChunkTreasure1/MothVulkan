@@ -29,6 +29,13 @@ namespace Lamp
 	class Shader : public Asset
 	{
 	public:
+		enum class Language
+		{
+			Invalid,
+			GLSL,
+			HLSL
+		};
+
 		struct ShaderStorageBuffer
 		{
 			VkDescriptorBufferInfo info{};
@@ -112,12 +119,12 @@ namespace Lamp
 
 		ShaderResources m_resources;
 		std::string m_name;
+		size_t m_hash{};
 
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageUBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageSSBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageStorageImageCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageImageCount;
 
-		size_t m_hash;
 	};
 }
