@@ -4,6 +4,8 @@
 #include "ShaderUtility.h"
 
 #include <shaderc/shaderc.hpp>
+#include <dxc/dxcapi.h>
+
 #include <file_includer.h>
 #include <libshaderc_util/file_finder.h>
 
@@ -163,6 +165,64 @@ namespace Lamp
 
 	bool ShaderCompiler::CompileHLSL(const VkShaderStageFlagBits stage, const std::string& src, const std::filesystem::path& path, std::vector<uint32_t>& outShaderData)
 	{
-		return false;
+		if (!DXCInstances::compiler)
+		{
+			DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&DXCInstances::compiler));
+			DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&DXCInstances::utils));
+		}
+
+		std::vector<const wchar_t*> arguments{ path.c_str(), L"-E", L"main", L"-T", Utility::HLSLShaderProfile(stage), L"-spirv", L"-fspv-target-env=vulkan1.3",
+			DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, DXC_ARG_WARNINGS_ARE_ERRORS };
+
+#ifdef LP_ENABLE_SHADER_DEBUG
+		arguments.emplace_back(L"-Qembed_debug");
+		arguments.emplace_back(DXC_ARG_DEBUG);
+#endif
+
+		if (stage & (VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT | VK_SHADER_STAGE_GEOMETRY_BIT))
+		{
+			arguments.emplace_back(L"-fvk-invert-y");
+		}
+
+		IDxcBlobEncoding* sourcePtr;
+		DXCInstances::utils->CreateBlob(src.c_str(), (uint32_t)src.size(), CP_UTF8, &sourcePtr);
+
+		DxcBuffer sourceBuffer{};
+		sourceBuffer.Ptr = sourcePtr->GetBufferPointer();
+		sourceBuffer.Size = sourcePtr->GetBufferSize();
+		sourceBuffer.Encoding = 0;
+
+		IDxcResult* compileResult;
+		std::string error;
+
+		HRESULT err = DXCInstances::compiler->Compile(&sourceBuffer, arguments.data(), (uint32_t)arguments.size(), nullptr, IID_PPV_ARGS(&compileResult));
+
+		const bool failed = FAILED(err);
+		if (failed)
+		{
+			error = std::format("Failed to compile. Error: {}\n", err);
+			IDxcBlobUtf8* errors;
+			compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
+			if (errors && errors->GetStringLength() > 0)
+			{
+				error.append(std::format("{}\nWhile compiling shader file: {}", (char*)errors->GetBufferPointer(), path.string()));
+			}
+		}
+
+		if (error.empty())
+		{
+			IDxcBlob* result;
+			compileResult->GetResult(&result);
+			
+			const size_t size = result->GetBufferSize();
+			outShaderData.resize(size / sizeof(uint32_t));
+			memcpy_s(outShaderData.data(), size, result->GetBufferPointer(), size);
+			result->Release();
+		}
+
+		compileResult->Release();
+		sourcePtr->Release();
+
+		return true;
 	}
 }

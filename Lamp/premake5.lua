@@ -49,7 +49,7 @@ project "Lamp"
 		"%{IncludeDir.shaderc_glslc}/**.h",
 
 		"%{IncludeDir.shaderc_utils}/**.cc",
-		"%{IncludeDir.shaderc_utils}/**.h"
+		"%{IncludeDir.shaderc_utils}/**.h",
 	}
 
 	includedirs

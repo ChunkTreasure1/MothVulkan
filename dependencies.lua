@@ -31,6 +31,7 @@ LibraryDir["OpenSSL"] = "%{wks.location}/Sandbox/vendor/OpenSSL/lib/%{cfg.buildc
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK_Debug}/VkLayer_utils.lib"
+Library["dxc"] = "%{LibraryDir.VulkanSDK}/dxcompiler.lib"
 
 Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK_Debug}/shaderc_sharedd.lib"
 Library["ShaderC_Utils_Debug"] = "%{LibraryDir.VulkanSDK_Debug}/shaderc_utild.lib"

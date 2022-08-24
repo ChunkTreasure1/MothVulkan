@@ -67,6 +67,7 @@ project "Launcher"
 		"Optick",
 
         "%{Library.Vulkan}",
+		"%{Library.dxc}",
 		"%{Library.fbxsdk}",
 		"%{Library.libxml2}",
 		"%{Library.zlib}"

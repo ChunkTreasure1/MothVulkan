@@ -79,6 +79,7 @@ project "Sandbox"
 		"crypt32.lib",
 
         "%{Library.Vulkan}",
+		"%{Library.dxc}",
 		"%{Library.fbxsdk}",
 		"%{Library.libxml2}",
 		"%{Library.zlib}",

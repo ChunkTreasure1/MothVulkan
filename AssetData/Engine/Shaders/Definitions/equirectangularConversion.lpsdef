@@ -1,3 +1,3 @@
 name: "EquirectangularConversion"
 paths:
-  - "Engine/Shaders/Environment/EquirectangularConversion_cs.glsl"
+  - "Engine/Shaders/GLSL/Environment/EquirectangularConversion_cs.glsl"

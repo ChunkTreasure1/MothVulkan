@@ -61,11 +61,11 @@ namespace Lamp
 
 		inline VkShaderStageFlagBits GetShaderStageFromFilename(const std::string& filename)
 		{
-			if (filename.find("_fs.glsl") != std::string::npos)
+			if (filename.find("_fs.glsl") != std::string::npos || filename.find("_ps.hlsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_FRAGMENT_BIT;
 			}
-			else if (filename.find("_vs.glsl") != std::string::npos)
+			else if (filename.find("_vs.glsl") != std::string::npos || filename.find("_vs.hlsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_VERTEX_BIT;
 			}
@@ -129,6 +129,19 @@ namespace Lamp
 
 			return "Unsupported";
 		}
+
+		inline static const wchar_t* HLSLShaderProfile(const VkShaderStageFlagBits stage)
+		{
+			switch (stage)
+			{
+				case VK_SHADER_STAGE_VERTEX_BIT:    return L"vs_6_0";
+				case VK_SHADER_STAGE_FRAGMENT_BIT:  return L"ps_6_0";
+				case VK_SHADER_STAGE_COMPUTE_BIT:   return L"cs_6_0";
+			}
+			LP_CORE_ASSERT(false, "");
+			return L"";
+		}
+
 
 		inline size_t HashCombine(size_t lhs, size_t rhs)
 		{

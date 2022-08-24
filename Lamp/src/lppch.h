@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <filesystem>
 
+#include <Windows.h>
+
 #include "Lamp/Core/Profiling.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

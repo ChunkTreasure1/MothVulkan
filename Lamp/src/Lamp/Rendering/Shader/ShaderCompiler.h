@@ -2,7 +2,10 @@
 
 #include "Lamp/Rendering/Shader/Shader.h"
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
+
+struct IDxcCompiler3;
+struct IDxcUtils;
 
 namespace Lamp
 {
@@ -12,6 +15,12 @@ namespace Lamp
 		static bool TryCompile(std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& outShaderData, std::vector<std::filesystem::path> shaderFiles);
 
 	private:
+		struct DXCInstances
+		{
+			inline static IDxcCompiler3* compiler = nullptr;
+			inline static IDxcUtils* utils = nullptr;
+		};
+
 		static void LoadShaderFromFiles(std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSources, const std::vector<std::filesystem::path>& shaderFiles);
 		static std::vector<Shader::Language> GetLanguages(const std::vector<std::filesystem::path>& path);
 

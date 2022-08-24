@@ -1,7 +1,7 @@
 name: "PBR"
 paths:
-  - "Engine/Shaders/PBR_vs.glsl"
-  - "Engine/Shaders/PBR_fs.glsl"
+  - "Engine/Shaders/GLSL/PBR_vs.glsl"
+  - "Engine/Shaders/GLSL/PBR_fs.glsl"
 inputTextures:
   - binding: 0
     name: "Albedo"
