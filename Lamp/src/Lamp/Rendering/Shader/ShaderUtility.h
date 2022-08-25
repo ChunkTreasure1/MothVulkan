@@ -69,7 +69,7 @@ namespace Lamp
 			{
 				return VK_SHADER_STAGE_VERTEX_BIT;
 			}
-			else if (filename.find("_cs.glsl") != std::string::npos)
+			else if (filename.find("_cs.glsl") != std::string::npos || filename.find("_cs.hlsl") != std::string::npos)
 			{
 				return VK_SHADER_STAGE_COMPUTE_BIT;
 			}

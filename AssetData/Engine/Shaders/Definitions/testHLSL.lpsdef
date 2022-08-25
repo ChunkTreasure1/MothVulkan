@@ -1,4 +1,3 @@
 name: "testHLSL"
 paths:
-  - "Engine/Shaders/HLSL/test_vs.hlsl"
-  - "Engine/Shaders/HLSL/test_ps.hlsl"
+  - "Engine/Shaders/HLSL/test_cs.hlsl"

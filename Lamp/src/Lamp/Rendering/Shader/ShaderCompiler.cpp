@@ -9,6 +9,8 @@
 #include <file_includer.h>
 #include <libshaderc_util/file_finder.h>
 
+#include <combaseapi.h>
+
 namespace Lamp
 {
 	namespace Utils
@@ -172,7 +174,7 @@ namespace Lamp
 		}
 
 		std::vector<const wchar_t*> arguments{ path.c_str(), L"-E", L"main", L"-T", Utility::HLSLShaderProfile(stage), L"-spirv", L"-fspv-target-env=vulkan1.3",
-			DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, DXC_ARG_WARNINGS_ARE_ERRORS };
+				DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, DXC_ARG_WARNINGS_ARE_ERRORS };
 
 #ifdef LP_ENABLE_SHADER_DEBUG
 		arguments.emplace_back(L"-Qembed_debug");
@@ -202,7 +204,7 @@ namespace Lamp
 		{
 			error = std::format("Failed to compile. Error: {}\n", err);
 			IDxcBlobUtf8* errors;
-			compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
+			compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), NULL);
 			if (errors && errors->GetStringLength() > 0)
 			{
 				error.append(std::format("{}\nWhile compiling shader file: {}", (char*)errors->GetBufferPointer(), path.string()));
