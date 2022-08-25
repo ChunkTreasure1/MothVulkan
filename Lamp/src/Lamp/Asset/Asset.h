@@ -102,7 +102,7 @@ namespace Lamp
 		inline static const AssetHandle Null() { return AssetHandle(0); }
 
 		static AssetType GetStaticType() { return AssetType::None; }
-		virtual AssetType GetType() = 0;
+		virtual AssetType GetType() { return AssetType::None; };
 
 		uint16_t flags = (uint16_t)AssetFlag::None;
 		AssetHandle handle;

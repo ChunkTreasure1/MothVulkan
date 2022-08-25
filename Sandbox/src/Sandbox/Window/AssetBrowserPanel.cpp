@@ -17,22 +17,22 @@ namespace Utility
 	{
 		switch (type)
 		{
-			case Lamp::AssetType::Mesh: return ImVec4(0.73f, 0.9f, 0.26f, 1.f);
-			case Lamp::AssetType::MeshSource: return ImVec4(0.43f, 0.9f, 0.26f, 1.f);
+			case Lamp::AssetType::Mesh: return { 0.73f, 0.9f, 0.26f, 1.f };
+			case Lamp::AssetType::MeshSource: return { 0.43f, 0.9f, 0.26f, 1.f };
 			case Lamp::AssetType::Animation: break;
 			case Lamp::AssetType::Skeleton: break;
-			case Lamp::AssetType::Texture: return ImVec4(0.9f, 0.26f, 0.27f, 1.f);
-			case Lamp::AssetType::Material: return ImVec4(0.26f, 0.35f, 0.9f, 1.f);
-			case Lamp::AssetType::Shader: return ImVec4(0.26f, 0.6f, 0.9f, 1.f);
-			case Lamp::AssetType::ShaderSource: return ImVec4(0.26f, 0.72f, 0.9f, 1.f);
+			case Lamp::AssetType::Texture: return { 0.9f, 0.26f, 0.27f, 1.f };
+			case Lamp::AssetType::Material: return { 0.26f, 0.35f, 0.9f, 1.f };
+			case Lamp::AssetType::Shader: return { 0.26f, 0.6f, 0.9f, 1.f };
+			case Lamp::AssetType::ShaderSource: return { 0.26f, 0.72f, 0.9f, 1.f };
 			case Lamp::AssetType::RenderPipeline: break;
 			case Lamp::AssetType::RenderPass: break;
 			case Lamp::AssetType::RenderGraph: break;
-			case Lamp::AssetType::Scene: return ImVec4(0.9f, 0.54f, 0.26f, 1.f);
-			default: return ImVec4(0.f, 0.f, 0.f, 0.f);
+			case Lamp::AssetType::Scene: return { 0.9f, 0.54f, 0.26f, 1.f };
+			default: return { 0.f, 0.f, 0.f, 0.f };
 		}
 
-		return ImVec4(0.f, 0.f, 0.f, 0.f);
+		return { 0.f, 0.f, 0.f, 0.f };
 	}
 }
 
@@ -136,7 +136,7 @@ void AssetBrowserPanel::UpdateMainContent()
 
 				float cellSize = m_thumbnailSize + padding;
 				float panelWidth = ImGui::GetContentRegionAvail().x;
-				int columnCount = (int)(panelWidth / cellSize);
+				auto columnCount = (int)(panelWidth / cellSize);
 
 				if (columnCount < 1)
 				{
@@ -167,7 +167,7 @@ void AssetBrowserPanel::UpdateMainContent()
 
 	UI::PopId();
 
-	if (m_shouldOpenMeshImportModal) 
+	if (m_shouldOpenMeshImportModal)
 	{
 		ImGui::OpenPopup("Import Mesh");
 		m_shouldOpenMeshImportModal = false;
@@ -307,7 +307,7 @@ void AssetBrowserPanel::RenderControlsBar(float height)
 
 				const char* items = "Game\0Engine";
 
-				int32_t currentValue = (int32_t)m_showEngineAssets;
+				auto currentValue = (int32_t)m_showEngineAssets;
 
 				UI::ShiftCursor(ImGui::GetContentRegionAvail().x - 2.f * height - 150.f - buttonSizeOffset, 0.f);
 
@@ -387,7 +387,7 @@ void AssetBrowserPanel::RenderDirectory(const Ref<DirectoryData> dirData)
 
 	auto flags = (dirData->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None) | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	bool open = UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), id.c_str(), flags);
+	bool open = UI::TreeNodeImage(EditorIconLibrary::GetIcon(EditorIcon::Directory), id, flags);
 	if (ImGui::IsItemClicked())
 	{
 		dirData->selected = true;

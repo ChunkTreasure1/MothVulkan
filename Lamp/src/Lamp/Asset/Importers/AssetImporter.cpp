@@ -22,6 +22,8 @@ namespace Lamp
 {
 	bool TextureSourceImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
+		asset = CreateRef<Texture2D>();
+
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());
@@ -141,6 +143,8 @@ namespace Lamp
 
 	bool MultiMaterialImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
+		asset = CreateRef<MultiMaterial>();
+
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());

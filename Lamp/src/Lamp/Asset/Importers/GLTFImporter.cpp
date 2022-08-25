@@ -54,7 +54,7 @@ namespace Lamp
 
 		if (!matPath.empty())
 		{
-			mesh->m_material = AssetManager::GetAsset<MultiMaterial>(matPath);
+			mesh->m_material = AssetManager::QueueAsset<MultiMaterial>(matPath);
 		}
 		else
 		{

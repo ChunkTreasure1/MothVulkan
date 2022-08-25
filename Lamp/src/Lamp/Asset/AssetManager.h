@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Log/Log.h"
@@ -7,6 +6,7 @@
 
 #include <unordered_map>
 #include <filesystem>
+#include <thread>
 
 namespace Lamp
 {
@@ -44,14 +44,24 @@ namespace Lamp
 		template<typename T>
 		static Ref<T> GetAsset(const std::filesystem::path& path);
 
+		template<typename T>
+		static Ref<T> QueueAsset(const std::filesystem::path& path);
+
+		template<typename T>
+		static Ref<T> QueueAsset(AssetHandle path);
+
 	private:
 		struct LoadJob
 		{
 			Ref<Asset>* asset;
+			AssetHandle handle;
 			std::filesystem::path path;
 		};
 
 		inline static AssetManager* s_instance = nullptr;
+
+		void QueueAssetInternal(const std::filesystem::path& path, Ref<Asset>& asset);
+		void QueueAssetInternal(AssetHandle assetHandle, Ref<Asset>& asset);
 
 		void SaveAssetRegistry();
 		void LoadAssetRegistry();
@@ -79,7 +89,6 @@ namespace Lamp
 		}
 
 		Ref<Asset> asset = CreateRef<T>();
-		asset->SetFlag(AssetFlag::Queued, true);
 		Get().LoadAsset(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
@@ -118,9 +127,39 @@ namespace Lamp
 			return nullptr;
 		}
 
+		Ref<Asset> asset = CreateRef<Asset>();
+		Get().LoadAsset(path, asset);
+
+		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline Ref<T> AssetManager::QueueAsset(const std::filesystem::path& path)
+	{
+		if (!std::filesystem::exists(path))
+		{
+			LP_CORE_ERROR("Unable to load asset {0}! It does not exist!", path.string().c_str());
+			return nullptr;
+		}
+
+		Ref<Asset> asset = CreateRef<Asset>();
+		asset->SetFlag(AssetFlag::Queued, true);
+		Get().QueueAssetInternal(path, asset);
+
+		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline Ref<T> AssetManager::QueueAsset(AssetHandle assetHandle)
+	{
+		if (assetHandle == Asset::Null())
+		{
+			return nullptr;
+		}
+
 		Ref<Asset> asset = CreateRef<T>();
 		asset->SetFlag(AssetFlag::Queued, true);
-		Get().LoadAsset(path, asset);
+		Get().QueueAssetInternal(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
 	}
