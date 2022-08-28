@@ -1,6 +1,6 @@
 #version 460
 
-#include "Structures.glslh"
+#include "Common.glslh"
 
 layout(location = 0) out vec4 o_color;
 

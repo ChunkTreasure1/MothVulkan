@@ -110,7 +110,7 @@ namespace Lamp
 		shaderc::CompileOptions compileOptions;
 
 		shaderc_util::FileFinder fileFinder;
-		fileFinder.search_path().emplace_back("Engine/Shaders/");
+		fileFinder.search_path().emplace_back("Engine/Shaders/GLSL/");
 
 		compileOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
 		compileOptions.SetWarningsAsErrors();
@@ -121,16 +121,11 @@ namespace Lamp
 		compileOptions.SetGenerateDebugInfo();
 #endif
 
-		shaderc::PreprocessedSourceCompilationResult preProcessResult = compiler.PreprocessGlsl(src, Utility::VulkanToShaderCStage(stage), path.string().c_str(), compileOptions);
-		if (preProcessResult.GetCompilationStatus() != shaderc_compilation_status_success)
+		std::string proccessedSource = src;
+		if (!PreprocessGLSL(stage, path, proccessedSource, compiler, compileOptions))
 		{
-			LP_CORE_ERROR("Failed to preprocess shader {0}!", path.string().c_str());
-			LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
-
 			return false;
 		}
-
-		std::string proccessedSource = std::string(preProcessResult.cbegin(), preProcessResult.cend());
 
 		// Compile shader
 		{
@@ -173,8 +168,24 @@ namespace Lamp
 			DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&DXCInstances::utils));
 		}
 
-		std::vector<const wchar_t*> arguments{ path.c_str(), L"-E", L"main", L"-T", Utility::HLSLShaderProfile(stage), L"-spirv", L"-fspv-target-env=vulkan1.3",
-				DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, DXC_ARG_WARNINGS_ARE_ERRORS };
+		std::string proccessedSource = src;
+		if (!PreprocessHLSL(stage, proccessedSource, proccessedSource))
+		{
+			return false;
+		}
+
+		std::vector<const wchar_t*> arguments
+		{ 
+			path.c_str(), 
+			L"-E", 
+			L"main", 
+			L"-T", 
+			Utility::HLSLShaderProfile(stage), 
+			L"-spirv", 
+			L"-fspv-target-env=vulkan1.3",
+			DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, 
+			DXC_ARG_WARNINGS_ARE_ERRORS 
+		};
 
 #ifdef LP_ENABLE_SHADER_DEBUG
 		arguments.emplace_back(L"-Qembed_debug");
@@ -187,7 +198,7 @@ namespace Lamp
 		}
 
 		IDxcBlobEncoding* sourcePtr;
-		DXCInstances::utils->CreateBlob(src.c_str(), (uint32_t)src.size(), CP_UTF8, &sourcePtr);
+		DXCInstances::utils->CreateBlob(proccessedSource.c_str(), (uint32_t)proccessedSource.size(), CP_UTF8, &sourcePtr);
 
 		DxcBuffer sourceBuffer{};
 		sourceBuffer.Ptr = sourcePtr->GetBufferPointer();
@@ -226,5 +237,70 @@ namespace Lamp
 		sourcePtr->Release();
 
 		return true;
+	}
+
+	bool ShaderCompiler::PreprocessGLSL(const VkShaderStageFlagBits stage, const std::filesystem::path& path, std::string& source, shaderc::Compiler& compiler, const shaderc::CompileOptions& compileOptions)
+	{
+		shaderc::PreprocessedSourceCompilationResult preProcessResult = compiler.PreprocessGlsl(source, Utility::VulkanToShaderCStage(stage), path.string().c_str(), compileOptions);
+		if (preProcessResult.GetCompilationStatus() != shaderc_compilation_status_success)
+		{
+			LP_CORE_ERROR("Failed to preprocess shader {0}!", path.string().c_str());
+			LP_CORE_ERROR("{0}", preProcessResult.GetErrorMessage().c_str());
+
+			return false;
+		}
+
+		source = std::string(preProcessResult.cbegin(), preProcessResult.cend());
+		return true;
+	}
+
+	bool ShaderCompiler::PreprocessHLSL(const VkShaderStageFlagBits stage, const std::filesystem::path& path, std::string& source)
+	{
+		std::vector<const wchar_t*> arguments
+		{
+			path.c_str(),
+			L"-P",
+			DXC_ARG_WARNINGS_ARE_ERRORS,
+			L"-I Engine/HLSL/"
+		};
+
+		IDxcBlobEncoding* sourcePtr;
+		DXCInstances::utils->CreateBlob(source.c_str(), (uint32_t)source.size(), CP_UTF8, &sourcePtr);
+
+		DxcBuffer sourceBuffer{};
+		sourceBuffer.Ptr = sourcePtr->GetBufferPointer();
+		sourceBuffer.Size = sourcePtr->GetBufferSize();
+		sourceBuffer.Encoding = 0;
+
+		const Scope<IDxcIncludeHandler> includer = CreateScope<IDxcIncludeHandler>();
+		IDxcResult* compileResult;
+		HRESULT err = DXCInstances::compiler->Compile(&sourceBuffer, arguments.data(), (uint32_t)arguments.size(), includer.get(), IID_PPV_ARGS(&compileResult));
+
+		std::string error;
+		const bool failed = FAILED(err);
+		if (failed)
+		{
+			error = std::format("Failed to compile. Error: {}\n", err);
+			IDxcBlobUtf8* errors;
+			compileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), NULL);
+			if (errors && errors->GetStringLength() > 0)
+			{
+				error.append(std::format("{}\nWhile compiling shader file: {}", (char*)errors->GetBufferPointer(), path.string()));
+			}
+		}
+
+		if (error.empty())
+		{
+			IDxcBlob* result;
+			compileResult->GetResult(&result);
+
+			source = (const char*)result->GetBufferPointer();
+			result->Release();
+		}
+
+		sourcePtr->Release();
+		compileResult->Release();
+
+		return false;
 	}
 }

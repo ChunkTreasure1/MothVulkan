@@ -58,7 +58,7 @@ namespace Lamp
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
-		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
+		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/GLSL/cull_cs.glsl" }), framesInFlight);
 
 		CreateDefaultData();
 		CreateDescriptorPools();

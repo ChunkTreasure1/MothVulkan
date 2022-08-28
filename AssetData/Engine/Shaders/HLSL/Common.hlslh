@@ -1,0 +1,20 @@
+struct ObjectData
+{
+    float4x4 transform;
+    float4 sphereBounds;
+};
+
+struct DirectionalLight
+{
+    float4 direction;
+    float4 colorIntensity;
+};
+
+struct CameraData
+{
+    float4x4 view;
+    float4x4 proj;
+    float4x4 viewProj;
+
+    float4 position;
+};

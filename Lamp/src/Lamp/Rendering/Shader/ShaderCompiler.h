@@ -4,8 +4,15 @@
 
 #include <vulkan/vulkan.h>
 
+
 struct IDxcCompiler3;
 struct IDxcUtils;
+
+namespace shaderc
+{
+	class Compiler;
+	class CompileOptions;
+}
 
 namespace Lamp
 {
@@ -29,5 +36,8 @@ namespace Lamp
 	
 		static bool CompileGLSL(const VkShaderStageFlagBits stage, const std::string& src, const std::filesystem::path& path, std::vector<uint32_t>& outShaderData);
 		static bool CompileHLSL(const VkShaderStageFlagBits stage, const std::string& src, const std::filesystem::path& path, std::vector<uint32_t>& outShaderData);
+
+		static bool PreprocessGLSL(const VkShaderStageFlagBits stage, const std::filesystem::path& path, std::string& source, shaderc::Compiler& compiler, const shaderc::CompileOptions& compileOptions);
+		static bool PreprocessHLSL(const VkShaderStageFlagBits stage, const std::filesystem::path& path, std::string& source);
 	};
 }
