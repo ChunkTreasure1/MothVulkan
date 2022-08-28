@@ -240,6 +240,12 @@ namespace Lamp
 			}
 		}
 
+		if (handle != Asset::Null())
+		{
+			std::scoped_lock<std::mutex> lock(m_loadMutex);
+			m_assetCache.emplace(handle, asset);
+		}
+
 		// If not, queue
 		{
 			std::scoped_lock lock(m_loadMutex);
@@ -355,11 +361,6 @@ namespace Lamp
 
 				asset->path = job.path;
 				asset->SetFlag(AssetFlag::Queued, false);
-
-				{
-					std::scoped_lock<std::mutex> lock(m_loadMutex);
-					m_assetCache.emplace(asset->handle, asset);
-				}
 			}
 		}
 	}

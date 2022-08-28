@@ -48,7 +48,7 @@ namespace Lamp
 		static Ref<T> QueueAsset(const std::filesystem::path& path);
 
 		template<typename T>
-		static Ref<T> QueueAsset(AssetHandle path);
+		static Ref<T> QueueAsset(AssetHandle handle);
 
 	private:
 		struct LoadJob

@@ -227,7 +227,7 @@ namespace Lamp
 		LP_CORE_ASSERT(cmdBuffer != VK_NULL_HANDLE, "Unable to flush null command buffer!");
 		LP_CORE_ASSERT(m_commandPoolMap.find(cmdBuffer) != m_commandPoolMap.end(), "Command buffer not found in map! Was this command buffer created from the device?");
 		
-		const std::lock_guard lock(m_commandBufferFlushMutex);
+		const std::scoped_lock<std::mutex> lock(m_commandBufferFlushMutex);
 		LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 		VkSubmitInfo submitInfo{};
@@ -241,6 +241,7 @@ namespace Lamp
 
 		VkFence fence;
 		LP_VK_CHECK(vkCreateFence(m_device, &fenceInfo, nullptr, &fence));
+		LP_VK_CHECK(vkQueueWaitIdle(queue));
 		LP_VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence));
 		LP_VK_CHECK(vkWaitForFences(m_device, 1, &fence, VK_TRUE, 1000000000));
 

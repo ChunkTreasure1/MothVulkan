@@ -24,7 +24,7 @@ namespace Lamp
 		s_registry.clear();
 	}
 
-	const std::filesystem::path& MaterialRegistry::Get(const std::string& name)
+	std::filesystem::path MaterialRegistry::Get(const std::string& name)
 	{
 		std::string lowName = Utility::ToLower(name);
 		auto it = s_registry.find(lowName);
@@ -52,7 +52,7 @@ namespace Lamp
 
 	void MaterialRegistry::FindAllMaterials()
 	{
-		for (const auto it : std::filesystem::recursive_directory_iterator(FileSystem::GetAssetsPath()))
+		for (const auto& it : std::filesystem::recursive_directory_iterator(FileSystem::GetAssetsPath()))
 		{
 			if (!it.is_directory())
 			{
