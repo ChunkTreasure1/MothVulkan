@@ -7,18 +7,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 1249971563143443831
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 13461233730205319078
     Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
+  - Handle: 7921486373975219315
+    Path: Assets/Textures/peter_lambert.png
+  - Handle: 1249971563143443831
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -101,6 +101,8 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_c.dds
   - Handle: 11690045709097082949
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_m.dds
+  - Handle: 3156302123168272558
+    Path: Assets\Meshes\SponzaOld\Sponza.bin
   - Handle: 10188024278780715948
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_n.dds
   - Handle: 2160169861445308383
@@ -355,3 +357,5 @@ Assets:
     Path: Assets\Meshes\Chest\SM_Particle_Chest.lpmat
   - Handle: 4302572881064992452
     Path: Assets\Meshes\Chest\SM_Particle_Chest.lpgf
+  - Handle: 7030019644523348674
+    Path: Assets\Meshes\SponzaOld\Sponza.gltf

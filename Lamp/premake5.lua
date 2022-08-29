@@ -49,7 +49,7 @@ project "Lamp"
 		"%{IncludeDir.shaderc_glslc}/**.h",
 
 		"%{IncludeDir.shaderc_utils}/**.cc",
-		"%{IncludeDir.shaderc_utils}/**.h"
+		"%{IncludeDir.shaderc_utils}/**.h",
 	}
 
 	includedirs
@@ -121,3 +121,32 @@ project "Lamp"
 			runtime "Release"
 			optimize "on"
 			symbols "off"
+
+project "Shaders"
+	location "."
+	language "C++"
+	kind "StaticLib"
+	cppdialect "C++latest"
+
+	files
+	{
+		"../Resources/Engine/Shaders/**.glsl"
+	}
+
+	filter "system:windows"
+	systemversion "latest"
+
+	filter "configurations:Debug"
+		runtime "Debug"
+		optimize "off"
+		symbols "on"
+
+	filter "configurations:Release"
+		runtime "Release"
+		optimize "on"
+		symbols "on"
+
+	filter "configurations:Dist"
+		runtime "Release"
+		optimize "on"
+		symbols "off"

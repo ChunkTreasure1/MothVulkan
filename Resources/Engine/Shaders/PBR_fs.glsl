@@ -155,5 +155,5 @@ void main()
 
     const float gamma = 2.2;
     o_color.xyz = pow(lightAccumulation, vec3(1.0/gamma));
-    o_color.w = 1;
+    o_color.w = 1.f;
 }
