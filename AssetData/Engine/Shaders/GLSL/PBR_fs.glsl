@@ -151,9 +151,9 @@ void main()
     vec3 lightAccumulation = vec3(0.0);
 
     lightAccumulation += CalculateDirectionalLight(u_directionalLight, dirToCamera, baseReflectivity);
-    lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
+    //lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
     const float gamma = 2.2;
     o_color.xyz = pow(lightAccumulation, vec3(1.0/gamma));
-    o_color.w = 1;
+    o_color.w = 1.f;
 }
