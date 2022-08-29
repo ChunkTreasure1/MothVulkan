@@ -7,18 +7,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 1249971563143443831
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
+  - Handle: 7921486373975219315
+    Path: Assets/Textures/peter_lambert.png
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -173,6 +173,8 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\metal_door_01_n.dds
   - Handle: 12363893699666129652
     Path: Assets\Meshes\Sponza\Textures\ornament_01_c.dds
+  - Handle: 1519389465131169152
+    Path: Engine\Shaders\Deferred\GBuffer_vs.glsl
   - Handle: 15188386597739211637
     Path: Assets\Meshes\Sponza\Textures\ornament_01_m.dds
   - Handle: 5701117690511550777
@@ -315,12 +317,16 @@ Assets:
     Path: Engine\Shaders\PBR_fs.glsl
   - Handle: 5658993734941985290
     Path: Engine\Shaders\PBR_vs.glsl
+  - Handle: 15648062446886290528
+    Path: Engine/RenderPasses\gbuffer.lprp
   - Handle: 12036731231661063437
     Path: Engine\Shaders\Structures.glslh
   - Handle: 3457867246250363315
     Path: Editor/Textures/Icons/AssetIcons/icon_material.dds
   - Handle: 13225411876011874001
     Path: Editor/Textures/Icons/AssetIcons/icon_mesh.dds
+  - Handle: 16656432080503198613
+    Path: Engine/Shaders\Definitions\gbuffer.lpsdef
   - Handle: 12602749111285238698
     Path: Editor/Textures/Icons/AssetIcons/icon_meshSource.dds
   - Handle: 7684327436814241643
@@ -359,3 +365,19 @@ Assets:
     Path: Assets\Meshes\Chest\SM_Particle_Chest.lpgf
   - Handle: 7030019644523348674
     Path: Assets\Meshes\SponzaOld\Sponza.gltf
+  - Handle: 9204748739402347148
+    Path: Engine/Shaders\Definitions\shading.lpsdef
+  - Handle: 7782723329872884724
+    Path: Engine/RenderPipelines\gbufferPipeline.lprpdef
+  - Handle: 13928745553780991017
+    Path: Engine\Shaders\Cache\GBuffer_fs.glsl.fragment.cached
+  - Handle: 7297293266613453738
+    Path: Engine\Shaders\Cache\GBuffer_vs.glsl.vertex.cached
+  - Handle: 14605775622571452137
+    Path: Engine\Shaders\Cache\Shading_cs.glsl.compute.cached
+  - Handle: 13587002253882512023
+    Path: Engine\Shaders\Deferred\GBuffer_fs.glsl
+  - Handle: 10665445663156247204
+    Path: Engine\Shaders\Deferred\Shading_cs.glsl
+  - Handle: 17482122316240224461
+    Path: Engine\Shaders\Definitions\testHLSL.lpsdeff

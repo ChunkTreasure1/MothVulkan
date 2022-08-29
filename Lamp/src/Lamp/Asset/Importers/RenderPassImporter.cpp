@@ -4,6 +4,9 @@
 #include "Lamp/Rendering/Framebuffer.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 
+#include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Utility/YAMLSerializationHelpers.h"
@@ -143,28 +146,28 @@ namespace Lamp
 		{
 			switch (format)
 			{
-				case ImageFormat::None: return "None";
-				case ImageFormat::R32F: return "R32F";
-				case ImageFormat::R32SI: return "R32SI";
-				case ImageFormat::R32UI: return "R32UI";
-				case ImageFormat::RGB: return "RGB";
-				case ImageFormat::RGBA: return "RGBA";
-				case ImageFormat::RGBA16F: return "RGBA16F";
-				case ImageFormat::RGBA32F: return "RGBA32F";
-				case ImageFormat::RG16F: return "RG16F";
-				case ImageFormat::RG32F: return "RG32F";
-				case ImageFormat::SRGB: return "SRGB";
-				case ImageFormat::BC1: return "BC1";
-				case ImageFormat::BC1SRGB: return "BC1SRGB";
-				case ImageFormat::BC2: return "BC2";
-				case ImageFormat::BC2SRGB: return "BC2SRGB";
-				case ImageFormat::BC3: return "BC3";
-				case ImageFormat::BC3SRGB: return "BC3SRGB";
-				case ImageFormat::BC4: return "BC4";
-				case ImageFormat::BC7: return "BC7";
-				case ImageFormat::BC7SRGB: return "BC7SRGB";
-				case ImageFormat::DEPTH32F: return "DEPTH32F";
-				case ImageFormat::DEPTH24STENCIL8: return "DEPTH24STENCIL8";
+			case ImageFormat::None: return "None";
+			case ImageFormat::R32F: return "R32F";
+			case ImageFormat::R32SI: return "R32SI";
+			case ImageFormat::R32UI: return "R32UI";
+			case ImageFormat::RGB: return "RGB";
+			case ImageFormat::RGBA: return "RGBA";
+			case ImageFormat::RGBA16F: return "RGBA16F";
+			case ImageFormat::RGBA32F: return "RGBA32F";
+			case ImageFormat::RG16F: return "RG16F";
+			case ImageFormat::RG32F: return "RG32F";
+			case ImageFormat::SRGB: return "SRGB";
+			case ImageFormat::BC1: return "BC1";
+			case ImageFormat::BC1SRGB: return "BC1SRGB";
+			case ImageFormat::BC2: return "BC2";
+			case ImageFormat::BC2SRGB: return "BC2SRGB";
+			case ImageFormat::BC3: return "BC3";
+			case ImageFormat::BC3SRGB: return "BC3SRGB";
+			case ImageFormat::BC4: return "BC4";
+			case ImageFormat::BC7: return "BC7";
+			case ImageFormat::BC7SRGB: return "BC7SRGB";
+			case ImageFormat::DEPTH32F: return "DEPTH32F";
+			case ImageFormat::DEPTH24STENCIL8: return "DEPTH24STENCIL8";
 			}
 
 			return "";
@@ -174,9 +177,9 @@ namespace Lamp
 		{
 			switch (filter)
 			{
-				case TextureFilter::None: return "None";
-				case TextureFilter::Linear: return "Linear";
-				case TextureFilter::Nearest: return "Nearest";
+			case TextureFilter::None: return "None";
+			case TextureFilter::Linear: return "Linear";
+			case TextureFilter::Nearest: return "Nearest";
 			}
 
 			return "";
@@ -186,9 +189,9 @@ namespace Lamp
 		{
 			switch (wrap)
 			{
-				case TextureWrap::None: return "None";
-				case TextureWrap::Clamp: return "Clamp";
-				case TextureWrap::Repeat: return "Repeat";
+			case TextureWrap::None: return "None";
+			case TextureWrap::Clamp: return "Clamp";
+			case TextureWrap::Repeat: return "Repeat";
 			}
 
 			return "";
@@ -198,9 +201,9 @@ namespace Lamp
 		{
 			switch (blend)
 			{
-				case TextureBlend::None: return "None";
-				case TextureBlend::Min: return "Min";
-				case TextureBlend::Max: return "Max";
+			case TextureBlend::None: return "None";
+			case TextureBlend::Min: return "Min";
+			case TextureBlend::Max: return "Max";
 			}
 
 			return "";
@@ -210,9 +213,9 @@ namespace Lamp
 		{
 			switch (clearMode)
 			{
-				case ClearMode::Clear: return "Clear";
-				case ClearMode::Load: return "Load";
-				case ClearMode::DontCare: return "DontCare";
+			case ClearMode::Clear: return "Clear";
+			case ClearMode::Load: return "Load";
+			case ClearMode::DontCare: return "DontCare";
 			}
 
 			return "";
@@ -222,8 +225,8 @@ namespace Lamp
 		{
 			switch (type)
 			{
-				case DrawType::FullscreenQuad: return "FullscreenQuad";
-				case DrawType::Opaque: return "Opaque";
+			case DrawType::FullscreenQuad: return "FullscreenQuad";
+			case DrawType::Opaque: return "Opaque";
 			}
 
 			return "";
@@ -268,6 +271,9 @@ namespace Lamp
 		std::string overridePipelineString;
 		LP_DESERIALIZE_PROPERTY(overridePipeline, overridePipelineString, pipelineNode, std::string());
 
+		std::string exclusivePipelineName;
+		LP_DESERIALIZE_PROPERTY(exclusivePipeline, exclusivePipelineName, pipelineNode, std::string());
+
 		std::string drawTypeString;
 		LP_DESERIALIZE_PROPERTY(drawType, drawTypeString, pipelineNode, std::string());
 
@@ -276,6 +282,19 @@ namespace Lamp
 
 		bool resizeable;
 		LP_DESERIALIZE_PROPERTY(resizeable, resizeable, pipelineNode, true);
+
+		std::vector<std::string> excludedPipelines;
+
+		if (pipelineNode["excludedPipelines"])
+		{
+			const YAML::Node excludedNode = pipelineNode["excludedPipelines"];
+			for (const auto& pipeline : excludedNode)
+			{
+				std::string pipelineName;
+				LP_DESERIALIZE_PROPERTY(name, pipelineName, pipeline, std::string());
+				excludedPipelines.emplace_back(pipelineName);
+			}
+		}
 
 		if (!pipelineNode["framebuffer"])
 		{
@@ -346,6 +365,12 @@ namespace Lamp
 		renderPass->name = nameString;
 		renderPass->overridePipelineName = overridePipelineString;
 		renderPass->priority = priority;
+		renderPass->excludedPipelineNames = excludedPipelines;
+
+		if (!exclusivePipelineName.empty())
+		{
+			renderPass->exclusivePipelineName = exclusivePipelineName;
+		}
 
 		asset = renderPass;
 		asset->path = path;
@@ -367,6 +392,11 @@ namespace Lamp
 			if (renderPass->overridePipeline)
 			{
 				LP_SERIALIZE_PROPERTY(overridePipeline, renderPass->overridePipelineName, out);
+			}
+
+			if (renderPass->exclusivePipelineHash != 0)
+			{
+				LP_SERIALIZE_PROPERTY(exclusivePipelineName, renderPass->exclusivePipelineName, out);
 			}
 
 			LP_SERIALIZE_PROPERTY(drawType, Utility::StringFromDrawType(renderPass->drawType), out);

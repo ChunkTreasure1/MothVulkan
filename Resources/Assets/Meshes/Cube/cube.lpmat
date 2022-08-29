@@ -3,7 +3,7 @@ MultiMaterial:
   materials:
     - material: Cube
       index: 0
-      renderPipeline: PBR
+      renderPipeline: GBuffer
       textures:
         - binding: 0
           handle: 0

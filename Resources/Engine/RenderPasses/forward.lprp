@@ -1,8 +1,10 @@
 RenderPass:
   name: forward
   drawType: Opaque
-  priority: 0
+  priority: 1
   resizeable: true
+  excludedPipelines:
+    - name: "gbuffer"
   framebuffer:
     width: 1280
     height: 720

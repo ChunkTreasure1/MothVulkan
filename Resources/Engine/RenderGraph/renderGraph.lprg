@@ -1,5 +1,7 @@
 RenderGraph:
   name: "Main"
   renderPasses:
-    - pass: "forward"
+    - pass: "gbuffer"
       priority: 0
+    - pass: "forward"
+      priority: 1

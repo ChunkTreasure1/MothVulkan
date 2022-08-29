@@ -3,10 +3,10 @@
 #include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Rendering/Shader/Shader.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 namespace Lamp
 {
-	class RenderPipeline;
 	class Texture2D;
 	class TextureCube;
 	class Image2D;
@@ -28,6 +28,7 @@ namespace Lamp
 		inline const std::string& GetName() const { return m_name; }
 		inline const std::map<uint32_t, Ref<Texture2D>>& GetTextures() const { return m_textures; }
 		inline const std::unordered_map<uint32_t, std::string>& GetTextureDefinitions() const { return m_shaderResources[0].shaderTextureDefinitions; }
+		inline const size_t GetPipelineHash() const { return m_renderPipeline->GetHash(); }
 
 		static Ref<Material> Create(const std::string& name, uint32_t index, Ref<RenderPipeline> renderPipeline);
 

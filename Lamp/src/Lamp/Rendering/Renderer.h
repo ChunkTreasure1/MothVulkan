@@ -103,7 +103,6 @@ namespace Lamp
 		struct RendererData
 		{
 			Ref<CommandBuffer> commandBuffer;
-			Ref<Framebuffer> currentFramebuffer;
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
 			Ref<ShaderStorageBufferSet> indirectCountBuffer;
@@ -115,7 +114,9 @@ namespace Lamp
 			std::vector<IndirectBatch> indirectBatches;
 
 			Ref<Camera> passCamera;
-			Skybox skyboxData                                      ;
+			Ref<RenderPass> currentPass;
+			
+			Skybox skyboxData;
 
 			std::vector<VkDescriptorPool> descriptorPools;
 

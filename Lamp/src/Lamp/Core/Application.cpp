@@ -55,7 +55,7 @@ namespace Lamp
 		ShaderRegistry::Initialize();
 		RenderPassRegistry::Initialize();
 		RenderPipelineRegistry::Initialize();
-		RenderPassRegistry::SetupOverrides();
+		RenderPassRegistry::SetupOverridesAndExclusives();
 
 		Renderer::Initialize();
 		MaterialRegistry::Initialize();

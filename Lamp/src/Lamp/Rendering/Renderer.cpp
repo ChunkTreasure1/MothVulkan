@@ -62,7 +62,7 @@ namespace Lamp
 
 		CreateDefaultData();
 		CreateDescriptorPools();
-	
+
 		s_rendererData->skyboxData.irradianceMap = s_defaultData->blackCubeImage;
 		s_rendererData->skyboxData.radianceMap = s_defaultData->blackCubeImage;
 	}
@@ -87,17 +87,17 @@ namespace Lamp
 
 	void Renderer::Shutdowm()
 	{
-		for (uint32_t i = 0; i < s_rendererData->descriptorPools.size(); i++)
+		for (auto& descriptorPool : s_rendererData->descriptorPools)
 		{
-			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[i], nullptr);
+			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), descriptorPool, nullptr);
 		}
 
 		s_defaultData = nullptr;
 		s_rendererData = nullptr;
 
-		for (size_t i = 0; i < s_frameDeletionQueues.size(); i++)
+		for (auto& s_frameDeletionQueue : s_frameDeletionQueues)
 		{
-			s_frameDeletionQueues[i].Flush();
+			s_frameDeletionQueue.Flush();
 		}
 	}
 
@@ -131,6 +131,7 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 		s_rendererData->passCamera = camera;
+		s_rendererData->currentPass = renderPass;
 
 		CullRenderCommands();
 		UpdatePerPassBuffers();
@@ -138,7 +139,6 @@ namespace Lamp
 		// Begin RenderPass
 		{
 			auto framebuffer = renderPass->framebuffer;
-			s_rendererData->currentFramebuffer = framebuffer;
 
 			framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
@@ -166,8 +166,8 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 		vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-		s_rendererData->currentFramebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-		s_rendererData->currentFramebuffer = nullptr;
+		s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+		s_rendererData->currentPass = nullptr;
 		s_rendererData->passCamera = nullptr;
 	}
 
@@ -226,6 +226,24 @@ namespace Lamp
 			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
+				{
+					LP_PROFILE_SCOPE("Pipeline check");
+
+					if (!s_rendererData->currentPass->excludedPipelineHashes.empty())
+					{
+						auto it = std::find(s_rendererData->currentPass->excludedPipelineHashes.begin(), s_rendererData->currentPass->excludedPipelineHashes.end(), draws[i].material->GetPipelineHash());
+						if (it != s_rendererData->currentPass->excludedPipelineHashes.end())
+						{
+							continue;
+						}
+					}
+
+					if (s_rendererData->currentPass->exclusivePipelineHash != 0 && draws[i].material->GetPipelineHash() != s_rendererData->currentPass->exclusivePipelineHash)
+					{
+						continue;
+					}
+				}
+
 				if (i > 0 && draws[i].material != draws[i - 1].material)
 				{
 					draws[i].material->UpdateInternalTexture(DEFAULT_IRRADIANCE_SET, DEFAULT_IRRADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.irradianceMap);
@@ -384,7 +402,7 @@ namespace Lamp
 			irradiancePipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 			irradianceMap->GenerateMips(false, cmdBuffer);
-			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
+			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 			device->FlushCommandBuffer(cmdBuffer);
 		}
@@ -486,9 +504,9 @@ namespace Lamp
 		s_rendererData->descriptorPools.resize(framesInFlight);
 		auto device = GraphicsContext::GetDevice();
 
-		for (uint32_t i = 0; i < s_rendererData->descriptorPools.size(); ++i)
+		for (auto& descriptorPool : s_rendererData->descriptorPools)
 		{
-			LP_VK_CHECK(vkCreateDescriptorPool(device->GetHandle(), &poolInfo, nullptr, &s_rendererData->descriptorPools[i]));
+			LP_VK_CHECK(vkCreateDescriptorPool(device->GetHandle(), &poolInfo, nullptr, &descriptorPool));
 		}
 	}
 
@@ -548,7 +566,7 @@ namespace Lamp
 		// Update camera data
 		{
 			auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
-			CameraData* cameraData = currentCameraBuffer->Map<CameraData>();
+			auto* cameraData = currentCameraBuffer->Map<CameraData>();
 
 			cameraData->proj = s_rendererData->passCamera->GetProjection();
 			cameraData->view = s_rendererData->passCamera->GetView();
@@ -568,7 +586,7 @@ namespace Lamp
 		// Update object data
 		{
 			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(4, 0)->Get(currentFrame);
-			ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
+			auto* objectData = currentObjectBuffer->Map<ObjectData>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -597,9 +615,9 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
-		{
-			return lhs.subMesh > rhs.subMesh;
-		});
+			{
+				return lhs.subMesh > rhs.subMesh;
+			});
 	}
 
 	void Renderer::UploadRenderCommands()
@@ -611,7 +629,7 @@ namespace Lamp
 
 		// Fill indirect commands
 		{
-			GPUIndirectObject* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
+			auto* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -625,9 +643,9 @@ namespace Lamp
 
 				// TODO: this is probably not performant
 				auto it = std::find_if(draws.begin(), draws.end(), [&cmd](const IndirectBatch& batch)
-				{
-					return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
-				});
+					{
+						return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
+					});
 
 				if (it != draws.end())
 				{
@@ -641,7 +659,7 @@ namespace Lamp
 		}
 
 		{
-			uint32_t* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
+			auto* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -656,7 +674,7 @@ namespace Lamp
 	{
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
-		uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
+		auto* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
 
 		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 

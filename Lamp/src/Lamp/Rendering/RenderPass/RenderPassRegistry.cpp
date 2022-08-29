@@ -4,6 +4,7 @@
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Utility/StringUtility.h"
 #include "Lamp/Utility/FileSystem.h"
@@ -20,7 +21,7 @@ namespace Lamp
 		s_registry.clear();
 	}
 
-	void RenderPassRegistry::SetupOverrides()
+	void RenderPassRegistry::SetupOverridesAndExclusives()
 	{
 		for (auto& [name, pass] : s_registry)
 		{
@@ -34,6 +35,35 @@ namespace Lamp
 				else
 				{
 					LP_CORE_ERROR("Unable to find override pipeline {0} for render pass {1}!", pass->overridePipelineName.c_str(), pass->name.c_str());
+				}
+			}
+
+			if (!pass->exclusivePipelineName.empty())
+			{
+				Ref<RenderPipeline> exclusivePipeline = RenderPipelineRegistry::Get(pass->exclusivePipelineName);
+				if (exclusivePipeline)
+				{
+					pass->exclusivePipelineHash = exclusivePipeline->GetHash();
+				}
+				else
+				{
+					LP_CORE_ERROR("Unable to find exclusive pipeline {0} for render pass {1}!", pass->exclusivePipelineName.c_str(), pass->name.c_str());
+				}
+			}
+
+			if (!pass->excludedPipelineNames.empty())
+			{
+				for (const auto& name : pass->excludedPipelineNames)
+				{
+					Ref<RenderPipeline> excludedPipeline = RenderPipelineRegistry::Get(name);
+					if (excludedPipeline)
+					{
+						pass->excludedPipelineHashes.emplace_back(excludedPipeline->GetHash());
+					}
+					else
+					{
+						LP_CORE_ERROR("Unable to find excluded pipeline {0} for render pass {1}!", pass->exclusivePipelineName.c_str(), pass->name.c_str());
+					}
 				}
 			}
 		}

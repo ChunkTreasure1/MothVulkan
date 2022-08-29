@@ -23,6 +23,12 @@ namespace Lamp
 		
 		Ref<RenderPipeline> overridePipeline;
 		std::string overridePipelineName;
+		
+		std::string exclusivePipelineName;
+		size_t exclusivePipelineHash = 0;
+
+		std::vector<std::string> excludedPipelineNames;
+		std::vector<size_t> excludedPipelineHashes;
 
 		DrawType drawType = DrawType::Opaque;
 		int32_t priority = 0;
