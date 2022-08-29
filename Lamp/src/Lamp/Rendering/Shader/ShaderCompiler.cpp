@@ -2,6 +2,7 @@
 #include "ShaderCompiler.h"
 
 #include "ShaderUtility.h"
+#include "HLSLIncluder.h"
 
 #include <shaderc/shaderc.hpp>
 #include <dxc/dxcapi.h>
@@ -272,7 +273,7 @@ namespace Lamp
 		sourceBuffer.Size = sourcePtr->GetBufferSize();
 		sourceBuffer.Encoding = 0;
 
-		const Scope<IDxcIncludeHandler> includer = CreateScope<IDxcIncludeHandler>();
+		const Scope<HLSLIncluder> includer = CreateScope<HLSLIncluder>();
 		IDxcResult* compileResult;
 		HRESULT err = DXCInstances::compiler->Compile(&sourceBuffer, arguments.data(), (uint32_t)arguments.size(), includer.get(), IID_PPV_ARGS(&compileResult));
 

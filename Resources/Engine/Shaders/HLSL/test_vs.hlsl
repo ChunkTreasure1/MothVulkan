@@ -1,4 +1,4 @@
-#include "Structures.hlslh"
+#include "Common.hlslh"
 
 struct VSInput
 {
@@ -14,11 +14,11 @@ struct VSOutput
     float4 position : SV_POSITION;
 
     [[vk::location(0)]] float3 worldPosition : v_worldPos;
-    float2 texCoords : v_texCoords;
-    float3x3 TBN : v_TBN;
+    [[vk::location(1)]] float2 texCoords : v_texCoords;
+    [[vk::location(2)]] float3x3 TBN : v_TBN;
 
-    uint drawId : v_drawId;
-    float3 localNormal : v_localNormal;
+    [[vk::location(3)]] uint drawId : v_drawId;
+    [[vk::location(4)]] float3 localNormal : v_localNormal;
 };
 
 ConstantBuffer<CameraData> u_cameraData : register(b0, space0);

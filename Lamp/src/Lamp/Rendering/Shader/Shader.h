@@ -125,6 +125,5 @@ namespace Lamp
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageSSBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageStorageImageCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageImageCount;
-
 	};
 }

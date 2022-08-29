@@ -127,10 +127,18 @@ project "Shaders"
 	language "C++"
 	kind "StaticLib"
 	cppdialect "C++latest"
+	buildenabled "Off"
+
+	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
+	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
 
 	files
 	{
-		"../Resources/Engine/Shaders/**.glsl"
+		"../Resources/Engine/Shaders/**.glsl",
+		"../Resources/Engine/Shaders/**.glslh",
+
+		"../Resources/Engine/Shaders/**.hlsl",
+		"../Resources/Engine/Shaders/**.hlslh",
 	}
 
 	filter "system:windows"
