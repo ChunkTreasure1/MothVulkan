@@ -125,9 +125,8 @@ project "Lamp"
 project "Shaders"
 	location "."
 	language "C++"
-	kind "StaticLib"
+	kind "None"
 	cppdialect "C++latest"
-	buildenabled "Off"
 
 	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
