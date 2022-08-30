@@ -57,6 +57,12 @@ namespace Lamp
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
+	void RenderPipelineCompute::DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	{
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), 0, nullptr);
+		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+	}
+
 	void RenderPipelineCompute::SetUniformBuffer(Ref<UniformBufferSet> uniformBuffer, uint32_t set, uint32_t binding)
 	{
 		if (m_shaderResources[0].uniformBuffersInfos.find(set) == m_shaderResources[0].uniformBuffersInfos.end() ||
@@ -150,9 +156,9 @@ namespace Lamp
 				return;
 			}
 
-			for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
+			for (auto & shaderResource : m_shaderResources)
 			{
-				auto& info = m_shaderResources[i].imageInfos[dstSet][dstBinding].info;
+				auto& info = shaderResource.imageInfos[dstSet][dstBinding].info;
 				info.imageView = image->GetView(srcMip);
 				info.sampler = image->GetSampler();
 			}

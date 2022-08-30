@@ -128,6 +128,6 @@ namespace Lamp
 		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
 		inline static std::vector<FunctionQueue> s_frameDeletionQueues;
-		inline static FunctionQueue s_invalidationQueue;
+		inline static std::vector<FunctionQueue> s_invalidationQueues;
 	};
 }

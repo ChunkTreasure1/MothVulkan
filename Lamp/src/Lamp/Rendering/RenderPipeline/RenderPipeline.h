@@ -42,6 +42,12 @@ namespace Lamp
 		None
 	};
 
+	enum class PipelineType : uint32_t 
+	{
+		Graphics,
+		Compute
+	};
+
 	struct FramebufferInput
 	{
 		Ref<Framebuffer> framebuffer;
@@ -60,6 +66,7 @@ namespace Lamp
 		CullMode cullMode = CullMode::Back;
 		FillMode fillMode = FillMode::Solid;
 		DepthMode depthMode = DepthMode::ReadWrite;
+		PipelineType type = PipelineType::Graphics;
 
 		bool depthTest = true;
 		bool depthWrite = true;

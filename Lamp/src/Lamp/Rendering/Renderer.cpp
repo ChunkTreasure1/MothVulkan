@@ -58,7 +58,6 @@ namespace Lamp
 
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
-		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
 
 		CreateDefaultData();
 		CreateDescriptorPools();
@@ -74,6 +73,7 @@ namespace Lamp
 
 		s_rendererData = CreateScope<RendererData>();
 		s_frameDeletionQueues.resize(framesInFlight);
+		s_invalidationQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
@@ -83,6 +83,12 @@ namespace Lamp
 
 		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
 		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
+		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
+
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 	}
 
 	void Renderer::Shutdowm()
@@ -109,8 +115,10 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
+		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 
 		s_frameDeletionQueues[currentFrame].Flush();
+		s_invalidationQueues[currentFrame].Flush();
 
 		SortRenderCommands();
 		PrepareForIndirectDraw(s_rendererData->renderCommands);
@@ -123,8 +131,6 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
-
-		s_invalidationQueue.Flush();
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
@@ -276,7 +282,8 @@ namespace Lamp
 
 	void Renderer::SubmitInvalidation(std::function<void()>&& function)
 	{
-		s_invalidationQueue.Push(function);
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		s_invalidationQueues[currentFrame].Push(function);
 	}
 
 	Skybox Renderer::GenerateEnvironmentMap(AssetHandle handle)
@@ -684,12 +691,6 @@ namespace Lamp
 		}
 
 		s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
-
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-
 		s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 
 		// Set cull data
@@ -722,7 +723,7 @@ namespace Lamp
 		}
 
 		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
-		s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
+		s_rendererData->indirectCullPipeline->DispatchNoUpdate(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
 		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 	}
 
