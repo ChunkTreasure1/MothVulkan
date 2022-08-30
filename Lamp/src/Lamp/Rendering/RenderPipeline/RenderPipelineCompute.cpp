@@ -334,7 +334,11 @@ namespace Lamp
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
-						writeDescriptor.pImageInfo = &shaderResources.imageInfos[set].at(binding).info;
+						auto* imageInfo = &shaderResources.imageInfos[set].at(binding).info;
+						imageInfo->imageView = Renderer::GetDefaultData().whiteTexture->GetImage()->GetView();
+						imageInfo->sampler = Renderer::GetDefaultData().whiteTexture->GetImage()->GetSampler();
+
+						writeDescriptor.pImageInfo = imageInfo;
 					}
 
 					writeDescriptor.dstSet = m_frameDescriptorSets[i][index];

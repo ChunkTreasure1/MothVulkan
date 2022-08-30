@@ -35,6 +35,8 @@ namespace Lamp
 		inline const Ref<RenderPipelineCompute> GetComputePipeline() const { return m_computePipeline; }
 
 	private:
+		void SetupComputePipeline(const RenderPipelineSpecification& spec);
+
 		friend class RenderPipelineImporter;
 
 		std::string m_name = "None";

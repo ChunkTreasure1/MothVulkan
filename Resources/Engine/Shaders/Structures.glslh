@@ -22,4 +22,4 @@ struct CameraData
 struct TargetData
 {
     vec2 targetSize;
-}
+};

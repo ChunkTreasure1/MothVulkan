@@ -92,9 +92,17 @@ namespace Lamp
 
 			for (const auto& pass : m_renderGraph->GetRenderPasses())
 			{
-				Renderer::BeginPass(pass.renderPass, camera);
-				Renderer::DispatchRenderCommands();
-				Renderer::EndPass();
+				if (pass.renderPass->computePipeline)
+				{
+					Renderer::ExecuteComputePass(pass.renderPass, camera);
+				}
+				else [[likely]]
+				{
+					Renderer::BeginPass(pass.renderPass, camera);
+					Renderer::DispatchRenderCommands();
+					Renderer::EndPass();
+				}
+
 			}
 
 			Renderer::End();

@@ -67,6 +67,8 @@ namespace Lamp
 		static void Begin();
 		static void End();
 
+		static void ExecuteComputePass(Ref<RenderPass> computePass, Ref<Camera> camera);
+
 		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
 		static void EndPass();
 

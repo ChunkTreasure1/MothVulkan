@@ -1,10 +1,9 @@
 RenderPass:
-  name: forward
+  name: shadingPass
   drawType: Opaque
-  priority: 2
+  computePipeline: Shading
+  priority: 1
   resizeable: true
-  excludedPipelines:
-    - name: "gbuffer"
   framebuffer:
     width: 1280
     height: 720

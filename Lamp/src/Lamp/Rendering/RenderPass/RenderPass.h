@@ -8,6 +8,7 @@ namespace Lamp
 {
 	class Framebuffer;
 	class RenderPipeline;
+	class RenderPipelineCompute;
 
 	enum class DrawType : uint32_t
 	{
@@ -24,6 +25,9 @@ namespace Lamp
 		Ref<RenderPipeline> overridePipeline;
 		std::string overridePipelineName;
 		
+		Ref<RenderPipelineCompute> computePipeline;
+		std::string computePipelineName;
+
 		std::string exclusivePipelineName;
 		size_t exclusivePipelineHash = 0;
 

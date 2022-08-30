@@ -38,6 +38,15 @@ namespace Lamp
 				}
 			}
 
+			if (!pass->computePipelineName.empty())
+			{
+				Ref<RenderPipelineAsset> computePipeline = RenderPipelineRegistry::Get(pass->computePipelineName);
+				if (computePipeline && computePipeline->GetPipelineType() == PipelineType::Compute)
+				{
+					pass->computePipeline = computePipeline->GetComputePipeline();
+				}
+			}
+
 			if (!pass->exclusivePipelineName.empty())
 			{
 				Ref<RenderPipelineAsset> exclusivePipeline = RenderPipelineRegistry::Get(pass->exclusivePipelineName);

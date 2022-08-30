@@ -54,8 +54,6 @@ namespace Lamp
 {
 	void Renderer::Initialize()
 	{
-		s_defaultData = CreateScope<DefaultData>();
-
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
 
@@ -90,6 +88,27 @@ namespace Lamp
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+
+		s_defaultData = CreateScope<DefaultData>();
+
+		// Textures
+		{
+			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA;
+			imageSpec.width = 1;
+			imageSpec.height = 1;
+			imageSpec.usage = ImageUsage::Texture;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			s_defaultData->blackCubeImage = Image2D::Create(imageSpec, blackCubeTextureData);
+
+			uint32_t whiteTextureData = 0xffffffff;
+			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
+			s_defaultData->whiteTexture->handle = Asset::Null();
+		}
 	}
 
 	void Renderer::Shutdowm()
@@ -112,7 +131,7 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 
-		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
@@ -134,6 +153,37 @@ namespace Lamp
 		LP_PROFILE_FUNCTION();
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
+	}
+
+	void Renderer::ExecuteComputePass(Ref<RenderPass> computePass, Ref<Camera> camera)
+	{
+		s_rendererData->currentPass = computePass;
+		s_rendererData->passCamera = camera;
+		UpdatePerPassBuffers();
+
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		computePass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+
+		//for (const auto& input : computePass.framebufferInputs)
+		//{
+		//	computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
+		//}
+
+		const uint32_t width = computePass->framebuffer->GetWidth();
+		const uint32_t height = computePass->framebuffer->GetHeight();
+
+		const uint32_t threadCountXY = 32;
+
+		const uint32_t groupX = width / threadCountXY;
+		const uint32_t groupY = height / threadCountXY;
+
+		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		computePass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1);
+		computePass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+		s_rendererData->currentPass = nullptr;
+		s_rendererData->passCamera = nullptr;
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
@@ -438,22 +488,6 @@ namespace Lamp
 	{
 		// Default textures
 		{
-			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
-
-			ImageSpecification imageSpec{};
-			imageSpec.format = ImageFormat::RGBA;
-			imageSpec.width = 1;
-			imageSpec.height = 1;
-			imageSpec.usage = ImageUsage::Texture;
-			imageSpec.layers = 6;
-			imageSpec.isCubeMap = true;
-
-			s_defaultData->blackCubeImage = Image2D::Create(imageSpec, blackCubeTextureData);
-
-			uint32_t whiteTextureData = 0xffffffff;
-			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
-			s_defaultData->whiteTexture->handle = Asset::Null();
-
 			GenerateBRDFLut();
 		}
 

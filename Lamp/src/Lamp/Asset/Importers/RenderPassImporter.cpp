@@ -274,6 +274,9 @@ namespace Lamp
 		std::string exclusivePipelineName;
 		LP_DESERIALIZE_PROPERTY(exclusivePipeline, exclusivePipelineName, pipelineNode, std::string());
 
+		std::string computePipelineString;
+		LP_DESERIALIZE_PROPERTY(computePipeline, computePipelineString, pipelineNode, std::string());
+
 		std::string drawTypeString;
 		LP_DESERIALIZE_PROPERTY(drawType, drawTypeString, pipelineNode, std::string());
 
@@ -366,6 +369,7 @@ namespace Lamp
 		renderPass->overridePipelineName = overridePipelineString;
 		renderPass->priority = priority;
 		renderPass->excludedPipelineNames = excludedPipelines;
+		renderPass->computePipelineName = computePipelineString;
 
 		if (!exclusivePipelineName.empty())
 		{
@@ -392,6 +396,11 @@ namespace Lamp
 			if (renderPass->overridePipeline)
 			{
 				LP_SERIALIZE_PROPERTY(overridePipeline, renderPass->overridePipelineName, out);
+			}
+
+			if (renderPass->computePipeline)
+			{
+				LP_SERIALIZE_PROPERTY(computePipeline, renderPass->computePipelineName, out);
 			}
 
 			if (renderPass->exclusivePipelineHash != 0)

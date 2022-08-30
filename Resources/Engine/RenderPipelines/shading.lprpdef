@@ -1,0 +1,38 @@
+RenderPipeline:
+  name: Shading
+  shader: Shading
+  renderPass: shadingPass
+  topology: TriangleList
+  cullMode: Back
+  depthMode: ReadWrite
+  pipelineType: Compute
+  depthTest: true
+  depthWrite: true
+  lineWidth: 1
+  tessellationControlPoints: 4
+  vertexLayout:
+    - type: Float3
+      name: a_position
+    - type: Float3
+      name: a_normal
+    - type: Float3
+      name: a_tangent
+    - type: Float3
+      name: a_bitangent
+    - type: Float2
+      name: a_texCoords
+  instanceLayout:
+    []
+  framebufferInputs:
+    - renderPass: gbuffer
+      attachment: 0
+      set: 1
+      binding: 0
+    - renderPass: gbuffer
+      attachment: 0
+      set: 1
+      binding: 1
+    - renderPass: gbuffer
+      attachment: 0
+      set: 1
+      binding: 2
