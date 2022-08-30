@@ -12,11 +12,6 @@ layout(set = 1, binding = 3) uniform samplerCube u_irradianceTexture;
 layout(set = 1, binding = 4) uniform samplerCube u_radianceTexture;
 layout(set = 1, binding = 5) uniform sampler2D u_BRDFLut;
 
-layout(push_constant) uniform PushConstants
-{
-    uvec2 u_targetSize;
-};
-
 layout(std140, set = 0, binding = 0) uniform CameraBuffer
 {
     CameraData u_cameraData;
@@ -25,6 +20,11 @@ layout(std140, set = 0, binding = 0) uniform CameraBuffer
 layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
 {
     DirectionalLight u_directionalLight;
+};
+
+layout(std140, set = 0, binding = 2) uniform TargetBuffer
+{
+    TargetData u_targetData;
 };
 
 struct PBRParamters
@@ -98,7 +98,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main()
 {
-    vec2 texCoords = vec2(gl_GlobalInvocationID.xy) / vec2(u_targetSize);
+    vec2 texCoords = vec2(gl_GlobalInvocationID.xy) / vec2(u_targetData.targetSize);
     
     ///// Read GBuffer /////
     const vec4 positionMetallic = texture(u_positionMetallic, texCoords);

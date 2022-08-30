@@ -2,6 +2,7 @@
 #include "RenderPassEditorPanel.h"
 
 #include <Lamp/Asset/AssetManager.h>
+#include <Lamp/Asset/RenderPipelineAsset.h>
 
 #include <Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h>
 
@@ -92,7 +93,7 @@ void RenderPassEditorPanel::UpdateEditor()
 
 				if (UI::ComboProperty("Override Pipeline", m_currentOverridePipeline, items) && m_currentOverridePipeline != 0)
 				{
-					m_loadedRenderPass->overridePipeline = Lamp::RenderPipelineRegistry::Get(items[m_currentOverridePipeline]);
+					m_loadedRenderPass->overridePipeline = Lamp::RenderPipelineRegistry::Get(items[m_currentOverridePipeline])->GetGraphicsPipeline();
 					m_loadedRenderPass->overridePipelineName = items[m_currentOverridePipeline];
 				}
 

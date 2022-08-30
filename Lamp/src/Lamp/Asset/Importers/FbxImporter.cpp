@@ -5,6 +5,7 @@
 
 #include "Lamp/Asset/Mesh/Mesh.h"
 #include "Lamp/Asset/Mesh/Material.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
@@ -95,7 +96,7 @@ namespace Lamp
 				{
 					if (mesh->m_material->m_materials.find(sceneMatIndex) == mesh->m_material->m_materials.end())
 					{
-						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("pbr")); // TODO: change to default pipeline
+						material = Material::Create(sceneMaterial->GetName(), sceneMatIndex, RenderPipelineRegistry::Get("pbr")->GetGraphicsPipeline()); // TODO: change to default pipeline
 						mesh->m_material->m_materials[sceneMatIndex] = material;
 					}
 					matIndex = sceneMatIndex;

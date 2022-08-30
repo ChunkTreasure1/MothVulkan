@@ -77,6 +77,7 @@ namespace Lamp
 
 		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
+		UniformBufferRegistry::Register(0, 2, UniformBufferSet::Create(sizeof(TargetData), framesInFlight));
 
 		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
 		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
@@ -116,9 +117,11 @@ namespace Lamp
 
 		s_rendererData->commandBuffer->Begin();
 		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+		s_rendererData->frameUpdatedMaterials.clear();
 
 		s_frameDeletionQueues[currentFrame].Flush();
 		s_invalidationQueues[currentFrame].Flush();
+
 
 		SortRenderCommands();
 		PrepareForIndirectDraw(s_rendererData->renderCommands);
@@ -224,12 +227,6 @@ namespace Lamp
 		// Draw
 		{
 			std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
-
-			draws.front().material->UpdateInternalTexture(DEFAULT_IRRADIANCE_SET, DEFAULT_IRRADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.irradianceMap);
-			draws.front().material->UpdateInternalTexture(DEFAULT_RADIANCE_SET, DEFAULT_RADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.radianceMap);
-			draws.front().material->UpdateInternalTexture(DEFAULT_BRDF_SET, DEFAULT_BRDF_BINDING, currentFrame, s_defaultData->brdfLut);
-
-			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
 				{
@@ -250,7 +247,7 @@ namespace Lamp
 					}
 				}
 
-				if (i > 0 && draws[i].material != draws[i - 1].material)
+				if (i == 0 || (i > 0 && draws[i].material != draws[i - 1].material))
 				{
 					draws[i].material->UpdateInternalTexture(DEFAULT_IRRADIANCE_SET, DEFAULT_IRRADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.irradianceMap);
 					draws[i].material->UpdateInternalTexture(DEFAULT_RADIANCE_SET, DEFAULT_RADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.radianceMap);
@@ -581,6 +578,16 @@ namespace Lamp
 			cameraData->viewProj = cameraData->proj * cameraData->view;
 
 			currentCameraBuffer->Unmap();
+		}
+
+		// Update target data
+		{
+			auto currentTargetBuffer = UniformBufferRegistry::Get(0, 2)->Get(currentFrame);
+			auto* targetData = currentTargetBuffer->Map<TargetData>();
+
+			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetSpecification().width, s_rendererData->currentPass->framebuffer->GetSpecification().height };
+
+			currentTargetBuffer->Unmap();
 		}
 	}
 

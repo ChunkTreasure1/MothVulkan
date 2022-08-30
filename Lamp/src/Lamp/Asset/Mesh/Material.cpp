@@ -51,10 +51,10 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 
+		m_renderPipeline->Bind(commandBuffer);
+
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
-
-		m_renderPipeline->Bind(commandBuffer);
 
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
@@ -90,13 +90,18 @@ namespace Lamp
 		m_shaderResources.clear();
 		SetupMaterialFromPipeline();
 		AllocateAndSetupDescriptorSets();
+
+
+		for (auto& writeDescriptor : m_writeDescriptors)
+		{
+		}
 	}
 
 	void Material::UpdateInternalTexture(uint32_t set, uint32_t binding, uint32_t frameIndex, Ref<Image2D> image)
 	{
 		LP_PROFILE_FUNCTION();
 		auto& shaderResource = m_shaderResources.at(frameIndex);
-		
+
 		auto setIt = shaderResource.imageInfos.find(set);
 		if (setIt == shaderResource.imageInfos.end())
 		{

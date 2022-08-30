@@ -2,6 +2,7 @@
 #include "RenderPipelineImporter.h"
 
 #include "Lamp/Log/Log.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Vertex.h"
@@ -147,7 +148,7 @@ namespace Lamp
 
 	bool RenderPipelineImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		asset = CreateRef<RenderPipeline>();
+		asset = CreateRef<RenderPipelineAsset>();
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());
@@ -305,7 +306,7 @@ namespace Lamp
 			}
 		}
 
-		Ref<RenderPipeline> renderPipeline = RenderPipeline::Create(pipelineSpec);
+		Ref<RenderPipelineAsset> renderPipeline = CreateRef<RenderPipelineAsset>(pipelineSpec);
 		if (!renderPipeline)
 		{
 			LP_CORE_ERROR("Unable to create pipeline {0}!", path.string().c_str());

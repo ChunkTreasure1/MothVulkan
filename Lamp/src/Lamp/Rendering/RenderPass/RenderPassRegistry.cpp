@@ -2,9 +2,9 @@
 #include "RenderPassRegistry.h"
 
 #include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
-#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Utility/StringUtility.h"
 #include "Lamp/Utility/FileSystem.h"
@@ -27,10 +27,10 @@ namespace Lamp
 		{
 			if (!pass->overridePipelineName.empty())
 			{
-				Ref<RenderPipeline> overridePipeline = RenderPipelineRegistry::Get(pass->overridePipelineName);
-				if (overridePipeline)
+				Ref<RenderPipelineAsset> overridePipeline = RenderPipelineRegistry::Get(pass->overridePipelineName);
+				if (overridePipeline && overridePipeline->GetPipelineType() == PipelineType::Graphics)
 				{
-					pass->overridePipeline = overridePipeline;
+					pass->overridePipeline = overridePipeline->GetGraphicsPipeline();
 				}
 				else
 				{
@@ -40,10 +40,10 @@ namespace Lamp
 
 			if (!pass->exclusivePipelineName.empty())
 			{
-				Ref<RenderPipeline> exclusivePipeline = RenderPipelineRegistry::Get(pass->exclusivePipelineName);
-				if (exclusivePipeline)
+				Ref<RenderPipelineAsset> exclusivePipeline = RenderPipelineRegistry::Get(pass->exclusivePipelineName);
+				if (exclusivePipeline && exclusivePipeline->GetPipelineType() == PipelineType::Graphics)
 				{
-					pass->exclusivePipelineHash = exclusivePipeline->GetHash();
+					pass->exclusivePipelineHash = exclusivePipeline->GetGraphicsPipeline()->GetHash();
 				}
 				else
 				{
@@ -55,10 +55,10 @@ namespace Lamp
 			{
 				for (const auto& name : pass->excludedPipelineNames)
 				{
-					Ref<RenderPipeline> excludedPipeline = RenderPipelineRegistry::Get(name);
-					if (excludedPipeline)
+					Ref<RenderPipelineAsset> excludedPipeline = RenderPipelineRegistry::Get(name);
+					if (excludedPipeline && excludedPipeline->GetPipelineType() == PipelineType::Graphics)
 					{
-						pass->excludedPipelineHashes.emplace_back(excludedPipeline->GetHash());
+						pass->excludedPipelineHashes.emplace_back(excludedPipeline->GetGraphicsPipeline()->GetHash());
 					}
 					else
 					{

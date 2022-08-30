@@ -115,6 +115,7 @@ namespace Lamp
 
 			Ref<Camera> passCamera;
 			Ref<RenderPass> currentPass;
+			std::vector<Ref<Material>> frameUpdatedMaterials;
 			
 			Skybox skyboxData;
 

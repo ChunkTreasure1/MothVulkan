@@ -81,7 +81,7 @@ namespace Lamp
 		std::vector<FramebufferInput> framebufferInputs;
 	};
 
-	class RenderPipeline : public Asset
+	class RenderPipeline
 	{
 	public:
 		RenderPipeline(const RenderPipelineSpecification& pipelineSpec);
@@ -105,9 +105,6 @@ namespace Lamp
 
 		inline const size_t GetHash() const { return m_hash; }
 		inline const RenderPipelineSpecification& GetSpecification() const { return m_specification; }
-
-		static AssetType GetStaticType() { return AssetType::RenderPipeline; }
-		AssetType GetType() override { return GetStaticType(); }
 
 		static Ref<RenderPipeline> Create(const RenderPipelineSpecification& pipelineSpec);
 		static Ref<RenderPipeline> Create();

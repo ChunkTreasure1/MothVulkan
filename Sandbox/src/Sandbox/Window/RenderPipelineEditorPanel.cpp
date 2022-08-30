@@ -1,6 +1,8 @@
 #include "sbpch.h"
 #include "RenderPipelineEditorPanel.h"
 
+#include <Lamp/Asset/RenderPipelineAsset.h>
+
 #include <Lamp/Rendering/RenderPipeline/RenderPipeline.h>
 #include <Lamp/Rendering/RenderPass/RenderPassRegistry.h>
 
@@ -22,7 +24,7 @@ RenderPipelineEditorPanel::RenderPipelineEditorPanel()
 	m_assetBrowser->SetOpenFileCallback([this](Lamp::AssetHandle asset)
 		{
 			Save();
-			m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>(asset);
+			m_loadedRenderPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipelineAsset>(asset);
 		});
 }
 
@@ -42,7 +44,7 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 				{
 					Save();
 
-					Ref<Lamp::RenderPipeline> newPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipeline>(path);
+					Ref<Lamp::RenderPipelineAsset> newPipeline = Lamp::AssetManager::GetAsset<Lamp::RenderPipelineAsset>(path);
 					if (newPipeline)
 					{
 						m_loadedRenderPipeline = newPipeline;
@@ -61,7 +63,7 @@ void RenderPipelineEditorPanel::UpdateMainContent()
 				m_currentlySelectedShader = 0;
 				Save();
 
-				m_loadedRenderPipeline = Lamp::RenderPipeline::Create();
+				m_loadedRenderPipeline = CreateRef<Lamp::RenderPipelineAsset>();
 			}
 
 			if (ImGui::MenuItem("Save", "Ctrl + S"))
@@ -97,7 +99,7 @@ void RenderPipelineEditorPanel::UpdateEditor()
 	ImGui::Begin("Editor##renderPipline");
 	if (m_loadedRenderPipeline)
 	{
-		auto& specification = const_cast<Lamp::RenderPipelineSpecification&>(m_loadedRenderPipeline->GetSpecification());
+		auto& specification = const_cast<Lamp::RenderPipelineSpecification&>(m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification());
 
 		UI::PushId();
 		if (UI::BeginProperties())
@@ -115,7 +117,7 @@ void RenderPipelineEditorPanel::UpdateEditor()
 
 				if (UI::ComboProperty("Shader", m_currentlySelectedShader, items) && m_currentlySelectedShader > 0)
 				{
-					m_loadedRenderPipeline->SetShader(Lamp::ShaderRegistry::Get(items[m_currentlySelectedShader]));
+					m_loadedRenderPipeline->GetGraphicsPipeline()->SetShader(Lamp::ShaderRegistry::Get(items[m_currentlySelectedShader]));
 				}
 			}
 
@@ -130,7 +132,7 @@ void RenderPipelineEditorPanel::UpdateEditor()
 
 				if (UI::ComboProperty("Render pass", m_currentlySelectedRenderPass, items) && m_currentlySelectedRenderPass > 0)
 				{
-					m_loadedRenderPipeline->SetRenderPass(Lamp::RenderPassRegistry::Get(items[m_currentlySelectedRenderPass]));
+					m_loadedRenderPipeline->GetGraphicsPipeline()->SetRenderPass(Lamp::RenderPassRegistry::Get(items[m_currentlySelectedRenderPass]));
 				}
 			}
 
@@ -273,13 +275,13 @@ void RenderPipelineEditorPanel::SaveAs()
 			path += ".lprpdef";
 		}
 
-		Ref<Lamp::RenderPipeline> newPipeline = CreateRef<Lamp::RenderPipeline>(*m_loadedRenderPipeline);
+		Ref<Lamp::RenderPipelineAsset> newPipeline = CreateRef<Lamp::RenderPipelineAsset>(*m_loadedRenderPipeline);
 		m_loadedRenderPipeline = newPipeline;
 
 		m_loadedRenderPipeline->path = path;
 		Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
 
-		const std::string content = "Saved render pipeline \"" + m_loadedRenderPipeline->GetSpecification().name + "\" to: " + FileSystem::GetPathRelativeToBaseFolder(m_loadedRenderPipeline->path).string();
+		const std::string content = "Saved render pipeline \"" + m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().name + "\" to: " + FileSystem::GetPathRelativeToBaseFolder(m_loadedRenderPipeline->path).string();
 		UI::Notify(NotificationType::Success, "Saved!", content);
 
 		InvalidateLoadedPipeline();
@@ -298,10 +300,10 @@ void RenderPipelineEditorPanel::Save()
 		{
 			Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPipeline);
 
-			const std::string content = "Saved render pipeline \"" + m_loadedRenderPipeline->GetSpecification().name + "\" to: " + FileSystem::GetPathRelativeToBaseFolder(m_loadedRenderPipeline->path).string();
+			const std::string content = "Saved render pipeline \"" + m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().name + "\" to: " + FileSystem::GetPathRelativeToBaseFolder(m_loadedRenderPipeline->path).string();
 			UI::Notify(NotificationType::Success, "Saved!", content);
 
-			if (m_loadedRenderPipeline->GetSpecification().shader && m_loadedRenderPipeline->GetSpecification().framebuffer)
+			if (m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().shader && m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().framebuffer)
 			{
 				InvalidateLoadedPipeline();
 			}
@@ -313,7 +315,7 @@ void RenderPipelineEditorPanel::InvalidateLoadedPipeline()
 {
 	Lamp::Renderer::SubmitInvalidation([pipeline = m_loadedRenderPipeline]()
 	{
-		pipeline->Invalidate();
+		pipeline->GetGraphicsPipeline()->Invalidate();
 	});
 }
 
@@ -325,7 +327,7 @@ void RenderPipelineEditorPanel::UpdateCurrentShaderAndRenderPass()
 		for (const auto& [name, shader] : Lamp::ShaderRegistry::GetAllShaders())
 		{
 			i++;
-			if (m_loadedRenderPipeline->GetSpecification().shader == shader)
+			if (m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().shader == shader)
 			{
 				m_currentlySelectedShader = i;
 			}
@@ -338,7 +340,7 @@ void RenderPipelineEditorPanel::UpdateCurrentShaderAndRenderPass()
 		for (const auto& [name, renderPass] : Lamp::RenderPassRegistry::GetAllPasses())
 		{
 			i++;
-			if (m_loadedRenderPipeline->GetSpecification().framebuffer == renderPass->framebuffer)
+			if (m_loadedRenderPipeline->GetGraphicsPipeline()->GetSpecification().framebuffer == renderPass->framebuffer)
 			{
 				m_currentlySelectedRenderPass = i;
 			}

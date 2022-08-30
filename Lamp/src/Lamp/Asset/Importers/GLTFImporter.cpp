@@ -6,6 +6,7 @@
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/MaterialRegistry.h"
 #include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 
@@ -61,7 +62,7 @@ namespace Lamp
 			uint32_t index = 0;
 			for (const auto& mat : gltfInput.materials)
 			{
-				mesh->m_material->m_materials.emplace(index, CreateRef<Material>(mat.name, index, RenderPipelineRegistry::Get("PBR")));
+				mesh->m_material->m_materials.emplace(index, CreateRef<Material>(mat.name, index, RenderPipelineRegistry::Get("PBR")->GetGraphicsPipeline()));
 				index++;
 			}
 		}
@@ -242,7 +243,7 @@ namespace Lamp
 
 				if (outMesh->m_material->m_materials.find(subMesh.materialIndex) == outMesh->m_material->m_materials.end())
 				{
-					Ref<Material> material = Material::Create(inputModel.materials[subMesh.materialIndex].name, subMesh.materialIndex, RenderPipelineRegistry::Get("PBR")); // TODO: change to default pipeline
+					Ref<Material> material = Material::Create(inputModel.materials[subMesh.materialIndex].name, subMesh.materialIndex, RenderPipelineRegistry::Get("PBR")->GetGraphicsPipeline()); // TODO: change to default pipeline
 					outMesh->m_material->m_materials[subMesh.materialIndex] = material;
 				}
 			}

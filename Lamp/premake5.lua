@@ -130,7 +130,8 @@ project "Shaders"
 
 	files
 	{
-		"../Resources/Engine/Shaders/**.glsl"
+		"../Resources/Engine/Shaders/**.glsl",
+		"../Resources/Engine/Shaders/**.glslh"
 	}
 
 	filter "system:windows"
