@@ -140,12 +140,6 @@ namespace Lamp
 
 		s_frameDeletionQueues[currentFrame].Flush();
 		s_invalidationQueues[currentFrame].Flush();
-
-
-		SortRenderCommands();
-		PrepareForIndirectDraw(s_rendererData->renderCommands);
-		UploadRenderCommands();
-		UpdatePerFrameBuffers();
 	}
 
 	void Renderer::End()
@@ -177,7 +171,7 @@ namespace Lamp
 		const uint32_t groupX = width / threadCountXY;
 		const uint32_t groupY = height / threadCountXY;
 
-		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL); // TODO: this will only work for outputs at set 1 binding 6
 
 		computePass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1);
 		computePass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
@@ -192,6 +186,9 @@ namespace Lamp
 		s_rendererData->passCamera = camera;
 		s_rendererData->currentPass = renderPass;
 
+		SortRenderCommands(s_rendererData->perPassRenderCommands);
+		PrepareForIndirectDraw(s_rendererData->perPassRenderCommands);
+		UploadRenderCommands(s_rendererData->perPassRenderCommands);
 		CullRenderCommands();
 		UpdatePerPassBuffers();
 
@@ -277,6 +274,7 @@ namespace Lamp
 		// Draw
 		{
 			std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
+
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
 				{
@@ -548,7 +546,7 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands)
+	void Renderer::PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands)
 	{
 		LP_PROFILE_FUNCTION();
 
@@ -623,24 +621,17 @@ namespace Lamp
 
 			currentTargetBuffer->Unmap();
 		}
-	}
-
-	void Renderer::UpdatePerFrameBuffers()
-	{
-		LP_PROFILE_FUNCTION();
-
-		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
 		// Update object data
 		{
 			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(4, 0)->Get(currentFrame);
 			auto* objectData = currentObjectBuffer->Map<ObjectData>();
 
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			for (uint32_t i = 0; i < s_rendererData->perPassRenderCommands.size(); i++)
 			{
-				const BoundingSphere& boundingSphere = s_rendererData->renderCommands[i].mesh->GetBoundingSphere();
+				const BoundingSphere& boundingSphere = s_rendererData->perPassRenderCommands[i].mesh->GetBoundingSphere();
 
-				const glm::mat4 transform = s_rendererData->renderCommands[i].transform;
+				const glm::mat4 transform = s_rendererData->perPassRenderCommands[i].transform;
 				const glm::vec3 globalScale = { glm::length(transform[0]), glm::length(transform[1]), glm::length(transform[2]) };
 				const glm::vec3 globalCenter = transform * glm::vec4(boundingSphere.center, 1.f);
 				const float maxScale = std::max(globalScale.x, std::max(globalScale.y, globalScale.z));
@@ -651,6 +642,13 @@ namespace Lamp
 
 			currentObjectBuffer->Unmap();
 		}
+	}
+
+	void Renderer::UpdatePerFrameBuffers()
+	{
+		LP_PROFILE_FUNCTION();
+
+		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
 		// Update directional light
 		{
@@ -659,16 +657,41 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::SortRenderCommands()
+	void Renderer::CollectPassRenderCommands()
+	{
+		const std::vector<RenderCommand>& renderCommands = s_rendererData->renderCommands;
+		const Ref<RenderPass> currentPass = s_rendererData->currentPass;
+		
+		for (const auto& cmd : renderCommands)
+		{
+			if (!currentPass->excludedPipelineHashes.empty())
+			{
+				auto it = std::find(currentPass->excludedPipelineHashes.begin(), currentPass->excludedPipelineHashes.end(), cmd.material->GetPipelineHash());
+				if (it != currentPass->excludedPipelineHashes.end())
+				{
+					continue;
+				}
+			}
+
+			if (currentPass->exclusivePipelineHash != 0 && cmd.material->GetPipelineHash() != currentPass->exclusivePipelineHash)
+			{
+				continue;
+			}
+
+			s_rendererData->perPassRenderCommands.emplace_back(renderCommands);
+		}
+	}
+
+	void Renderer::SortRenderCommands(std::vector<RenderCommand>& outRenderCommands)
 	{
 		LP_PROFILE_FUNCTION();
-		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
+		std::sort(outRenderCommands.begin(), outRenderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
 			{
 				return lhs.subMesh > rhs.subMesh;
 			});
 	}
 
-	void Renderer::UploadRenderCommands()
+	void Renderer::UploadRenderCommands(const std::vector<RenderCommand>& renderCommands)
 	{
 		LP_PROFILE_FUNCTION();
 
@@ -679,9 +702,9 @@ namespace Lamp
 		{
 			auto* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
 
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			for (uint32_t i = 0; i < renderCommands.size(); i++)
 			{
-				auto& cmd = s_rendererData->renderCommands[i];
+				auto& cmd = renderCommands[i];
 
 				drawCommands[i].command.indexCount = cmd.subMesh.indexCount;
 				drawCommands[i].command.firstIndex = cmd.subMesh.indexStartOffset;
@@ -700,7 +723,6 @@ namespace Lamp
 					drawCommands[i].batchId = it->id;
 					drawCommands[i].command.firstInstance = it->first;
 				}
-
 			}
 
 			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
@@ -709,7 +731,7 @@ namespace Lamp
 		{
 			auto* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
 
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
+			for (uint32_t i = 0; i < renderCommands.size(); i++)
 			{
 				ids[i] = 0;
 			}

@@ -27,6 +27,14 @@ namespace Lamp
 		m_hash = Utility::HashCombine(m_hash, std::hash<uint32_t>()(indexStartOffset));
 	}
 	
+	bool operator==(const SubMesh& lhs, const SubMesh& rhs)
+	{
+		return lhs.materialIndex == rhs.materialIndex &&
+			lhs.indexCount == rhs.indexCount &&
+			lhs.vertexStartOffset == rhs.vertexStartOffset &&
+			lhs.indexStartOffset == rhs.indexStartOffset;
+	}
+
 	bool operator>(const SubMesh& lhs, const SubMesh& rhs)
 	{
 		return lhs.m_hash > rhs.m_hash;

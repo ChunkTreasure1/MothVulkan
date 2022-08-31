@@ -91,13 +91,15 @@ namespace Lamp
 		
 		static void CreateDefaultData();
 		static void CreateDescriptorPools();
-		static void PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
+		static void PrepareForIndirectDraw(const std::vector<RenderCommand>& renderCommands);
 
 		static void UpdatePerPassBuffers();
 		static void UpdatePerFrameBuffers();
 
-		static void SortRenderCommands();
-		static void UploadRenderCommands();
+		static void CollectPassRenderCommands();
+
+		static void SortRenderCommands(std::vector<RenderCommand>& outRenderCommands);
+		static void UploadRenderCommands(const std::vector<RenderCommand>& renderCommands);
 		static void CullRenderCommands();
 
 		static void GenerateBRDFLut();
@@ -112,6 +114,7 @@ namespace Lamp
 
 			Ref<RenderPipelineCompute> indirectCullPipeline;
 
+			std::vector<RenderCommand> perPassRenderCommands;
 			std::vector<RenderCommand> renderCommands;
 			std::vector<IndirectBatch> indirectBatches;
 
