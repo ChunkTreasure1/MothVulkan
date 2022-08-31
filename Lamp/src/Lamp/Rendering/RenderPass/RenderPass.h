@@ -19,9 +19,18 @@ namespace Lamp
 	class RenderPass : public Asset
 	{
 	public:
+		struct ExistingImage
+		{
+			std::string renderPass;
+			uint32_t attachmentIndex;
+			uint32_t targetIndex;
+			bool depth = false;
+		};
+
 		std::string name;
 		Ref<Framebuffer> framebuffer;
-		
+		std::vector<ExistingImage> existingImages;
+
 		Ref<RenderPipeline> overridePipeline;
 		std::string overridePipelineName;
 		

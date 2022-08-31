@@ -312,6 +312,18 @@ namespace Lamp
 		LP_DESERIALIZE_PROPERTY(width, spec.width, framebufferNode, 1280);
 		LP_DESERIALIZE_PROPERTY(height, spec.height, framebufferNode, 720);
 
+		std::vector<RenderPass::ExistingImage> existingImages;
+
+		for (const auto& imageNode : framebufferNode["existingImages"])
+		{
+			auto& image = existingImages.emplace_back();
+
+			LP_DESERIALIZE_PROPERTY(renderPass, image.renderPass, imageNode, std::string());
+			LP_DESERIALIZE_PROPERTY(attachmentIndex, image.attachmentIndex, imageNode, 0);
+			LP_DESERIALIZE_PROPERTY(targetIndex, image.targetIndex, imageNode, 0);
+			LP_DESERIALIZE_PROPERTY(depth, image.depth, imageNode, false);
+		}
+
 		if (!framebufferNode["attachments"])
 		{
 			LP_CORE_ERROR("Framebuffer has no attachments! This is required!");
@@ -370,6 +382,7 @@ namespace Lamp
 		renderPass->priority = priority;
 		renderPass->excludedPipelineNames = excludedPipelines;
 		renderPass->computePipelineName = computePipelineString;
+		renderPass->existingImages = existingImages;
 
 		if (!exclusivePipelineName.empty())
 		{

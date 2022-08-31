@@ -14,6 +14,7 @@ namespace Lamp
 		static void Shutdown();
 
 		static void SetupOverridesAndExclusives();
+		static void SetupPassDependencies();
 
 		static Ref<RenderPass> Get(const std::string& name);
 		static void Register(const std::string& name, Ref<RenderPass> pipeline);

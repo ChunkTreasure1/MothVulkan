@@ -7,6 +7,7 @@
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+#include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Utility/StringUtility.h"
 #include "Lamp/Utility/FileSystem.h"
@@ -76,6 +77,41 @@ namespace Lamp
 						LP_CORE_ERROR("Unable to find excluded pipeline {0} for render pass {1}!", pass->exclusivePipelineName.c_str(), pass->name.c_str());
 					}
 				}
+			}
+
+		}
+	}
+
+	void RenderPassRegistry::SetupPassDependencies()
+	{
+		for (auto& [name, pass] : s_registry)
+		{
+			if (!pass->existingImages.empty())
+			{
+				FramebufferSpecification spec = pass->framebuffer->GetSpecification();
+				for (const auto& image : pass->existingImages)
+				{
+					Ref<RenderPass> renderPass = Get(image.renderPass);
+					if (renderPass)
+					{
+						Ref<Image2D> existingImage = image.depth ? renderPass->framebuffer->GetDepthAttachment() : renderPass->framebuffer->GetColorAttachment(image.attachmentIndex);
+						if (existingImage && !image.depth)
+						{
+							spec.existingImages[image.targetIndex] = existingImage;
+						}
+						else if (image.depth)
+						{
+							spec.existingDepth = existingImage;
+						}
+						else
+						{
+							LP_CORE_ERROR("Render pass not found");
+						}
+					}
+
+				}
+
+				pass->framebuffer = Framebuffer::Create(spec);
 			}
 		}
 	}

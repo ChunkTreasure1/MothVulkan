@@ -57,6 +57,7 @@ namespace Lamp
 	
 		std::vector<FramebufferAttachment> attachments;
 		std::map<uint32_t, Ref<Image2D>> existingImages;
+		Ref<Image2D> existingDepth;
 	};
 
 	class Framebuffer

@@ -177,7 +177,7 @@ namespace Lamp
 		const uint32_t groupX = width / threadCountXY;
 		const uint32_t groupY = height / threadCountXY;
 
-		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
 
 		computePass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1);
 		computePass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
@@ -619,7 +619,7 @@ namespace Lamp
 			auto currentTargetBuffer = UniformBufferRegistry::Get(0, 2)->Get(currentFrame);
 			auto* targetData = currentTargetBuffer->Map<TargetData>();
 
-			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetSpecification().width, s_rendererData->currentPass->framebuffer->GetSpecification().height };
+			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
 
 			currentTargetBuffer->Unmap();
 		}

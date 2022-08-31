@@ -8,8 +8,17 @@ RenderPass:
   framebuffer:
     width: 1280
     height: 720
+    existingImages:
+      - renderPass: shadingPass
+        attachmentIndex: 0
+        targetIndex: 0
+        depth: false
+      - renderPass: gbuffer
+        attachmentIndex: 0
+        targetIndex: 0
+        depth: true
     attachments:
-      - format: SRGB
+      - format: RGBA
         filter: Linear
         wrapMode: Repeat
         blendMode: None

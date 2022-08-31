@@ -17,3 +17,12 @@ RenderPass:
         clearColor: [0.100000001, 0.100000001, 0.100000001, 1]
         debugName: ""
         copyable: true
+      - format: DEPTH32F
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [1, 1, 1, 1]
+        debugName: ""
+        copyable: false

@@ -99,12 +99,20 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main()
 {
     vec2 texCoords = vec2(gl_GlobalInvocationID.xy) / vec2(u_targetData.targetSize);
-    
+
     ///// Read GBuffer /////
     const vec4 positionMetallic = texture(u_positionMetallic, texCoords);
     const vec4 albedo = texture(u_albedo, texCoords);
     const vec4 normalRoughness = texture(u_normalRoughness, texCoords);
     ////////////////////////
+
+    ivec2 outputLocation = ivec2(gl_GlobalInvocationID.xy);
+
+    if (albedo.w == 0.f)
+    {
+        imageStore(o_output, outputLocation, vec4(0.1f, 0.1f, 0.1f, 1.f));
+        return;
+    }
 
     const vec3 worldPosition = positionMetallic.xyz;
 
@@ -121,8 +129,6 @@ void main()
     
     const float gamma = 2.2f;
     lightAccumulation = pow(lightAccumulation, vec3(1.f / gamma));
-    
-    ivec2 outputLocation = ivec2(gl_GlobalInvocationID.xy);
-
+  
     imageStore(o_output, outputLocation, vec4(lightAccumulation, 1.f));
 }
