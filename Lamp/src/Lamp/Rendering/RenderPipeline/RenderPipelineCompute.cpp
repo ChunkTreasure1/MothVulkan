@@ -201,7 +201,7 @@ namespace Lamp
 				}
 				else
 				{
-					LP_CORE_ASSERT(false, "No valid image barrier found!");
+					//LP_CORE_ASSERT(false, "No valid image barrier found!");
 				}
 			}
 

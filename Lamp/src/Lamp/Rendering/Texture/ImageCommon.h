@@ -54,7 +54,8 @@ namespace Lamp
 		None = 0,
 		Texture,
 		Attachment,
-		Storage
+		Storage,
+		AttachmentStorage
 	};
 
 	enum class TextureWrap : uint32_t

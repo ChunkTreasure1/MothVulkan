@@ -50,7 +50,7 @@ namespace Lamp
 			{
 				ImageSpecification spec{};
 				spec.format = attachment.format;
-				spec.usage = ImageUsage::Attachment;
+				spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
 				spec.copyable = attachment.copyable;
@@ -61,7 +61,7 @@ namespace Lamp
 			{
 				ImageSpecification spec{};
 				spec.format = attachment.format;
-				spec.usage = ImageUsage::Attachment;
+				spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
 				spec.copyable = attachment.copyable;
@@ -95,7 +95,7 @@ namespace Lamp
 		}
 
 		uint32_t attachmentIndex = 0;
-		for (auto attachment : m_specification.attachments)
+		for (const auto& attachment : m_specification.attachments)
 		{
 			if (Utility::IsDepthFormat(attachment.format))
 			{
@@ -131,7 +131,7 @@ namespace Lamp
 					{
 						ImageSpecification spec{};
 						spec.format = attachment.format;
-						spec.usage = ImageUsage::Attachment;
+						spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 						spec.width = m_width;
 						spec.height = m_height;
 						spec.copyable = attachment.copyable;
@@ -286,7 +286,7 @@ namespace Lamp
 	{
 		uint32_t attachmentIndex = 0;
 
-		for (auto image : m_colorAttachmentImages)
+		for (const auto& image : m_colorAttachmentImages)
 		{
 			if (m_specification.existingImages.find(attachmentIndex) != m_specification.existingImages.end())
 			{

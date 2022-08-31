@@ -47,6 +47,7 @@ namespace Lamp
 		
 		std::string debugName;
 		bool copyable = false;
+		bool storageCompatible = false;
 	};
 
 	struct FramebufferSpecification
