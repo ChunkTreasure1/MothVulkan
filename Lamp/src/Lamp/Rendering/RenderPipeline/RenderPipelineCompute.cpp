@@ -7,9 +7,11 @@
 
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBuffer.h"
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferSet.h"
+#include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
 
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBuffer.h"
 #include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferRegistry.h"
 
 #include "Lamp/Rendering/Texture/Image2D.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
@@ -23,6 +25,7 @@ namespace Lamp
 		: m_shader(computeShader), m_count(count)
 	{
 		CreatePipeline();
+		SetupPipelineFromShader();
 		AllocateAndSetupDescriptorsAndBarriers();
 	}
 
@@ -99,26 +102,12 @@ namespace Lamp
 			info.info.buffer = ssbo->GetHandle();
 			info.info.range = ssbo->GetSize();
 
-			auto it = std::find_if(m_bufferBarriers[i].begin(), m_bufferBarriers[i].end(), [this, set, binding, i, ssbo](const VkBufferMemoryBarrier& barrier)
-				{
-					Ref<ShaderStorageBuffer> oldSSBO;
-					if (m_storageBufferSets[set].find(binding) != m_storageBufferSets[set].end())
-					{
-						oldSSBO = m_storageBufferSets[set][binding]->Get(i);
-					}
-
-					return (oldSSBO && barrier.buffer == oldSSBO->GetHandle()) || barrier.buffer == VK_NULL_HANDLE || barrier.buffer == ssbo->GetHandle();
-				});
-
-			if (it != m_bufferBarriers[i].end() && info.writeable)
+			if (info.writeable)
 			{
-				it->buffer = ssbo->GetHandle();
-				it->size = ssbo->GetSize();
-				it->dstAccessMask = accessFlags;
-			}
-			else
-			{
-				LP_CORE_ASSERT(false, "No valid buffer barrier found!");
+				auto& barrier = m_bufferBarriers[i].at(m_bufferBarrierMap.at(set).at(binding));
+				barrier.buffer = ssbo->GetHandle();
+				barrier.size = ssbo->GetSize();
+				barrier.dstAccessMask = accessFlags;
 			}
 		}
 
@@ -156,7 +145,7 @@ namespace Lamp
 				return;
 			}
 
-			for (auto & shaderResource : m_shaderResources)
+			for (auto& shaderResource : m_shaderResources)
 			{
 				auto& info = shaderResource.imageInfos[dstSet][dstBinding].info;
 				info.imageView = image->GetView(srcMip);
@@ -178,30 +167,17 @@ namespace Lamp
 				info.info.imageView = image->GetView(srcMip);
 				info.info.sampler = image->GetSampler();
 
-				auto it = std::find_if(m_imageBarriers[i].begin(), m_imageBarriers[i].end(), [this, dstSet, dstBinding, i, image](const VkImageMemoryBarrier& barrier)
-					{
-						Ref<Image2D> oldImage;
-						if (m_images[dstSet].find(dstBinding) != m_images[dstSet].end())
-						{
-							oldImage = m_images[dstSet][dstBinding];
-						}
-
-						return (oldImage && barrier.image == oldImage->GetHandle()) || barrier.image == VK_NULL_HANDLE || barrier.image == image->GetHandle();
-					});
-
-				if (it != m_imageBarriers[i].end() && info.writeable)
+				if (info.writeable)
 				{
-					it->image = image->GetHandle();
-					it->oldLayout = image->GetLayout();
-					it->newLayout = targetLayout == VK_IMAGE_LAYOUT_UNDEFINED ? image->GetLayout() : targetLayout;
-					it->dstAccessMask = dstAccessFlags;
-					it->subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+					auto& barrier = m_imageBarriers[i].at(m_imageBarrierMap.at(dstSet).at(dstBinding));
 
-					image->m_imageLayout = it->newLayout;
-				}
-				else
-				{
-					//LP_CORE_ASSERT(false, "No valid image barrier found!");
+					barrier.image = image->GetHandle();
+					barrier.oldLayout = image->GetLayout();
+					barrier.newLayout = targetLayout == VK_IMAGE_LAYOUT_UNDEFINED ? image->GetLayout() : targetLayout;
+					barrier.dstAccessMask = dstAccessFlags;
+					barrier.subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+
+					image->m_imageLayout = barrier.newLayout;
 				}
 			}
 
@@ -298,6 +274,7 @@ namespace Lamp
 
 						if (shaderResources.storageBuffersInfos[set].at(binding).writeable)
 						{
+							const uint32_t barrierIndex = (uint32_t)m_bufferBarriers[i].size();
 							auto& bufferBarrier = m_bufferBarriers[i].emplace_back();
 							bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 							bufferBarrier.pNext = nullptr;
@@ -308,6 +285,8 @@ namespace Lamp
 							bufferBarrier.buffer = nullptr;
 							bufferBarrier.offset = 0;
 							bufferBarrier.size = 0;
+
+							m_bufferBarrierMap[set][binding] = barrierIndex;
 						}
 					}
 					else if (shaderResources.storageImagesInfos[set].find(binding) != shaderResources.storageImagesInfos[set].end())
@@ -316,6 +295,7 @@ namespace Lamp
 
 						if (shaderResources.storageImagesInfos[set].at(binding).writeable)
 						{
+							const uint32_t barrierIndex = (uint32_t)m_imageBarriers[i].size();
 							auto& imageBarrier = m_imageBarriers[i].emplace_back();
 							imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 							imageBarrier.pNext = nullptr;
@@ -330,14 +310,14 @@ namespace Lamp
 							imageBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 							imageBarrier.subresourceRange.baseMipLevel = 0;
 							imageBarrier.subresourceRange.baseArrayLayer = 0;
+
+							m_imageBarrierMap[set][binding] = barrierIndex;
+							;
 						}
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())
 					{
 						auto* imageInfo = &shaderResources.imageInfos[set].at(binding).info;
-						imageInfo->imageView = Renderer::GetDefaultData().whiteTexture->GetImage()->GetView();
-						imageInfo->sampler = Renderer::GetDefaultData().whiteTexture->GetImage()->GetSampler();
-
 						writeDescriptor.pImageInfo = imageInfo;
 					}
 
@@ -346,6 +326,66 @@ namespace Lamp
 				}
 
 				index++;
+			}
+		}
+	}
+
+	void RenderPipelineCompute::SetupPipelineFromShader()
+	{
+		for (uint32_t i = 0; i < (uint32_t)m_shaderResources.size(); i++)
+		{
+			for (auto& [set, bindings] : m_shaderResources[i].uniformBuffersInfos)
+			{
+				for (auto& [binding, info] : bindings)
+				{
+					Ref<UniformBufferSet> ubo = UniformBufferRegistry::Get(set, binding);
+					if (ubo)
+					{
+						auto buffer = ubo->Get(i);
+
+						info.buffer = buffer->GetHandle();
+						info.range = buffer->GetSize();
+					}
+				}
+			}
+
+			for (auto& [set, bindings] : m_shaderResources[i].storageBuffersInfos)
+			{
+				for (auto& [binding, info] : bindings)
+				{
+					Ref<ShaderStorageBufferSet> ssb = ShaderStorageBufferRegistry::Get(set, binding);
+					if (ssb)
+					{
+						auto buffer = ssb->Get(i);
+
+						info.info.buffer = buffer->GetHandle();
+						info.info.range = buffer->GetSize();
+					}
+				}
+			}
+
+			for (auto& [set, bindings] : m_shaderResources[i].imageInfos)
+			{
+				if (set != (uint32_t)DescriptorSetType::PerMaterial)
+				{
+					for (auto& [binding, info] : bindings)
+					{
+						if (info.dimension == ImageDimension::Dim2D)
+						{
+							auto defaultTexture = Renderer::GetDefaultData().whiteTexture;
+
+							info.info.imageView = defaultTexture->GetImage()->GetView();
+							info.info.sampler = defaultTexture->GetImage()->GetSampler();
+						}
+						else if (info.dimension == ImageDimension::DimCube)
+						{
+							auto defaultTexture = Renderer::GetDefaultData().blackCubeImage;
+
+							info.info.imageView = defaultTexture->GetView();
+							info.info.sampler = defaultTexture->GetSampler();
+						}
+					}
+				}
 			}
 		}
 	}

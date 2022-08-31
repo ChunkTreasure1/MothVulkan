@@ -164,10 +164,10 @@ namespace Lamp
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		computePass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 
-		//for (const auto& input : computePass.framebufferInputs)
-		//{
-		//	computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
-		//}
+		for (const auto& input : computePass->computePipeline->GetFramebufferInputs())
+		{
+			computePass->computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
+		}
 
 		const uint32_t width = computePass->framebuffer->GetWidth();
 		const uint32_t height = computePass->framebuffer->GetHeight();
@@ -177,7 +177,7 @@ namespace Lamp
 		const uint32_t groupX = width / threadCountXY;
 		const uint32_t groupY = height / threadCountXY;
 
-		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 5, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		computePass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1);
 		computePass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);

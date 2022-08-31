@@ -128,6 +128,9 @@ project "Shaders"
 	kind "StaticLib"
 	cppdialect "C++latest"
 
+	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
+	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
+
 	files
 	{
 		"../Resources/Engine/Shaders/**.glsl",

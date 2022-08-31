@@ -3,8 +3,10 @@
 
 #include "Lamp/Asset/AssetManager.h"
 #include "Lamp/Asset/RenderPipelineAsset.h"
+
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Utility/StringUtility.h"
 #include "Lamp/Utility/FileSystem.h"

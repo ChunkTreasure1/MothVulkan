@@ -2,7 +2,7 @@
 
 #include "Structures.glslh"
 
-layout(set = 5, binding = 0, rgba8) restrict writeonly uniform image2D o_output;
+layout(set = 1, binding = 6, rgba8) restrict writeonly uniform image2D o_output;
 
 layout(set = 1, binding = 0) uniform sampler2D u_positionMetallic;
 layout(set = 1, binding = 1) uniform sampler2D u_albedo;

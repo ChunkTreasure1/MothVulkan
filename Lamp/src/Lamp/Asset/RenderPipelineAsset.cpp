@@ -2,6 +2,7 @@
 #include "RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineCompute.h"
+#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Framebuffer.h"
 
 #include "Lamp/Rendering/Buffer/UniformBuffer/UniformBufferRegistry.h"
@@ -69,5 +70,6 @@ namespace Lamp
 		}
 
 		m_computePipeline = computePipeline;
+		m_computePipeline->m_framebufferInputs = spec.framebufferInputs;
 	}
 }

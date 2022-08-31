@@ -4,6 +4,6 @@ RenderGraph:
     - pass: "gbuffer"
       priority: 0
     - pass: "forward"
-      priority: 1
-    - pass: "shadingPass"
       priority: 2
+    - pass: "shadingPass"
+      priority: 1

@@ -4,7 +4,7 @@
 #include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Rendering/Buffer/BufferLayout.h"
-#include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+#include "Lamp/Rendering/RenderPipeline/PipelineCommon.h"
 
 namespace Lamp
 {

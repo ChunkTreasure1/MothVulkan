@@ -29,10 +29,10 @@ RenderPipeline:
       set: 1
       binding: 0
     - renderPass: gbuffer
-      attachment: 0
+      attachment: 1
       set: 1
       binding: 1
     - renderPass: gbuffer
-      attachment: 0
+      attachment: 2
       set: 1
       binding: 2
