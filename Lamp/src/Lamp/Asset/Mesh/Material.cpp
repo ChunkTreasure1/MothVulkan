@@ -60,7 +60,7 @@ namespace Lamp
 
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
-			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex].at(i), passIndex);
+			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex].at(i), m_descriptorSetBindings[frameIndex].at(i), passIndex);
 		}
 	}
 

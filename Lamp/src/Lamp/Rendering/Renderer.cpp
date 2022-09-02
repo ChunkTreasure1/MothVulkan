@@ -175,13 +175,13 @@ namespace Lamp
 
 		const uint32_t threadCountXY = 32;
 
-		const uint32_t groupX = width / threadCountXY;
-		const uint32_t groupY = height / threadCountXY;
-
+		const uint32_t groupX = width / threadCountXY + 1;
+		const uint32_t groupY = height / threadCountXY + 1;
+	
 		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
-
 		currentPass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
-		currentPass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+		currentPass->computePipeline->InsertExecutionBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
