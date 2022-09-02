@@ -8,7 +8,7 @@ layout(location = 2) in vec3 a_tangent;
 layout(location = 3) in vec3 a_bitangent;
 layout(location = 4) in vec2 a_texCoords;
 
-layout(std140, set = 1, binding = 0) uniform CameraBuffer
+layout(std140, set = 0, binding = 0) uniform CameraBuffer
 {
     CameraData u_cameraData;
 };

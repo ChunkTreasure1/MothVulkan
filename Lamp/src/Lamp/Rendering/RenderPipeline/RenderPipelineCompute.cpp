@@ -80,8 +80,8 @@ namespace Lamp
 			auto& info = m_shaderResources[i].uniformBuffersInfos[set][binding];
 
 			Ref<UniformBuffer> ubo = uniformBuffer->Get(i);
-			info.info.buffer = ubo->GetHandle();
-			info.info.range = ubo->GetSize();
+			info.buffer = ubo->GetHandle();
+			info.range = ubo->GetSize();
 		}
 	}
 
@@ -266,7 +266,7 @@ namespace Lamp
 
 					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding).info;
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding);
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
@@ -343,8 +343,8 @@ namespace Lamp
 					{
 						auto buffer = ubo->Get(i);
 
-						info.info.buffer = buffer->GetHandle();
-						info.info.range = buffer->GetSize();
+						info.buffer = buffer->GetHandle();
+						info.range = buffer->GetSize();
 					}
 				}
 			}

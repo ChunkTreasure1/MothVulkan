@@ -263,44 +263,23 @@ namespace Lamp
 				VkDescriptorSetLayoutBinding& layoutBinding = outSetLayoutBindings[set].emplace_back();
 				layoutBinding.binding = binding;
 				layoutBinding.descriptorCount = 1;
-				layoutBinding.descriptorType = set == 1 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				layoutBinding.stageFlags = stage;
 
-				UniformBuffer& bufferInfo = m_resources.uniformBuffersInfos[set][binding];
-				bufferInfo.info.offset = 0;
-				bufferInfo.info.range = size;
-				bufferInfo.isDynamic = set == 1;
-
-				if (bufferInfo.isDynamic)
-				{
-					const uint64_t minUBOAlignment = GraphicsContext::GetDevice()->GetPhysicalDevice()->GetCapabilities().minUBOOffsetAlignment;
-					uint32_t dynamicAlignment = size;
-
-					if (minUBOAlignment > 0)
-					{
-						dynamicAlignment = (uint32_t)Utility::GetAlignedSize((uint64_t)dynamicAlignment, minUBOAlignment);
-					}
-
-					bufferInfo.info.range = dynamicAlignment;
-				}
+				VkDescriptorBufferInfo& bufferInfo = m_resources.uniformBuffersInfos[set][binding];
+				bufferInfo.offset = 0;
+				bufferInfo.range = size;
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
-				writeDescriptor.descriptorType = set == 1 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				if (bufferInfo.isDynamic)
-				{
-					m_perStageDynamicUBOCount[stage].count++;
-				}
-				else
-				{
-					m_perStageUBOCount[stage].count++;
-				}
+				m_perStageUBOCount[stage].count++;
 			}
-			else																																													     
+			else
 			{
 				it->stageFlags |= stage;
 			}
@@ -423,12 +402,12 @@ namespace Lamp
 
 				switch (type.image.dim)
 				{
-				case spv::Dim::Dim1D: imageInfo.dimension = ImageDimension::Dim1D; break;
-				case spv::Dim::Dim2D: imageInfo.dimension = ImageDimension::Dim2D; break;
-				case spv::Dim::Dim3D: imageInfo.dimension = ImageDimension::Dim3D; break;
-				case spv::Dim::DimCube: imageInfo.dimension = ImageDimension::DimCube; break;
+					case spv::Dim::Dim1D: imageInfo.dimension = ImageDimension::Dim1D; break;
+					case spv::Dim::Dim2D: imageInfo.dimension = ImageDimension::Dim2D; break;
+					case spv::Dim::Dim3D: imageInfo.dimension = ImageDimension::Dim3D; break;
+					case spv::Dim::DimCube: imageInfo.dimension = ImageDimension::DimCube; break;
 
-				default: imageInfo.dimension = ImageDimension::Dim2D; break;
+					default: imageInfo.dimension = ImageDimension::Dim2D; break;
 				}
 
 				VkDescriptorImageInfo& descriptorInfo = imageInfo.info;
@@ -450,7 +429,6 @@ namespace Lamp
 		}
 
 		LP_CORE_INFO("		Uniform Buffers: {0}", m_perStageUBOCount[stage].count);
-		LP_CORE_INFO("		Dynamic Uniform Buffers: {0}", m_perStageDynamicUBOCount[stage].count);
 		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_perStageSSBOCount[stage].count);
 		LP_CORE_INFO("		Sampled Images: {0}", m_perStageImageCount[stage].count);
 		LP_CORE_INFO("		Storage Images: {0}", m_perStageStorageImageCount[stage].count);
@@ -462,7 +440,7 @@ namespace Lamp
 
 		for (const auto& [set, bindings] : setLayoutBindings)
 		{
-			while ((set > lastSet + 1) || (lastSet == 0 && set > 0))
+			while (set > lastSet + 1)
 			{
 				VkDescriptorSetLayoutCreateInfo layoutInfo{};
 				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -494,13 +472,11 @@ namespace Lamp
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 
 		uint32_t uboCount = 0;
-		uint32_t dynamicUBOCount = 0;
 		uint32_t ssboCount = 0;
 		uint32_t storageImageCount = 0;
 		uint32_t imageCount = 0;
 
 		std::for_each(m_perStageUBOCount.begin(), m_perStageUBOCount.end(), [&](auto pair) { uboCount += pair.second.count; });
-		std::for_each(m_perStageDynamicUBOCount.begin(), m_perStageDynamicUBOCount.end(), [&](auto pair) { dynamicUBOCount += pair.second.count; });
 		std::for_each(m_perStageSSBOCount.begin(), m_perStageSSBOCount.end(), [&](auto pair) { ssboCount += pair.second.count; });
 		std::for_each(m_perStageStorageImageCount.begin(), m_perStageStorageImageCount.end(), [&](auto pair) { storageImageCount += pair.second.count; });
 		std::for_each(m_perStageImageCount.begin(), m_perStageImageCount.end(), [&](auto pair) { imageCount += pair.second.count; });
@@ -509,12 +485,6 @@ namespace Lamp
 		{
 			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, uboCount * framesInFlight);
 		}
-
-		if (dynamicUBOCount > 0)
-		{
-			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, dynamicUBOCount * framesInFlight);
-		}
-
 
 		if (ssboCount > 0)
 		{
