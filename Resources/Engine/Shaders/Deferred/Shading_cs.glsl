@@ -2,17 +2,17 @@
 
 #include "Structures.glslh"
 
-layout(set = 1, binding = 6, rgba8) restrict writeonly uniform image2D o_output;
+layout(set = 2, binding = 6, rgba8) restrict writeonly uniform image2D o_output;
 
-layout(set = 1, binding = 0) uniform sampler2D u_positionMetallic;
-layout(set = 1, binding = 1) uniform sampler2D u_albedo;
-layout(set = 1, binding = 2) uniform sampler2D u_normalRoughness;
+layout(set = 2, binding = 0) uniform sampler2D u_positionMetallic;
+layout(set = 2, binding = 1) uniform sampler2D u_albedo;
+layout(set = 2, binding = 2) uniform sampler2D u_normalRoughness;
 
-layout(set = 1, binding = 3) uniform samplerCube u_irradianceTexture;
-layout(set = 1, binding = 4) uniform samplerCube u_radianceTexture;
-layout(set = 1, binding = 5) uniform sampler2D u_BRDFLut;
+layout(set = 2, binding = 3) uniform samplerCube u_irradianceTexture;
+layout(set = 2, binding = 4) uniform samplerCube u_radianceTexture;
+layout(set = 2, binding = 5) uniform sampler2D u_BRDFLut;
 
-layout(std140, set = 0, binding = 0) uniform CameraBuffer
+layout(std140, set = 1, binding = 0) uniform CameraBuffer
 {
     CameraData u_cameraData;
 };
@@ -22,7 +22,7 @@ layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
     DirectionalLight u_directionalLight;
 };
 
-layout(std140, set = 0, binding = 2) uniform TargetBuffer
+layout(std140, set = 1, binding = 1) uniform TargetBuffer
 {
     TargetData u_targetData;
 };

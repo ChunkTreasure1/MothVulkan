@@ -54,9 +54,9 @@ namespace Lamp
 			(uint32_t)m_imageBarriers[frameIndex].size(), m_imageBarriers[frameIndex].data());
 	}
 
-	void RenderPipelineCompute::Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void RenderPipelineCompute::Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex)
 	{
-		WriteAndBindDescriptors(commandBuffer, index);
+		WriteAndBindDescriptors(commandBuffer, index, passIndex);
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
@@ -80,8 +80,8 @@ namespace Lamp
 			auto& info = m_shaderResources[i].uniformBuffersInfos[set][binding];
 
 			Ref<UniformBuffer> ubo = uniformBuffer->Get(i);
-			info.buffer = ubo->GetHandle();
-			info.range = ubo->GetSize();
+			info.info.buffer = ubo->GetHandle();
+			info.info.range = ubo->GetSize();
 		}
 	}
 
@@ -266,7 +266,7 @@ namespace Lamp
 
 					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding);
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding).info;
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
@@ -343,8 +343,8 @@ namespace Lamp
 					{
 						auto buffer = ubo->Get(i);
 
-						info.buffer = buffer->GetHandle();
-						info.range = buffer->GetSize();
+						info.info.buffer = buffer->GetHandle();
+						info.info.range = buffer->GetSize();
 					}
 				}
 			}
@@ -390,10 +390,25 @@ namespace Lamp
 		}
 	}
 
-	void RenderPipelineCompute::WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index)
+	void RenderPipelineCompute::WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index, uint32_t passIndex)
 	{
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[index].size(), m_writeDescriptors[index].data(), 0, nullptr);
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), 0, nullptr);
+		
+		auto& resources = m_shaderResources[index];
+
+		std::vector<uint32_t> dynamicOffsets;
+		for (const auto& [set, bindings] : resources.uniformBuffersInfos)
+		{
+			for (const auto& [binding, info] : bindings)
+			{
+				if (info.isDynamic)
+				{
+					dynamicOffsets.emplace_back(info.info.range * passIndex);
+				}
+			}
+		}
+		
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)dynamicOffsets.size(), dynamicOffsets.data());
 	}
 }

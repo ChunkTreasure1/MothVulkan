@@ -47,7 +47,7 @@ namespace Lamp
 		}
 	}
 
-	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const
+	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex, uint32_t passIndex) const
 	{
 		LP_PROFILE_FUNCTION();
 
@@ -56,9 +56,11 @@ namespace Lamp
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
 
+		// TODO: Switch to bind all sets at once
+
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
-			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex].at(i));
+			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex].at(i), passIndex);
 		}
 	}
 
@@ -164,7 +166,7 @@ namespace Lamp
 
 					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding);
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding).info;
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
@@ -201,8 +203,8 @@ namespace Lamp
 				{
 					Ref<UniformBuffer> ubo = UniformBufferRegistry::Get(set, binding)->Get(i);
 
-					info.buffer = ubo->GetHandle();
-					info.range = ubo->GetSize();
+					info.info.buffer = ubo->GetHandle();
+					info.info.range = ubo->GetSize();
 				}
 			}
 

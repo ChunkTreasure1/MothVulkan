@@ -73,9 +73,9 @@ namespace Lamp
 		s_frameDeletionQueues.resize(framesInFlight);
 		s_invalidationQueues.resize(framesInFlight);
 
-		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
-		UniformBufferRegistry::Register(0, 2, UniformBufferSet::Create(sizeof(TargetData), framesInFlight));
+		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), 3, framesInFlight));
+		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), 3, framesInFlight));
 
 		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
 		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
@@ -137,6 +137,7 @@ namespace Lamp
 		s_rendererData->commandBuffer->Begin();
 		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 		s_rendererData->frameUpdatedMaterials.clear();
+		s_rendererData->passIndex = 0;
 
 		s_frameDeletionQueues[currentFrame].Flush();
 		s_invalidationQueues[currentFrame].Flush();
@@ -155,35 +156,32 @@ namespace Lamp
 		s_rendererData->renderCommands.clear();
 	}
 
-	void Renderer::ExecuteComputePass(Ref<RenderPass> computePass, Ref<Camera> camera)
+	void Renderer::ExecuteComputePass()
 	{
-		s_rendererData->currentPass = computePass;
-		s_rendererData->passCamera = camera;
 		UpdatePerPassBuffers();
 
+		const Ref<RenderPass> currentPass = s_rendererData->currentPass;
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
-		computePass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 
-		for (const auto& input : computePass->computePipeline->GetFramebufferInputs())
+		currentPass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+
+		for (const auto& input : currentPass->computePipeline->GetFramebufferInputs())
 		{
-			computePass->computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
+			currentPass->computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
 		}
 
-		const uint32_t width = computePass->framebuffer->GetWidth();
-		const uint32_t height = computePass->framebuffer->GetHeight();
+		const uint32_t width = currentPass->framebuffer->GetWidth();
+		const uint32_t height = currentPass->framebuffer->GetHeight();
 
 		const uint32_t threadCountXY = 32;
 
 		const uint32_t groupX = width / threadCountXY;
 		const uint32_t groupY = height / threadCountXY;
 
-		computePass->computePipeline->SetImage(computePass->framebuffer->GetColorAttachment(0), 1, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
 
-		computePass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1);
-		computePass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-		s_rendererData->currentPass = nullptr;
-		s_rendererData->passCamera = nullptr;
+		currentPass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
+		currentPass->computePipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
@@ -192,11 +190,12 @@ namespace Lamp
 		s_rendererData->passCamera = camera;
 		s_rendererData->currentPass = renderPass;
 
-		CullRenderCommands();
 		UpdatePerPassBuffers();
-
 		// Begin RenderPass
+		if (!renderPass->computePipeline)
 		{
+			CullRenderCommands();
+
 			auto framebuffer = renderPass->framebuffer;
 
 			framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
@@ -224,10 +223,16 @@ namespace Lamp
 	void Renderer::EndPass()
 	{
 		LP_PROFILE_FUNCTION();
-		vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-		s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+
+		if (!s_rendererData->currentPass->computePipeline)
+		{
+			vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+		}
+
 		s_rendererData->currentPass = nullptr;
 		s_rendererData->passCamera = nullptr;
+		s_rendererData->passIndex++;
 	}
 
 	void Renderer::Submit(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -303,7 +308,7 @@ namespace Lamp
 					draws[i].material->UpdateInternalTexture(DEFAULT_RADIANCE_SET, DEFAULT_RADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.radianceMap);
 					draws[i].material->UpdateInternalTexture(DEFAULT_BRDF_SET, DEFAULT_BRDF_BINDING, currentFrame, s_defaultData->brdfLut);
 
-					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, s_rendererData->passIndex);
 				}
 
 				draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
@@ -603,8 +608,13 @@ namespace Lamp
 
 		// Update camera data
 		{
-			auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
-			auto* cameraData = currentCameraBuffer->Map<CameraData>();
+			auto currentCameraBuffer = UniformBufferRegistry::Get(1, 0)->Get(currentFrame);
+			uint8_t* bytePtr = currentCameraBuffer->Map<uint8_t>();
+
+			const uint32_t ptrOffset = currentCameraBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			CameraData* cameraData = (CameraData*)bytePtr;
 
 			cameraData->proj = s_rendererData->passCamera->GetProjection();
 			cameraData->view = s_rendererData->passCamera->GetView();
@@ -616,9 +626,13 @@ namespace Lamp
 
 		// Update target data
 		{
-			auto currentTargetBuffer = UniformBufferRegistry::Get(0, 2)->Get(currentFrame);
-			auto* targetData = currentTargetBuffer->Map<TargetData>();
+			auto currentTargetBuffer = UniformBufferRegistry::Get(1, 1)->Get(currentFrame);
+			uint8_t* bytePtr = currentTargetBuffer->Map<uint8_t>();
 
+			const uint32_t ptrOffset = currentTargetBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			TargetData* targetData = (TargetData*)bytePtr;
 			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
 
 			currentTargetBuffer->Unmap();

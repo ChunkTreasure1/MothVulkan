@@ -9,10 +9,10 @@ Assets:
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 2364318552008784800
     Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
   - Handle: 1249971563143443831
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 7921486373975219315

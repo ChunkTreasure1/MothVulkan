@@ -67,7 +67,7 @@ namespace Lamp
 		static void Begin();
 		static void End();
 
-		static void ExecuteComputePass(Ref<RenderPass> computePass, Ref<Camera> camera);
+		static void ExecuteComputePass();
 
 		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
 		static void EndPass();
@@ -117,6 +117,7 @@ namespace Lamp
 
 			Ref<Camera> passCamera;
 			Ref<RenderPass> currentPass;
+			uint32_t passIndex = 0;
 			std::vector<Ref<Material>> frameUpdatedMaterials;
 			
 			Skybox skyboxData;

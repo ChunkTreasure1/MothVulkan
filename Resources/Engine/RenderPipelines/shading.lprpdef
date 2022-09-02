@@ -26,13 +26,13 @@ RenderPipeline:
   framebufferInputs:
     - renderPass: gbuffer
       attachment: 0
-      set: 1
+      set: 2
       binding: 0
     - renderPass: gbuffer
       attachment: 1
-      set: 1
+      set: 2
       binding: 1
     - renderPass: gbuffer
       attachment: 2
-      set: 1
+      set: 2
       binding: 2

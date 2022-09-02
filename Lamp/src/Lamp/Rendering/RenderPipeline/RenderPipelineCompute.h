@@ -24,9 +24,9 @@ namespace Lamp
 
 		void Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0);
 		void InsertBarrier(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0, VkPipelineStageFlags pipelineStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
-		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex = 0);
 		void DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
-		void WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index = 0);
+		void WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index = 0, uint32_t passIndex = 0);
 
 		void SetUniformBuffer(Ref<UniformBufferSet> uniformBuffer, uint32_t set, uint32_t binding);
 		void SetStorageBuffer(Ref<ShaderStorageBufferSet> storageBuffer, uint32_t set, uint32_t binding, VkAccessFlags dstAccessFlags = VK_ACCESS_SHADER_READ_BIT);
