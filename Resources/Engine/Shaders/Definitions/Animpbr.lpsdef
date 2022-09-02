@@ -1,0 +1,9 @@
+name: "AnimPBR"
+paths:
+  - "Engine/Shaders/AnimPBR_vs.glsl"
+  - "Engine/Shaders/PBR_fs.glsl"
+inputTextures:
+  - binding: 0
+    name: "Albedo"
+  - binding: 1
+    name: "MaterialNormal"

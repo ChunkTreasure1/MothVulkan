@@ -7,6 +7,8 @@ layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec3 a_tangent;
 layout(location = 3) in vec3 a_bitangent;
 layout(location = 4) in vec2 a_texCoords;
+layout(location = 5) in ivec4 a_boneIds;
+layout(location = 6) in vec4 a_weights;
 
 layout(location = 0) out OutData
 {

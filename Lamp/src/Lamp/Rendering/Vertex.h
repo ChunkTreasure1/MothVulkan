@@ -38,6 +38,8 @@ namespace Lamp
 				{ ElementType::Float3, "a_tangent" },
 				{ ElementType::Float3, "a_bitangent" },
 				{ ElementType::Float2, "a_texCoord" },
+				{ ElementType::Float4, "a_boneIds"},
+				{ ElementType::Float4, "a_weights"}
 			});
 		}
 
@@ -55,6 +57,8 @@ namespace Lamp
 		glm::vec3 tangent = glm::vec3(0.f);
 		glm::vec3 bitangent = glm::vec3(0.f);
 		glm::vec2 textureCoords = glm::vec2(0.f);
+		glm::ivec4 boneIds = glm::ivec4(0.f);
+		glm::vec4 weights = glm::vec4(0.f);
 
 	};
 }
