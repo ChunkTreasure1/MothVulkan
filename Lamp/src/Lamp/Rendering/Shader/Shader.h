@@ -12,7 +12,7 @@ namespace Lamp
 {
 	// Descriptor sets:
 	// 0 - Per frame
-	// 1 - Per pass
+	// 1 - Per pass -- Uniform Buffers are dynamic
 	// 2 - Per object -- Unused for now
 	// 3 - Per material -- All textures for now
 	// 4 - Mesh data
@@ -33,6 +33,12 @@ namespace Lamp
 		{
 			VkDescriptorBufferInfo info{};
 			bool writeable = true;
+		};
+
+		struct UniformBuffer
+		{
+			VkDescriptorBufferInfo info{};
+			bool isDynamic = false;
 		};
 
 		struct StorageImage
@@ -57,7 +63,7 @@ namespace Lamp
 			std::vector<VkPushConstantRange> pushConstantRanges;
 			std::vector<VkDescriptorPoolSize> poolSizes;
 			
-			std::map<uint32_t, std::map<uint32_t, VkDescriptorBufferInfo>> uniformBuffersInfos; // set -> binding -> infos
+			std::map<uint32_t, std::map<uint32_t, UniformBuffer>> uniformBuffersInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, ShaderStorageBuffer>> storageBuffersInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, StorageImage>> storageImagesInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, SampledImage>> imageInfos; // set -> binding -> infos
@@ -114,6 +120,7 @@ namespace Lamp
 		std::string m_name;
 
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageUBOCount;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageDynamicUBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageSSBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageStorageImageCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageImageCount;

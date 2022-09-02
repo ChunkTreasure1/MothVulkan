@@ -20,7 +20,7 @@ layout(location = 0) out OutData
 
 } o_outData;
 
-layout(std140, set = 0, binding = 0) uniform CameraBuffer
+layout(std140, set = 1, binding = 0) uniform CameraBuffer
 {
     CameraData u_cameraData;
 };

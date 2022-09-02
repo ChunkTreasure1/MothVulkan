@@ -73,9 +73,9 @@ namespace Lamp
 		s_frameDeletionQueues.resize(framesInFlight);
 		s_invalidationQueues.resize(framesInFlight);
 
-		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
-		UniformBufferRegistry::Register(0, 2, UniformBufferSet::Create(sizeof(TargetData), framesInFlight));
+		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
+		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), framesInFlight));
 
 		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
 		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
@@ -601,28 +601,28 @@ namespace Lamp
 
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
-		// Update camera data
-		{
-			auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
-			auto* cameraData = currentCameraBuffer->Map<CameraData>();
+		//// Update camera data
+		//{
+		//	auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
+		//	auto* cameraData = currentCameraBuffer->Map<CameraData>();
 
-			cameraData->proj = s_rendererData->passCamera->GetProjection();
-			cameraData->view = s_rendererData->passCamera->GetView();
-			cameraData->position = glm::vec4(s_rendererData->passCamera->GetPosition(), 1.f);
-			cameraData->viewProj = cameraData->proj * cameraData->view;
+		//	cameraData->proj = s_rendererData->passCamera->GetProjection();
+		//	cameraData->view = s_rendererData->passCamera->GetView();
+		//	cameraData->position = glm::vec4(s_rendererData->passCamera->GetPosition(), 1.f);
+		//	cameraData->viewProj = cameraData->proj * cameraData->view;
 
-			currentCameraBuffer->Unmap();
-		}
+		//	currentCameraBuffer->Unmap();
+		//}
 
-		// Update target data
-		{
-			auto currentTargetBuffer = UniformBufferRegistry::Get(0, 2)->Get(currentFrame);
-			auto* targetData = currentTargetBuffer->Map<TargetData>();
+		//// Update target data
+		//{
+		//	auto currentTargetBuffer = UniformBufferRegistry::Get(0, 2)->Get(currentFrame);
+		//	auto* targetData = currentTargetBuffer->Map<TargetData>();
 
-			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
+		//	targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
 
-			currentTargetBuffer->Unmap();
-		}
+		//	currentTargetBuffer->Unmap();
+		//}
 	}
 
 	void Renderer::UpdatePerFrameBuffers()
