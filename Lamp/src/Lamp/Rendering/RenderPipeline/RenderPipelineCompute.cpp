@@ -54,6 +54,12 @@ namespace Lamp
 			(uint32_t)m_imageBarriers[frameIndex].size(), m_imageBarriers[frameIndex].data());
 	}
 
+	void RenderPipelineCompute::InsertExecutionBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags pipelineStage, uint32_t frameIndex)
+	{
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, pipelineStage, 0, 0, nullptr,
+			0, nullptr, 0, nullptr);
+	}
+
 	void RenderPipelineCompute::Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex)
 	{
 		WriteAndBindDescriptors(commandBuffer, index, passIndex);

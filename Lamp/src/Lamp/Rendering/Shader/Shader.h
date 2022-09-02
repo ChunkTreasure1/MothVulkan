@@ -53,6 +53,12 @@ namespace Lamp
 			ImageDimension dimension{};
 		};
 
+		struct DynamicOffset
+		{
+			uint32_t offset;
+			uint32_t binding;
+		};
+
 		struct ShaderResources
 		{
 			std::unordered_map<uint32_t, std::string> shaderTextureDefinitions; // binding -> name
@@ -69,7 +75,7 @@ namespace Lamp
 			std::map<uint32_t, std::map<uint32_t, SampledImage>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 
-			std::map<uint32_t, std::vector<uint32_t>> dynamicUniformBufferOffsets; // set -> offsets
+			std::map<uint32_t, std::vector<DynamicOffset>> dynamicUniformBufferOffsets; // set -> offsets
 
 			VkDescriptorSetAllocateInfo setAllocInfo{};
 			

@@ -118,6 +118,7 @@ namespace Lamp
 			Ref<Camera> passCamera;
 			Ref<RenderPass> currentPass;
 			uint32_t passIndex = 0;
+
 			std::vector<Ref<Material>> frameUpdatedMaterials;
 			
 			Skybox skyboxData;

@@ -67,18 +67,20 @@ namespace Lamp
 	void Renderer::InitializeBuffers()
 	{
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
-		constexpr uint32_t MAX_OBJECT_COUNT = 200000;
+		constexpr uint32_t MAX_OBJECT_COUNT = 20000;
+		constexpr uint32_t PASS_COUNT = 3;
 
 		s_rendererData = CreateScope<RendererData>();
 		s_frameDeletionQueues.resize(framesInFlight);
 		s_invalidationQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
-		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), 3, framesInFlight));
-		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), 3, framesInFlight));
+		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), PASS_COUNT, framesInFlight));
+		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), PASS_COUNT, framesInFlight));
+		UniformBufferRegistry::Register(1, 2, UniformBufferSet::Create(sizeof(PassData), PASS_COUNT, framesInFlight));
 
-		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
-		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
 
 		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
 		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
@@ -636,6 +638,20 @@ namespace Lamp
 			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
 
 			currentTargetBuffer->Unmap();
+		}
+
+		// Update pass data
+		{
+			auto currentPassBuffer = UniformBufferRegistry::Get(1, 2)->Get(currentFrame);
+			uint8_t* bytePtr = currentPassBuffer->Map<uint8_t>();
+
+			const uint32_t ptrOffset = currentPassBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			PassData* passData = (PassData*)bytePtr;
+			passData->passIndex = s_rendererData->passIndex;
+
+			currentPassBuffer->Unmap();
 		}
 	}
 

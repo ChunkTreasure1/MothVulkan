@@ -25,6 +25,11 @@ layout(std140, set = 1, binding = 0) uniform CameraBuffer
     CameraData u_cameraData;
 };
 
+layout(std140, set = 1, binding = 2) uniform PassBuffer
+{
+    PassData u_passData;
+};
+
 layout(std430, set = 4, binding = 0) readonly buffer ObjectBuffer
 {
     ObjectData u_objectBuffer[];

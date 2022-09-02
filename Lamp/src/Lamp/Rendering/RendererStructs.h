@@ -48,6 +48,11 @@ namespace Lamp
 		glm::vec2 targetSize;
 	};
 
+	struct PassData
+	{
+		uint32_t passIndex;
+	};
+
 	struct GPUIndirectObject
 	{
 		VkDrawIndexedIndirectCommand command;

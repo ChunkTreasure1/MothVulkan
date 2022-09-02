@@ -402,20 +402,19 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 		
-		std::vector<uint32_t> offsets;
+		std::vector<uint32_t> resultOffsets;
 		const auto& resources = m_specification.shader->GetResources();
 		
 		if (resources.dynamicUniformBufferOffsets.find(set) != resources.dynamicUniformBufferOffsets.end())
 		{
-			offsets = resources.dynamicUniformBufferOffsets.at(set);
+			const auto& offsets = resources.dynamicUniformBufferOffsets.at(set);
+			for (const auto& offset : offsets)
+			{
+				resultOffsets.emplace_back(offset.offset * passIndex);
+			}
 		}
 
-		for (auto& offset : offsets)
-		{
-			offset *= passIndex;
-		}
-
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, (uint32_t)offsets.size(), offsets.data());
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, (uint32_t)resultOffsets.size(), resultOffsets.data());
 	}
 
 	void RenderPipeline::BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t firstSet, uint32_t passIndex) const

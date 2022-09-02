@@ -282,7 +282,7 @@ namespace Lamp
 					}
 
 					bufferInfo.info.range = dynamicAlignment;
-					m_resources.dynamicUniformBufferOffsets[set].emplace_back(dynamicAlignment);
+					m_resources.dynamicUniformBufferOffsets[set].emplace_back(DynamicOffset{ dynamicAlignment, binding });
 				}
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
@@ -460,6 +460,14 @@ namespace Lamp
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
 	{
 		int32_t lastSet = -1;
+
+		for (auto& [set, offsets] : m_resources.dynamicUniformBufferOffsets)
+		{
+			std::sort(offsets.begin(), offsets.end(), [](const DynamicOffset& lhs, const DynamicOffset& rhs)
+				{
+					return lhs.binding < rhs.binding;
+				});
+		}
 
 		for (const auto& [set, bindings] : setLayoutBindings)
 		{
