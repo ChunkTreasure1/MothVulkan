@@ -31,6 +31,9 @@ namespace Lamp
 		Ref<Material> material;
 		SubMesh subMesh;
 		glm::mat4 transform;
+
+		uint32_t firstInstance = 0;
+		uint32_t batchId = 0;
 	};
 
 	struct IndirectBatch

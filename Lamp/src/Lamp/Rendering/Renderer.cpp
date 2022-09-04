@@ -179,7 +179,7 @@ namespace Lamp
 
 		const uint32_t groupX = width / threadCountXY + 1;
 		const uint32_t groupY = height / threadCountXY + 1;
-	
+
 		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
 		currentPass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
 
@@ -196,7 +196,11 @@ namespace Lamp
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
 		{
-			CullRenderCommands();
+			if (s_rendererData->passIndex == 0)
+			{
+				CullRenderCommands();
+			}
+
 
 			auto framebuffer = renderPass->framebuffer;
 
@@ -595,11 +599,6 @@ namespace Lamp
 				newDraw.id = uint32_t(draws.size() - 1);
 			}
 		}
-
-		std::sort(draws.begin(), draws.end(), [](const IndirectBatch& lhs, const IndirectBatch& rhs)
-			{
-				return lhs.material < rhs.material;
-			});
 	}
 
 	void Renderer::UpdatePerPassBuffers()

@@ -154,6 +154,6 @@ void main()
     //lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
     const float gamma = 2.2;
-    o_color.xyz = pow(lightAccumulation, vec3(1.0/gamma));
+    o_color.xyz = pow(lightAccumulation, vec3(1.f / gamma));
     o_color.w = 1.f;
 }
