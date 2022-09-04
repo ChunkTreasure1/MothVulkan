@@ -10,6 +10,7 @@
 #include "Lamp/Asset/Importers/RenderPassImporter.h"
 #include "Lamp/Asset/Importers/RenderGraphImporter.h"
 #include "Lamp/Asset/Importers/SceneImporter.h"
+#include "Lamp/Asset/Importers/TextureSourceImporter.h"
 
 #include "Lamp/Core/Base.h"
 #include "Lamp/Log/Log.h"

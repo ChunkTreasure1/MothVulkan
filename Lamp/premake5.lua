@@ -43,6 +43,9 @@ project "Lamp"
 		"vendor/stb/**.cpp",
 		"vendor/stb/**.h",
 
+		"vendor/dds_saver/**.cpp",
+		"vendor/dds_saver/**.h",
+
 		"vendor/tiny_gltf/**.h",
 
 		"%{IncludeDir.shaderc_glslc}/**.cc",
@@ -71,7 +74,8 @@ project "Lamp"
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.TinyGLTF}",
 		"%{IncludeDir.tinyddsloader}",
-		"%{IncludeDir.imgui_notify}"
+		"%{IncludeDir.imgui_notify}",
+		"%{IncludeDir.dds_saver}"
 	}
 
 	defines
@@ -127,6 +131,9 @@ project "Shaders"
 	language "C++"
 	kind "StaticLib"
 	cppdialect "C++latest"
+
+	targetdir ("../bin/" .. outputdir .."/%{prj.name}")
+	objdir ("../bin-int/" .. outputdir .."/%{prj.name}")
 
 	files
 	{

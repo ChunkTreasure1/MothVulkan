@@ -20,6 +20,7 @@ IncludeDir["imgui_notify"] = "%{wks.location}/Lamp/vendor/imgui-notify/"
 IncludeDir["imgui_node_editor"] = "%{wks.location}/Lamp/vendor/imgui-node-editor/"
 IncludeDir["ImGuizmo"] = "%{wks.location}/Lamp/vendor/ImGuizmo/"
 IncludeDir["P4"] = "%{wks.location}/Sandbox/vendor/p4/include/"
+IncludeDir["dds_saver"] = "%{wks.location}/Lamp/vendor/dds_saver/"
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"

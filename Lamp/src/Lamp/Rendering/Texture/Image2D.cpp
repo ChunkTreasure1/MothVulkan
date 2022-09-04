@@ -12,9 +12,14 @@
 
 namespace Lamp
 {
-	Image2D::Image2D(const ImageSpecification& specification, const void* data)
+	Image2D::Image2D(const ImageSpecification& specification, const void* data, bool copyData)
 		: m_specification(specification)
 	{
+		if (copyData)
+		{
+			m_buffer.Copy(data, m_specification.width * m_specification.height * Utility::PerPixelSizeFromFormat(m_specification.format));
+		}
+
 		Invalidate(data);
 	}
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Lamp/Core/Graphics/VulkanAllocator.h"
+#include "Lamp/Core/Buffer.h"
+
 #include "Lamp/Rendering/Texture/ImageCommon.h"
 
 #include <map>
@@ -10,7 +12,7 @@ namespace Lamp
 	class Image2D
 	{
 	public:
-		Image2D(const ImageSpecification& specification, const void* data = nullptr);
+		Image2D(const ImageSpecification& specification, const void* data = nullptr, bool copyData = false);
 		~Image2D();
 
 		void Invalidate(const void* data = nullptr);
@@ -23,6 +25,7 @@ namespace Lamp
 		inline const VkImage GetHandle() const { return m_image; };
 		inline const ImageFormat GetFormat() const { return m_specification.format; }
 		inline const ImageSpecification& GetSpecification() const { return m_specification; }
+		inline const Buffer& GetData() { return m_buffer; }
 
 		inline const uint32_t GetWidth() const { return m_specification.width; }
 		inline const uint32_t GetHeight() const { return m_specification.height; }
@@ -38,6 +41,7 @@ namespace Lamp
 		friend class RenderPipelineCompute;
 
 		ImageSpecification m_specification;
+		Buffer m_buffer;
 
 		VmaAllocation m_bufferAllocation = nullptr;
 		VkImage m_image = nullptr;
