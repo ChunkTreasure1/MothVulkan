@@ -8,7 +8,6 @@ namespace Lamp
 	TestScript::TestScript(Entity entity)
 		: ScriptBase(entity)
 	{
-
 	}
 
 	LP_REGISTER_SCRIPT(TestScript);

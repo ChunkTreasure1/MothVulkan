@@ -7,7 +7,7 @@
 
 #include <unordered_map>
 
-#define LP_REGISTER_SCRIPT(x) static bool x ## _entry = Lamp::ScriptRegistry::Register(x::GetStaticGUID(), Lamp::ScriptMetadata{ ###x, x::Create});
+#define LP_REGISTER_SCRIPT(x) static bool x ## _entry = Lamp::ScriptRegistry::Register(x::GetStaticGUID(), Lamp::ScriptMetadata{ #x, x::Create});
 
 namespace Lamp
 {

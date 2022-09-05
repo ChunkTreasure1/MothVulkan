@@ -25,12 +25,13 @@ namespace Lamp
 
 		void OnRuntimeStart();
 		void OnRuntimeEnd();
+		void Update(float deltaTime);
 
 		Entity CreateEntity();
 		void RemoveEntity(const Entity & entity);
 
 		static AssetType GetStaticType() { return AssetType::Scene; }
-		AssetType GetType() { return GetStaticType(); }
+		AssetType GetType() override { return GetStaticType(); }
 
 		inline Wire::Registry& GetRegistry() { return m_registry; }
 		inline const std::string& GetName() const { return m_name; }

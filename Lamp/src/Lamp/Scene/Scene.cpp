@@ -4,6 +4,7 @@
 #include "Entity.h"
 
 #include "Lamp/Components/Components.h"
+#include "Lamp/Scripting/ScriptEngine.h"
 
 namespace Lamp
 {
@@ -19,10 +20,29 @@ namespace Lamp
 
 	void Scene::OnRuntimeStart()
 	{
+		m_registry.ForEach<ScriptComponent>([](Wire::EntityId id, const ScriptComponent& scriptComp)
+			{
+				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				script->OnStart();
+			});
 	}
 
 	void Scene::OnRuntimeEnd()
 	{
+		m_registry.ForEach<ScriptComponent>([](Wire::EntityId id, const ScriptComponent& scriptComp)
+			{
+				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				script->OnStop();
+			});
+	}
+
+	void Scene::Update(float deltaTime)
+	{
+		m_registry.ForEach<ScriptComponent>([deltaTime](Wire::EntityId id, const ScriptComponent& scriptComp)
+			{
+				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				script->OnUpdate(deltaTime);
+			});
 	}
 
 	Entity Scene::CreateEntity()
