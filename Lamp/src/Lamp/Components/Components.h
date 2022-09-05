@@ -1,10 +1,13 @@
 #pragma once
 
+#include "Lamp/Scripting/ScriptBase.h"
 #include "Lamp/Asset/Asset.h"
 #include "Lamp/Rendering/RendererStructs.h"
 
 #include <Wire/Serialization.h>
 #include <glm/glm.hpp>
+
+#include <array>
 
 namespace Lamp
 {
@@ -46,10 +49,17 @@ namespace Lamp
 	SERIALIZE_COMPONENT(struct EnvironmentComponent
 	{
 		PROPERTY(Name = Environment) AssetHandle environmentHandle = Asset::Null();
-		
+
 		AssetHandle lastEnvironmentHandle = Asset::Null();
 		Skybox currentSkybox;
 
 		CREATE_COMPONENT_GUID("{3AFCA974-E750-4BF1-99C8-A7EDF8934C52}"_guid);
 	}, EnvironmentComponent);
+
+	SERIALIZE_COMPONENT(struct ScriptComponent
+	{
+		WireGUID scripts[1];
+
+		CREATE_COMPONENT_GUID("{2CD40BA4-17E3-4D75-AEEB-B8B127FDB2CA}"_guid);
+	}, ScriptComponent);
 }

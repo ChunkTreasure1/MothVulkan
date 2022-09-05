@@ -1,6 +1,8 @@
 #include "sbpch.h"
 #include "PropertiesPanel.h"
 
+#include <Lamp/Scripting/ScriptRegistry.h>
+#include <Lamp/Scripting/ScriptEngine.h>
 #include <Lamp/Components/Components.h>
 #include <Lamp/Utility/UIUtility.h>
 
@@ -196,6 +198,35 @@ void PropertiesPanel::AddComponentPopup()
 
 				ImGui::CloseCurrentPopup();
 			}
+		}
+
+		if (ImGui::TreeNode("Scripts"))
+		{
+			const auto& scriptInfo = Lamp::ScriptRegistry::GetRegistry();
+
+			for (const auto& [GUID, info] : scriptInfo)
+			{
+				if (ImGui::MenuItem(info.name.c_str()))
+				{
+					for (auto& ent : m_selectedEntites)
+					{
+						if (!m_currentScene->GetRegistry().HasComponent<Lamp::ScriptComponent>(ent))
+						{
+							m_currentScene->GetRegistry().AddComponent<Lamp::ScriptComponent>(ent);
+						}
+
+						auto& scriptComponent = m_currentScene->GetRegistry().GetComponent<Lamp::ScriptComponent>(ent);
+
+						Ref<Lamp::ScriptBase> scriptInstance = info.createMethod(Lamp::Entity{ ent, m_currentScene.get() });
+						scriptComponent.scripts[0] = scriptInstance->GetGUID();
+
+						Lamp::ScriptEngine::RegisterToEntity(scriptInstance, ent);
+						ImGui::CloseCurrentPopup();
+					}
+				}
+			}
+
+			ImGui::TreePop();
 		}
 
 		ImGui::EndPopup();
