@@ -205,6 +205,28 @@ namespace Lamp
 			device->FlushThreadSafeCommandBuffer(cmdBuffer);
 		}
 
+		inline void CopyImageToBuffer(VkBuffer dstBuffer, VkImage srcImage, VkImageLayout imageLayout, uint32_t width, uint32_t height, uint32_t mipLevel = 0)
+		{
+			auto device = GraphicsContext::GetDevice();
+			VkCommandBuffer cmdBuffer = device->GetThreadSafeCommandBuffer(true);
+
+			VkBufferImageCopy region{};
+			region.bufferOffset = 0;
+			region.bufferRowLength = 0;
+			region.bufferImageHeight = 0;
+
+			region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			region.imageSubresource.mipLevel = mipLevel;
+			region.imageSubresource.baseArrayLayer = 0;
+			region.imageSubresource.layerCount = 1;
+
+			region.imageOffset = { 0, 0, 0 };
+			region.imageExtent = { width, height, 1 };
+
+			vkCmdCopyImageToBuffer(cmdBuffer, srcImage, imageLayout, dstBuffer, 1, &region);
+			device->FlushThreadSafeCommandBuffer(cmdBuffer);
+		}
+
 		inline void GenerateMipMaps(VkImage image, uint32_t width, uint32_t height, uint32_t mipLevels)
 		{
 			auto device = GraphicsContext::GetDevice();

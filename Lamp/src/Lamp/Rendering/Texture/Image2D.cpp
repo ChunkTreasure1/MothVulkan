@@ -198,6 +198,32 @@ namespace Lamp
 		m_bufferAllocation = nullptr;
 	}
 
+	void Image2D::ReadMemoryToBuffer()
+	{
+		VulkanAllocator allocator{ "Image2D - Copy image" };
+
+		VkBuffer buffer;
+		VmaAllocation allocation;
+		VkDeviceSize bufferSize = m_specification.width * m_specification.height * Utility::PerPixelSizeFromFormat(m_specification.format);
+		
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = bufferSize;
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		allocation = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, buffer);
+
+		Utility::TransitionImageLayout(m_image, m_imageLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		Utility::CopyImageToBuffer(buffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_specification.width, m_specification.height);
+		Utility::TransitionImageLayout(m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_imageLayout);
+
+		m_buffer.Allocate(bufferSize);
+		void* mappedData = allocator.MapMemory<void>(allocation);
+		m_buffer.Copy(mappedData, bufferSize);
+		allocator.UnmapMemory(allocation);
+	}
+
 	void Image2D::TransitionToLayout(VkCommandBuffer commandBuffer, VkImageLayout targetLayout)
 	{
 		if (m_imageLayout == targetLayout)

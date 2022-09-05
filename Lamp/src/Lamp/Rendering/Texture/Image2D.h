@@ -18,6 +18,7 @@ namespace Lamp
 		void Invalidate(const void* data = nullptr);
 		void Release();
 
+		void ReadMemoryToBuffer();
 		void TransitionToLayout(VkCommandBuffer commandBuffer, VkImageLayout targetLayout);
 		void GenerateMips(bool readOnly, VkCommandBuffer commandBuffer = nullptr);
 		VkImageView CreateMipView(uint32_t mip);

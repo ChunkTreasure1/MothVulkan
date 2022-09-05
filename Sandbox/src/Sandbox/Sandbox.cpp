@@ -13,6 +13,7 @@
 #include "Sandbox/Window/SceneViewPanel.h"
 #include "Sandbox/Window/EditorSettingsPanel.h"
 #include "Sandbox/Window/LogPanel.h"
+#include "Sandbox/Window/TextureRepackerPanel.h"
 
 #include "Sandbox/Window/EditorLibrary.h"
 
@@ -69,6 +70,7 @@ void Sandbox::OnAttach()
 	m_editorWindows.emplace_back(CreateRef<SceneViewPanel>(m_selectedEntities, m_editorScene));
 	m_editorWindows.emplace_back(CreateRef<EditorSettingsPanel>(m_settings));
 	m_editorWindows.emplace_back(CreateRef<LogPanel>());
+	m_editorWindows.emplace_back(CreateRef<TextureRepackerPanel>());
 
 	m_editorWindows.emplace_back(CreateRef<MaterialEditorPanel>());
 	EditorLibrary::Register(Lamp::AssetType::Material, m_editorWindows.back());

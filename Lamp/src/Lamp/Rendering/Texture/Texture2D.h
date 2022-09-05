@@ -10,6 +10,7 @@ namespace Lamp
 	{
 	public:
 		Texture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data);
+		Texture2D(Ref<Image2D> image);
 		Texture2D() = default;
 		~Texture2D() override;
 
@@ -24,6 +25,7 @@ namespace Lamp
 		AssetType GetType() { return GetStaticType(); }		
 		
 		static Ref<Texture2D> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
+		static Ref<Texture2D> Create(Ref<Image2D> image);
 
 	private:
 		friend class DefaultTextureImporter;

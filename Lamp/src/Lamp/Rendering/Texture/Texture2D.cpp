@@ -14,6 +14,11 @@ namespace Lamp
 		m_image = Image2D::Create(imageSpec, data);
 	}
 
+	Texture2D::Texture2D(Ref<Image2D> image)
+	{
+		m_image = image;
+	}
+
 	Texture2D::~Texture2D()
 	{
 		m_image = nullptr;
@@ -37,5 +42,9 @@ namespace Lamp
 	Ref<Texture2D> Texture2D::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data)
 	{
 		return CreateRef<Texture2D>(format, width, height, data);
+	}
+	Ref<Texture2D> Texture2D::Create(Ref<Image2D> image)
+	{
+		return CreateRef<Texture2D>(image);
 	}
 }
