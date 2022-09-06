@@ -22,8 +22,8 @@ namespace Lamp
 	{
 		m_registry.ForEach<ScriptComponent>([](Wire::EntityId id, const ScriptComponent& scriptComp)
 			{
-				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
-				script->OnStart();
+				//auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				//script->OnStart();
 			});
 	}
 
@@ -31,8 +31,8 @@ namespace Lamp
 	{
 		m_registry.ForEach<ScriptComponent>([](Wire::EntityId id, const ScriptComponent& scriptComp)
 			{
-				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
-				script->OnStop();
+				//auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				//script->OnStop();
 			});
 	}
 
@@ -40,8 +40,8 @@ namespace Lamp
 	{
 		m_registry.ForEach<ScriptComponent>([deltaTime](Wire::EntityId id, const ScriptComponent& scriptComp)
 			{
-				auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
-				script->OnUpdate(deltaTime);
+				//auto script = ScriptEngine::GetScript(id, scriptComp.scripts[0]);
+				//script->OnUpdate(deltaTime);
 			});
 	}
 

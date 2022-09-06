@@ -57,7 +57,7 @@ namespace Lamp
 
 	SERIALIZE_COMPONENT((struct ScriptComponent
 	{
-		WireGUID scripts[1];
+		std::vector<WireGUID> vector;
 
 		CREATE_COMPONENT_GUID("{2CD40BA4-17E3-4D75-AEEB-B8B127FDB2CA}"_guid);
 	}), ScriptComponent);

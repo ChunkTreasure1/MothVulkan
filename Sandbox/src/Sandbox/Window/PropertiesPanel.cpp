@@ -218,7 +218,8 @@ void PropertiesPanel::AddComponentPopup()
 						auto& scriptComponent = m_currentScene->GetRegistry().GetComponent<Lamp::ScriptComponent>(ent);
 
 						Ref<Lamp::ScriptBase> scriptInstance = info.createMethod(Lamp::Entity{ ent, m_currentScene.get() });
-						scriptComponent.scripts[0] = scriptInstance->GetGUID();
+
+						scriptComponent.vector.emplace_back(scriptInstance->GetGUID());
 
 						Lamp::ScriptEngine::RegisterToEntity(scriptInstance, ent);
 						ImGui::CloseCurrentPopup();
