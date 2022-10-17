@@ -70,6 +70,8 @@ namespace Lamp
 		Log::Shutdown();
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
 
+		OPTICK_SHUTDOWN();
+
 		m_layerStack.Clear();
 		m_imguiImplementation = nullptr;
 

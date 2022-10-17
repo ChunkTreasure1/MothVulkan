@@ -137,13 +137,14 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
+
+		LP_PROFILE_GPU_EVENT("Rendering Begin");
 		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 		s_rendererData->frameUpdatedMaterials.clear();
 		s_rendererData->passIndex = 0;
 
 		s_frameDeletionQueues[currentFrame].Flush();
 		s_invalidationQueues[currentFrame].Flush();
-
 
 		SortRenderCommands();
 		PrepareForIndirectDraw(s_rendererData->renderCommands);
@@ -154,6 +155,7 @@ namespace Lamp
 	void Renderer::End()
 	{
 		LP_PROFILE_FUNCTION();
+		LP_PROFILE_GPU_EVENT("Rendering Begin");
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
 	}
@@ -189,6 +191,7 @@ namespace Lamp
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
 	{
 		LP_PROFILE_FUNCTION();
+		LP_PROFILE_GPU_EVENT(std::string("Begin " + renderPass->name).c_str());
 		s_rendererData->passCamera = camera;
 		s_rendererData->currentPass = renderPass;
 
@@ -200,7 +203,6 @@ namespace Lamp
 			{
 				CullRenderCommands();
 			}
-
 
 			auto framebuffer = renderPass->framebuffer;
 
@@ -229,6 +231,7 @@ namespace Lamp
 	void Renderer::EndPass()
 	{
 		LP_PROFILE_FUNCTION();
+		LP_PROFILE_GPU_EVENT(std::string("End " + s_rendererData->currentPass->name).c_str());
 
 		if (!s_rendererData->currentPass->computePipeline)
 		{
@@ -290,6 +293,8 @@ namespace Lamp
 			std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
+				LP_PROFILE_GPU_EVENT("DrawIndirect");
+
 				{
 					LP_PROFILE_SCOPE("Pipeline check");
 

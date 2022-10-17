@@ -10,7 +10,7 @@ namespace Lamp
 	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-		
+
 		if (deviceCount == 0)
 		{
 			throw std::runtime_error("Failed to find GPU with Vulkan support!");
@@ -18,7 +18,7 @@ namespace Lamp
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-	
+
 		for (const auto& device : devices)
 		{
 			vkGetPhysicalDeviceProperties(device, &m_physicalDeviceProperties);
@@ -51,7 +51,7 @@ namespace Lamp
 				m_queueIndices.graphicsQueueIndex = i;
 				m_queueIndices.presentQueueIndex = i;
 			}
-			
+
 			if (prop.queueFlags & VK_QUEUE_COMPUTE_BIT && i != m_queueIndices.graphicsQueueIndex && i != m_queueIndices.transferQueueIndex)
 			{
 				m_queueIndices.computeQueueIndex = i;
@@ -87,12 +87,12 @@ namespace Lamp
 		: m_physicalDevice(physicalDevice)
 	{
 		const PhysicalGraphicsDevice::QueueIndices& queueIndices = physicalDevice->GetQueueIndices();
-		
+
 		std::set<int32_t> uniqueQueues = { queueIndices.computeQueueIndex, queueIndices.graphicsQueueIndex, queueIndices.presentQueueIndex, queueIndices.transferQueueIndex };
 		float queuePriority = 1.f;
 
 		std::vector<VkDeviceQueueCreateInfo> deviceQueueInfos;
-		
+
 		for (uint32_t queue : uniqueQueues)
 		{
 			VkDeviceQueueCreateInfo& queueInfo = deviceQueueInfos.emplace_back();
@@ -112,27 +112,37 @@ namespace Lamp
 		std::vector<const char*> enabledExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
 		createInfo.ppEnabledExtensionNames = enabledExtensions.data();
-	
-		#ifdef LP_ENABLE_VALIDATION
+
+#ifdef LP_ENABLE_VALIDATION
 		createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
 		createInfo.ppEnabledLayerNames = m_validationLayers.data();
-		#endif
+#endif
 
 		LP_VK_CHECK(vkCreateDevice(physicalDevice->GetHandle(), &createInfo, nullptr, &m_device));
 
 		vkGetDeviceQueue(m_device, queueIndices.graphicsQueueIndex, 0, &m_graphicsQueue);
 		vkGetDeviceQueue(m_device, queueIndices.computeQueueIndex, 0, &m_computeQueue);
 		vkGetDeviceQueue(m_device, queueIndices.transferQueueIndex, 0, &m_transferQueue);
-	
+
 		// Create main thread (faster to use) command pool
 		{
 			VkCommandPoolCreateInfo commandPoolInfo{};
 			commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			commandPoolInfo.queueFamilyIndex = m_physicalDevice->GetQueueIndices().graphicsQueueIndex;
 			commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		
+
 			LP_VK_CHECK(vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &m_graphicsCommandPool));
 		}
+
+		// Optick GPU
+#ifdef LP_ENABLE_PROFILING
+		{
+			VkPhysicalDevice physDevice = m_physicalDevice->GetHandle();
+			uint32_t graphicsQueueIndex = (uint32_t)queueIndices.graphicsQueueIndex;
+
+			OPTICK_GPU_INIT_VULKAN(&m_device, &physDevice, &m_graphicsQueue, &graphicsQueueIndex, 1, nullptr);
+		}
+#endif
 	}
 
 	GraphicsDevice::~GraphicsDevice()
@@ -156,7 +166,7 @@ namespace Lamp
 		commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		commandPoolInfo.queueFamilyIndex = m_physicalDevice->GetQueueIndices().graphicsQueueIndex;
 		commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-		
+
 		LP_VK_CHECK(vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &commandPool));
 
 		VkCommandBufferAllocateInfo allocInfo{};
@@ -189,7 +199,7 @@ namespace Lamp
 		allocInfo.commandBufferCount = 1;
 		allocInfo.commandPool = m_graphicsCommandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		
+
 		LP_VK_CHECK(vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer));
 
 		if (begin) [[likely]]
@@ -226,7 +236,7 @@ namespace Lamp
 	{
 		LP_CORE_ASSERT(cmdBuffer != VK_NULL_HANDLE, "Unable to flush null command buffer!");
 		LP_CORE_ASSERT(m_commandPoolMap.find(cmdBuffer) != m_commandPoolMap.end(), "Command buffer not found in map! Was this command buffer created from the device?");
-		
+
 		const std::lock_guard lock(m_commandBufferFlushMutex);
 		LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
