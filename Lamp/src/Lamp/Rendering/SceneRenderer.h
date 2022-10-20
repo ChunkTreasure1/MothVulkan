@@ -26,6 +26,9 @@ namespace Lamp
 
 	private:
 
+		bool m_shouldResize = false;
+		glm::uvec2 m_resizeSize = { 1, 1 };
+
 		Ref<RenderGraph> m_renderGraph;
 		Ref<Scene> m_scene;
 	};

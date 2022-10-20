@@ -34,6 +34,18 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 
+		if (m_shouldResize)
+		{
+			m_shouldResize = false;
+			for (auto& pass : m_renderGraph->GetRenderPasses())
+			{
+				if (pass.renderPass->resizeable)
+				{
+					pass.renderPass->framebuffer->Resize(m_resizeSize.x, m_resizeSize.y);
+				}
+			}
+		}
+
 		auto& registry = m_scene->GetRegistry();
 
 		registry.ForEach<MeshComponent, TransformComponent>([](Wire::EntityId id, const MeshComponent& meshComp, TransformComponent& transformComp)
@@ -107,13 +119,8 @@ namespace Lamp
 
 	void SceneRenderer::Resize(uint32_t width, uint32_t height)
 	{
-		for (auto& pass : m_renderGraph->GetRenderPasses())
-		{
-			if (pass.renderPass->resizeable)
-			{
-				pass.renderPass->framebuffer->Resize(width, height);
-			}
-		}
+		m_shouldResize = true;
+		m_resizeSize = { width, height };
 	}
 
 	void SceneRenderer::SetScene(Ref<Scene> newScene)

@@ -9,18 +9,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 3408067414653871778
     Path: Engine\Shaders\GLSL\PBR_fs.glsl
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
+  - Handle: 7921486373975219315
+    Path: Assets/Textures/peter_lambert.png
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 1249971563143443831
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
