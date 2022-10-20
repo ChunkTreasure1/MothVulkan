@@ -1,6 +1,6 @@
-#include "Common.hlslh"
+#include "Common.h"
 
-struct VSInput
+struct Input
 {
     [[vk::location(0)]] float3 position : a_position;
     [[vk::location(1)]] float3 normal : a_normal;
@@ -9,25 +9,27 @@ struct VSInput
     [[vk::location(4)]] float2 texCoords : a_texCoords;
 };
 
-struct VSOutput
+struct Output
 {
-    float4 position : SV_POSITION;
+	float4 position : SV_POSITION;
 
-    [[vk::location(0)]] float3 worldPosition : v_worldPos;
-    [[vk::location(1)]] float2 texCoords : v_texCoords;
-    [[vk::location(2)]] float3x3 TBN : v_TBN;
+	[[vk::location(0)]] float3 worldPosition : v_worldPos;
+	[[vk::location(1)]] float2 texCoords : v_texCoords;
+	[[vk::location(2)]] float3x3 TBN : v_TBN;
 
-    [[vk::location(3)]] uint drawId : v_drawId;
-    [[vk::location(4)]] float3 localNormal : v_localNormal;
+	[[vk::location(3)]] uint drawId : v_drawId;
+	[[vk::location(4)]] float3 localNormal : v_localNormal;
 };
 
-ConstantBuffer<CameraData> u_cameraData : register(b0, space0);
-StructuredBuffer<ObjectData> u_objectBuffer : register(b0, space4);
-StructuredBuffer<uint> u_objectMat : register(b1, space4);
+[[vk::binding(0, 0)]] ConstantBuffer<CameraData> u_cameraData;
+[[vk::binding(0, 4)]] StructuredBuffer<ObjectData> u_objectBuffer;
+[[vk::binding(1, 4)]] StructuredBuffer<uint> u_objectMap;
 
-VSOutput main(VSInput input)
+Output main(Input input) : SV_Position
 {
-    VSOutput output;
-    
+	const uint meshIndex = u_objectMap[]
+
+	Output output;
+
     return output;
 }

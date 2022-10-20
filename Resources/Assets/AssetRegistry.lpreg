@@ -7,6 +7,8 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_m.dds
   - Handle: 11533325920728509549
     Path: Assets/cube.fbx
+  - Handle: 3408067414653871778
+    Path: Engine\Shaders\GLSL\PBR_fs.glsl
   - Handle: 13461233730205319078
     Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 7921486373975219315
@@ -101,8 +103,12 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_c.dds
   - Handle: 11690045709097082949
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_m.dds
+  - Handle: 4226124870250765797
+    Path: Assets\Meshes\SponzaOld\Sponza.bin
   - Handle: 10188024278780715948
     Path: Assets\Meshes\Sponza\Textures\brickwall_01_n.dds
+  - Handle: 1899279567371698845
+    Path: Engine\Shaders\GLSL\Default\Default_fs.glsl
   - Handle: 2160169861445308383
     Path: Assets\Meshes\Sponza\Textures\brickwall_02_c.dds
   - Handle: 7574484793110111777
@@ -121,10 +127,10 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_1stfloor_m.dds
   - Handle: 3342959149669462403
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_c.dds
-  - Handle: 1128520537286674042
-    Path: Assets\Meshes\Sponza\Textures\brickwall_02_materialNormal.dds
   - Handle: 16671047376712667881
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_n.dds
+  - Handle: 1128520537286674042
+    Path: Assets\Meshes\Sponza\Textures\brickwall_02_materialNormal.dds
   - Handle: 5331706042518227231
     Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_c.dds
   - Handle: 14408095999862862277
@@ -151,6 +157,10 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_green_m.dds
   - Handle: 10358237291686603670
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_n.dds
+  - Handle: 10690136229953754714
+    Path: Engine\Shaders\GLSL\Environment\EnvironmentFiltering_cs.glsl
+  - Handle: 7193826710365456083
+    Path: Engine\Shaders\Cache\test_vs.hlsl.vertex.cached
   - Handle: 13648423932771400095
     Path: Assets\Meshes\Sponza\Textures\floor_tiles_01_c.dds
   - Handle: 13260052921681829215
@@ -277,6 +287,8 @@ Assets:
     Path: Assets\Textures\HDRIs\brightForest.hdr
   - Handle: 17224684258346697250
     Path: Engine/Shaders\Definitions\brdfGeneration.lpsdef
+  - Handle: 353052802716970346
+    Path: Engine/Shaders\Definitions\testHLSL.lpsdef
   - Handle: 7829466757563940291
     Path: C:\Programming\MothVulkan\AssetData\Engine\RenderPipelines\pbrPipeline.lprpdef
   - Handle: 4258206864201889639
@@ -355,3 +367,27 @@ Assets:
     Path: Assets\Meshes\Chest\SM_Particle_Chest.lpmat
   - Handle: 4302572881064992452
     Path: Assets\Meshes\Chest\SM_Particle_Chest.lpgf
+  - Handle: 17265983308030301898
+    Path: Assets\Meshes\SponzaOld\Sponza.gltf
+  - Handle: 6833262243675308748
+    Path: Engine\Shaders\Definitions\testHLSL.lpsdeff
+  - Handle: 8318386520014351841
+    Path: Engine\Shaders\GLSL\BRDFGeneration_cs.glsl
+  - Handle: 14800541504831150389
+    Path: Engine\Shaders\GLSL\Common.glslh
+  - Handle: 14138092793151170111
+    Path: Engine\Shaders\GLSL\cull_cs.glsl
+  - Handle: 17281108522854831288
+    Path: Engine\Shaders\GLSL\Default\Default_vs.glsl
+  - Handle: 2874009128343728733
+    Path: Engine\Shaders\GLSL\Environment\EnvironmentGenerateIrradiance_cs.glsl
+  - Handle: 10972223197003302314
+    Path: Engine\Shaders\GLSL\Environment\EquirectangularConversion_cs.glsl
+  - Handle: 3003090518130745
+    Path: Engine\Shaders\GLSL\PBR_vs.glsl
+  - Handle: 11791402816174587634
+    Path: Engine\Shaders\HLSL\Common.hlslh
+  - Handle: 6157664938729335391
+    Path: Engine\Shaders\HLSL\test_vs.hlsl
+  - Handle: 2611508895678979961
+    Path: Engine\Shaders\Includes\Common.h

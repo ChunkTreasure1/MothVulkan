@@ -3,6 +3,8 @@
 #include <dxc/dxcapi.h>
 #include <Windows.h>
 
+#include <unordered_set>
+
 namespace Lamp
 {
 	class HLSLIncluder : public IDxcIncludeHandler
@@ -16,5 +18,7 @@ namespace Lamp
 
 	private:
 		inline static IDxcIncludeHandler* s_defaultIncludeHandler = nullptr;
+
+		std::unordered_set<std::filesystem::path> m_includedFiles;
 	};
 }

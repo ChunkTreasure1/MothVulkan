@@ -1,6 +1,6 @@
 #version 460
 
-#include "Common.glslh"
+#include "Common.h"
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec3 a_normal;

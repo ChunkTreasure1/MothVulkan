@@ -19,7 +19,22 @@ namespace Lamp
 		}
 
 		const std::filesystem::path path = pFilename;
-		
+		if (m_includedFiles.find(path) != m_includedFiles.end())
+		{
+			static const char nullStr[] = " ";
+
+			IDxcBlobEncoding* encoding;
+			utils->CreateBlob(nullStr, ARRAYSIZE(nullStr), CP_UTF8, &encoding);
+			*ppIncludeSource = encoding;
+
+			return S_OK;
+		}
+
+		if (!std::filesystem::exists(path))
+		{
+			return S_FALSE;
+		}
+
 		std::ifstream stream;
 		stream.open(path);
 
@@ -28,6 +43,8 @@ namespace Lamp
 			LP_CORE_ERROR("Failed to read file {0}", path.string().c_str());
 			return S_FALSE;
 		}
+
+		m_includedFiles.insert(path);
 
 		std::stringstream buffer;
 		buffer << stream.rdbuf();

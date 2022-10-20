@@ -112,6 +112,7 @@ namespace Lamp
 
 		shaderc_util::FileFinder fileFinder;
 		fileFinder.search_path().emplace_back("Engine/Shaders/GLSL/");
+		fileFinder.search_path().emplace_back("Engine/Shaders/Includes/");
 
 		compileOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
 		compileOptions.SetWarningsAsErrors();
@@ -170,7 +171,7 @@ namespace Lamp
 		}
 
 		std::string proccessedSource = src;
-		if (!PreprocessHLSL(stage, proccessedSource, proccessedSource))
+		if (!PreprocessHLSL(stage, path, proccessedSource))
 		{
 			return false;
 		}
@@ -184,6 +185,7 @@ namespace Lamp
 			Utility::HLSLShaderProfile(stage), 
 			L"-spirv", 
 			L"-fspv-target-env=vulkan1.3",
+			L"-fvk-support-nonzero-base-instance",
 			DXC_ARG_PACK_MATRIX_COLUMN_MAJOR, 
 			DXC_ARG_WARNINGS_ARE_ERRORS 
 		};
@@ -208,7 +210,6 @@ namespace Lamp
 
 		IDxcResult* compileResult;
 		std::string error;
-
 		HRESULT err = DXCInstances::compiler->Compile(&sourceBuffer, arguments.data(), (uint32_t)arguments.size(), nullptr, IID_PPV_ARGS(&compileResult));
 
 		const bool failed = FAILED(err);
@@ -232,6 +233,23 @@ namespace Lamp
 			outShaderData.resize(size / sizeof(uint32_t));
 			memcpy_s(outShaderData.data(), size, result->GetBufferPointer(), size);
 			result->Release();
+		}
+
+		// Cache shader
+		{
+			const auto cacheDirectory = Utility::GetShaderCacheDirectory();
+			const auto extension = Utility::GetShaderStageCachedFileExtension(stage);
+
+			const auto cachedPath = cacheDirectory / (path.filename().string() + extension);
+
+			std::ofstream output(cachedPath, std::ios::binary | std::ios::out);
+			if (!output.is_open())
+			{
+				LP_CORE_ERROR("Failed to open file {0} for writing!", cachedPath.string().c_str());
+			}
+
+			output.write((const char*)outShaderData.data(), outShaderData.size() * sizeof(uint32_t));
+			output.close();
 		}
 
 		compileResult->Release();
@@ -262,7 +280,9 @@ namespace Lamp
 			path.c_str(),
 			L"-P",
 			DXC_ARG_WARNINGS_ARE_ERRORS,
-			L"-I Engine/HLSL/"
+			L"-I Engine/Shaders/HLSL/",
+			L"-I Engine/Shaders/Includes/",
+			L"-D", L"__HLSL__",
 		};
 
 		IDxcBlobEncoding* sourcePtr;
@@ -302,6 +322,6 @@ namespace Lamp
 		sourcePtr->Release();
 		compileResult->Release();
 
-		return false;
+		return true;
 	}
 }
