@@ -85,5 +85,7 @@ namespace Lamp
 		VkQueue m_graphicsQueue;
 		VkQueue m_computeQueue;
 		VkQueue m_transferQueue;
+
+		VkQueue m_threadSafeGraphicsQueue;
 	};
 }

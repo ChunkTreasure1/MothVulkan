@@ -59,6 +59,9 @@ namespace Lamp
 
 	void AssetManager::Shutdown()
 	{
+		m_isThreadRunning = false;
+		m_loadThread.join();
+
 		SaveAssetRegistry();
 		MeshTypeImporter::Shutdown();
 		TextureImporter::Shutdown();
@@ -243,13 +246,14 @@ namespace Lamp
 		if (handle != Asset::Null())
 		{
 			std::scoped_lock<std::mutex> lock(m_loadMutex);
+			asset->handle = handle;
 			m_assetCache.emplace(handle, asset);
 		}
 
 		// If not, queue
 		{
 			std::scoped_lock lock(m_loadMutex);
-			m_loadQueue.emplace_back(LoadJob{ &asset, handle, path });
+			m_loadQueue.emplace_back(LoadJob{ handle, path });
 		}
 	}
 
@@ -345,8 +349,7 @@ namespace Lamp
 #ifdef LP_DEBUG
 				LP_CORE_INFO("Loading asset {0}!", job.path.string().c_str());
 #endif
-
-				auto& asset = *job.asset;
+				Ref<Asset> asset = m_assetCache.at(job.handle);
 
 				m_assetImporters[type]->Load(job.path, asset);
 				if (job.handle != Asset::Null())
@@ -361,6 +364,11 @@ namespace Lamp
 
 				asset->path = job.path;
 				asset->SetFlag(AssetFlag::Queued, false);
+
+				{
+					std::scoped_lock<std::mutex> lock(m_loadMutex);
+					m_assetCache[job.handle] = asset;
+				}
 			}
 		}
 	}

@@ -53,7 +53,6 @@ namespace Lamp
 	private:
 		struct LoadJob
 		{
-			Ref<Asset>* asset;
 			AssetHandle handle;
 			std::filesystem::path path;
 		};
