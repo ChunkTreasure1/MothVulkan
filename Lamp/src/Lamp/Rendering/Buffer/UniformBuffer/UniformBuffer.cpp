@@ -70,7 +70,7 @@ namespace Lamp
 
 	void UniformBuffer::SetData(const void* data, uint32_t dataSize)
 	{
-		LP_CORE_ASSERT(m_totalSize >= dataSize, "Unable to set data of larger size than buffer!");
+		LP_CORE_ASSERT(m_size >= dataSize, "Unable to set data of larger size than buffer!");
 
 		VkDeviceSize bufferSize = dataSize;
 		VulkanAllocator allocator{ "UniformBuffer - SetData" };

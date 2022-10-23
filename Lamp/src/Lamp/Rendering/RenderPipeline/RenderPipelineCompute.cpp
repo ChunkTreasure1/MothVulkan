@@ -66,9 +66,23 @@ namespace Lamp
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
-	void RenderPipelineCompute::DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void RenderPipelineCompute::DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex)
 	{
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), 0, nullptr);
+		const auto& resources = m_shaderResources[index];
+
+		std::vector<uint32_t> dynamicOffsets;
+		for (const auto& [set, bindings] : resources.uniformBuffersInfos)
+		{
+			for (const auto& [binding, info] : bindings)
+			{
+				if (info.isDynamic)
+				{
+					dynamicOffsets.emplace_back(info.info.range * passIndex);
+				}
+			}
+		}
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)dynamicOffsets.size(), dynamicOffsets.data());
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
@@ -318,7 +332,6 @@ namespace Lamp
 							imageBarrier.subresourceRange.baseArrayLayer = 0;
 
 							m_imageBarrierMap[set][binding] = barrierIndex;
-							;
 						}
 					}
 					else if (shaderResources.imageInfos[set].find(binding) != shaderResources.imageInfos[set].end())

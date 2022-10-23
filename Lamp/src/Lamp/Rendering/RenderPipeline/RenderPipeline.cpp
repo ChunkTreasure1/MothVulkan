@@ -405,9 +405,9 @@ namespace Lamp
 		std::vector<uint32_t> resultOffsets;
 		const auto& resources = m_specification.shader->GetResources();
 		
-		if (resources.dynamicUniformBufferOffsets.find(set) != resources.dynamicUniformBufferOffsets.end())
+		if (resources.dynamicBufferOffsets.find(set) != resources.dynamicBufferOffsets.end())
 		{
-			const auto& offsets = resources.dynamicUniformBufferOffsets.at(set);
+			const auto& offsets = resources.dynamicBufferOffsets.at(set);
 			for (const auto& offset : offsets)
 			{
 				resultOffsets.emplace_back(offset.offset * passIndex);

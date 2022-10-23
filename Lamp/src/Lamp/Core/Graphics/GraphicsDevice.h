@@ -28,6 +28,7 @@ namespace Lamp
 		struct Capabilities
 		{
 			uint64_t minUBOOffsetAlignment;
+			uint64_t minSSBOOffsetAlignment;
 		};
 
 		PhysicalGraphicsDevice(VkInstance instance);

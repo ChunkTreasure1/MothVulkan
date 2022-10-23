@@ -27,7 +27,10 @@
 
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
+
 #include "Lamp/Rendering/Camera/Camera.h"
+
+#include "Lamp/Rendering/Texture/SamplerLibrary.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
 
 #include "Lamp/Rendering/Shader/ShaderRegistry.h"
@@ -93,6 +96,8 @@ namespace Lamp
 
 		s_defaultData = CreateScope<DefaultData>();
 
+		CreateSamplers();
+
 		// Textures
 		{
 			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
@@ -127,6 +132,8 @@ namespace Lamp
 		{
 			s_frameDeletionQueue.Flush();
 		}
+
+		SamplerLibrary::Shutdown();
 	}
 
 	void Renderer::Begin()
@@ -527,6 +534,25 @@ namespace Lamp
 		}
 
 		s_defaultData->defaultMaterial = AssetManager::GetAsset<MultiMaterial>("Engine/Materials/default.lpmat");
+	}
+
+	void Renderer::CreateSamplers()
+	{
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
 	}
 
 	void Renderer::CreateDescriptorPools()

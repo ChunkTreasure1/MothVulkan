@@ -48,7 +48,7 @@ namespace Lamp
 
 		uint32_t m_currentFrame = 0;
 
-		const uint32_t m_framesInFlight = 2;
+		const uint32_t m_framesInFlight = 3;
 
 		uint32_t m_width = 1280;
 		uint32_t m_height = 720;

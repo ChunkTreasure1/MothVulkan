@@ -28,7 +28,7 @@ namespace Lamp
 		void InsertExecutionBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags pipelineStage, uint32_t frameIndex = 0);
 
 		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex = 0);
-		void DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex = 0);
 		void WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index = 0, uint32_t passIndex = 0);
 
 		void SetUniformBuffer(Ref<UniformBufferSet> uniformBuffer, uint32_t set, uint32_t binding);

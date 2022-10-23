@@ -15,7 +15,7 @@ namespace Lamp
 	// 1 - Per pass -- Uniform Buffers are dynamic
 	// 2 - Per object -- Unused for now
 	// 3 - Per material -- All textures for now
-	// 4 - Mesh data
+	// 4 - Mesh data -- Shader Buffers are dynamic
 
 	enum class DescriptorSetType : uint32_t
 	{
@@ -33,6 +33,7 @@ namespace Lamp
 		{
 			VkDescriptorBufferInfo info{};
 			bool writeable = true;
+			bool isDynamic = false;
 		};
 
 		struct UniformBuffer
@@ -75,7 +76,7 @@ namespace Lamp
 			std::map<uint32_t, std::map<uint32_t, SampledImage>> imageInfos; // set -> binding -> infos
 			std::map<uint32_t, std::map<uint32_t, VkWriteDescriptorSet>> writeDescriptors; // set -> binding -> write
 
-			std::map<uint32_t, std::vector<DynamicOffset>> dynamicUniformBufferOffsets; // set -> offsets
+			std::map<uint32_t, std::vector<DynamicOffset>> dynamicBufferOffsets; // set -> offsets
 
 			VkDescriptorSetAllocateInfo setAllocInfo{};
 			
@@ -130,6 +131,7 @@ namespace Lamp
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageUBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageDynamicUBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageSSBOCount;
+		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageDynamicSSBOCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageStorageImageCount;
 		std::unordered_map<VkShaderStageFlagBits, TypeCount> m_perStageImageCount;
 

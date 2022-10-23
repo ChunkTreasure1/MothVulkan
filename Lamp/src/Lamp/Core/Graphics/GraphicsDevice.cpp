@@ -29,6 +29,7 @@ namespace Lamp
 		}
 
 		m_capabilities.minUBOOffsetAlignment = m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+		m_capabilities.minSSBOOffsetAlignment = m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
 
 		if (!m_physicalDevice)
 		{

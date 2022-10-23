@@ -93,6 +93,8 @@ namespace Lamp
 		Renderer() = delete;
 		
 		static void CreateDefaultData();
+		static void CreateSamplers();
+
 		static void CreateDescriptorPools();
 		static void PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
