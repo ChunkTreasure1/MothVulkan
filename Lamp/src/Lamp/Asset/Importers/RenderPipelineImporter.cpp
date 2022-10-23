@@ -147,7 +147,6 @@ namespace Lamp
 
 	bool RenderPipelineImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		asset = CreateRef<RenderPipeline>();
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());

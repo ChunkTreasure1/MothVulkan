@@ -20,6 +20,7 @@ namespace Lamp
 	{
 	public:
 		Mesh() = default;
+		~Mesh() override {}
 
 		void Construct();
 

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Lamp/Asset/Asset.h"
 
 #include "Lamp/Log/Log.h"
@@ -7,6 +6,7 @@
 
 #include <unordered_map>
 #include <filesystem>
+#include <thread>
 
 namespace Lamp
 {
@@ -44,15 +44,39 @@ namespace Lamp
 		template<typename T>
 		static Ref<T> GetAsset(const std::filesystem::path& path);
 
+		template<typename T>
+		static Ref<T> QueueAsset(const std::filesystem::path& path);
+
+		template<typename T>
+		static Ref<T> QueueAsset(AssetHandle handle);
+
 	private:
+		struct LoadJob
+		{
+			AssetHandle handle;
+			std::filesystem::path path;
+		};
+
 		inline static AssetManager* s_instance = nullptr;
+
+		void QueueAssetInternal(const std::filesystem::path& path, Ref<Asset>& asset);
+		void QueueAssetInternal(AssetHandle assetHandle, Ref<Asset>& asset);
 
 		void SaveAssetRegistry();
 		void LoadAssetRegistry();
 
+		void Thread_LoadAsset();
+
 		std::unordered_map<AssetType, Scope<AssetImporter>> m_assetImporters;
 		std::unordered_map<std::filesystem::path, AssetHandle> m_assetRegistry;
 		std::unordered_map<AssetHandle, Ref<Asset>> m_assetCache;
+
+		std::thread m_loadThread;
+		std::mutex m_loadMutex;
+		std::atomic_bool m_isThreadRunning = false;
+		std::condition_variable m_threadConditionVar;
+
+		std::vector<LoadJob> m_loadQueue;
 	};
 
 	template<typename T>
@@ -63,7 +87,7 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset;
+		Ref<Asset> asset = CreateRef<T>();
 		Get().LoadAsset(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
@@ -102,8 +126,39 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset;
+		Ref<Asset> asset = CreateRef<Asset>();
 		Get().LoadAsset(path, asset);
+
+		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline Ref<T> AssetManager::QueueAsset(const std::filesystem::path& path)
+	{
+		if (!std::filesystem::exists(path))
+		{
+			LP_CORE_ERROR("Unable to load asset {0}! It does not exist!", path.string().c_str());
+			return nullptr;
+		}
+
+		Ref<Asset> asset = CreateRef<Asset>();
+		asset->SetFlag(AssetFlag::Queued, true);
+		Get().QueueAssetInternal(path, asset);
+
+		return std::reinterpret_pointer_cast<T>(asset);
+	}
+
+	template<typename T>
+	inline Ref<T> AssetManager::QueueAsset(AssetHandle assetHandle)
+	{
+		if (assetHandle == Asset::Null())
+		{
+			return nullptr;
+		}
+
+		Ref<Asset> asset = CreateRef<T>();
+		asset->SetFlag(AssetFlag::Queued, true);
+		Get().QueueAssetInternal(assetHandle, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
 	}

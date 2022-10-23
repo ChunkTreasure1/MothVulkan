@@ -76,11 +76,8 @@ void ViewportPanel::UpdateMainContent()
 				Lamp::Entity newEntity = m_editorScene->CreateEntity();
 
 				auto& meshComp = newEntity.AddComponent<Lamp::MeshComponent>();
-				auto mesh = Lamp::AssetManager::GetAsset<Lamp::Mesh>(handle);
-				if (mesh)
-				{
-					meshComp.handle = mesh->handle;
-				}
+				auto mesh = Lamp::AssetManager::QueueAsset<Lamp::Mesh>(handle);
+				meshComp.handle = mesh->handle;
 
 				break;
 			}
@@ -90,11 +87,8 @@ void ViewportPanel::UpdateMainContent()
 				Lamp::Entity newEntity = m_editorScene->CreateEntity();
 
 				auto& meshComp = newEntity.AddComponent<Lamp::MeshComponent>();
-				auto mesh = Lamp::AssetManager::GetAsset<Lamp::Mesh>(handle);
-				if (mesh)
-				{
-					meshComp.handle = mesh->handle;
-				}
+				auto mesh = Lamp::AssetManager::QueueAsset<Lamp::Mesh>(handle);
+				meshComp.handle = mesh->handle;
 
 				break;
 			}
@@ -135,10 +129,10 @@ void ViewportPanel::UpdateMainContent()
 			auto& transformComp = m_editorScene->GetRegistry().GetComponent<Lamp::TransformComponent>(m_selectedEntites[0]);
 
 			const glm::mat4 currTransform = glm::translate(glm::mat4(1.f), transformComp.position) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
-					glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1)) *
-					glm::scale(glm::mat4(1.f), transformComp.scale);
+				glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.x), glm::vec3(1, 0, 0)) *
+				glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.y), glm::vec3(0, 1, 0)) *
+				glm::rotate(glm::mat4(1.f), glm::radians(transformComp.rotation.z), glm::vec3(0, 0, 1)) *
+				glm::scale(glm::mat4(1.f), transformComp.scale);
 
 			transform = currTransform;
 

@@ -17,6 +17,7 @@ namespace Lamp
 		None = 0,
 		Missing = BIT(0),
 		Invalid = BIT(1),
+		Queued = BIT(2)
 	};
 
 	enum class AssetType : uint16_t
@@ -73,7 +74,7 @@ namespace Lamp
 	public:
 		virtual ~Asset() = default;
 
-		inline bool IsValid() const { return ((flags & (uint16_t)AssetFlag::Missing) | (flags & (uint16_t)AssetFlag::Invalid)) == 0; }
+		inline bool IsValid() const { return ((flags & (uint16_t)AssetFlag::Missing) | (flags & (uint16_t)AssetFlag::Invalid) | (flags & (uint16_t)AssetFlag::Queued)) == 0; }
 
 		inline virtual bool operator==(const Asset& other)
 		{
@@ -101,7 +102,7 @@ namespace Lamp
 		inline static const AssetHandle Null() { return AssetHandle(0); }
 
 		static AssetType GetStaticType() { return AssetType::None; }
-		virtual AssetType GetType() = 0;
+		virtual AssetType GetType() { return AssetType::None; };
 
 		uint16_t flags = (uint16_t)AssetFlag::None;
 		AssetHandle handle;

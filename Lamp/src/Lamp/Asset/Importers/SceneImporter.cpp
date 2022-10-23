@@ -15,7 +15,6 @@ namespace Lamp
 {
 	bool SceneImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
-		asset = CreateRef<Scene>();
 		Ref<Scene> scene = reinterpret_pointer_cast<Scene>(asset);
 
 		if (!std::filesystem::exists(path)) [[unlikely]]

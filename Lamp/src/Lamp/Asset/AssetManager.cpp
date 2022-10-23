@@ -53,10 +53,15 @@ namespace Lamp
 		m_assetImporters.emplace(AssetType::Mesh, CreateScope<MeshImporter>());
 
 		LoadAssetRegistry();
+
+		m_loadThread = std::thread(&AssetManager::Thread_LoadAsset, this);
 	}
 
 	void AssetManager::Shutdown()
 	{
+		m_isThreadRunning = false;
+		m_loadThread.join();
+
 		SaveAssetRegistry();
 		MeshTypeImporter::Shutdown();
 		TextureImporter::Shutdown();
@@ -95,11 +100,16 @@ namespace Lamp
 		}
 		else
 		{
+			std::scoped_lock<std::mutex> lock(m_loadMutex);
 			m_assetRegistry.emplace(path, asset->handle);
 		}
 
 		asset->path = path;
-		m_assetCache.emplace(asset->handle, asset);
+
+		{
+			std::scoped_lock<std::mutex> lock(m_loadMutex);
+			m_assetCache.emplace(asset->handle, asset);
+		}
 	}
 
 	void AssetManager::LoadAsset(AssetHandle assetHandle, Ref<Asset>& asset)
@@ -150,10 +160,10 @@ namespace Lamp
 		FileSystem::Move(asset->path, targetDir);
 
 		const std::filesystem::path newPath = targetDir / asset->path.filename();
-		
+
 		m_assetRegistry.erase(asset->path);
 		asset->path = newPath;
-		
+
 		m_assetRegistry.emplace(asset->path, asset->handle);
 	}
 
@@ -215,6 +225,54 @@ namespace Lamp
 		return "";
 	}
 
+	void AssetManager::QueueAssetInternal(const std::filesystem::path& path, Ref<Asset>& asset)
+	{
+		AssetHandle handle = Asset::Null();
+
+		// Check if asset is loaded
+		{
+			if (m_assetRegistry.find(path) != m_assetRegistry.end())
+			{
+				handle = m_assetRegistry.at(path);
+			}
+
+			if (handle != Asset::Null() && m_assetCache.find(handle) != m_assetCache.end())
+			{
+				asset = m_assetCache[handle];
+				return;
+			}
+		}
+
+		if (handle != Asset::Null())
+		{
+			std::scoped_lock<std::mutex> lock(m_loadMutex);
+			asset->handle = handle;
+			m_assetCache.emplace(handle, asset);
+		}
+
+		// If not, queue
+		{
+			std::scoped_lock lock(m_loadMutex);
+			m_loadQueue.emplace_back(LoadJob{ handle, path });
+		}
+	}
+
+	void AssetManager::QueueAssetInternal(AssetHandle assetHandle, Ref<Asset>& asset)
+	{
+		auto it = m_assetCache.find(assetHandle);
+		if (it != m_assetCache.end())
+		{
+			asset = it->second;
+			return;
+		}
+
+		const auto path = GetPathFromAssetHandle(assetHandle);
+		if (!path.empty())
+		{
+			QueueAssetInternal(path, asset);
+		}
+	}
+
 	void AssetManager::SaveAssetRegistry()
 	{
 		YAML::Emitter out;
@@ -262,6 +320,56 @@ namespace Lamp
 			AssetHandle handle = entry["Handle"].as<uint64_t>();
 
 			m_assetRegistry.emplace(path, handle);
+		}
+	}
+
+	void AssetManager::Thread_LoadAsset()
+	{
+		m_isThreadRunning = true;
+		while (m_isThreadRunning)
+		{
+			if (!m_loadQueue.empty())
+			{
+				LoadJob job;
+
+				{
+					std::scoped_lock<std::mutex> lock(m_loadMutex);
+					job = m_loadQueue.back();
+					m_loadQueue.pop_back();
+				}
+
+				const auto type = GetAssetTypeFromPath(job.path);
+
+				if (m_assetImporters.find(type) == m_assetImporters.end())
+				{
+					LP_CORE_ERROR("No importer for asset found!");
+					continue;
+				}
+
+#ifdef LP_DEBUG
+				LP_CORE_INFO("Loading asset {0}!", job.path.string().c_str());
+#endif
+				Ref<Asset> asset = m_assetCache.at(job.handle);
+
+				m_assetImporters[type]->Load(job.path, asset);
+				if (job.handle != Asset::Null())
+				{
+					asset->handle = job.handle;
+				}
+				else
+				{
+					std::scoped_lock<std::mutex> lock(m_loadMutex);
+					m_assetRegistry.emplace(job.path, asset->handle);
+				}
+
+				asset->path = job.path;
+				asset->SetFlag(AssetFlag::Queued, false);
+
+				{
+					std::scoped_lock<std::mutex> lock(m_loadMutex);
+					m_assetCache[job.handle] = asset;
+				}
+			}
 		}
 	}
 }

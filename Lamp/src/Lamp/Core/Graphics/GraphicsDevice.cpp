@@ -89,6 +89,7 @@ namespace Lamp
 		const PhysicalGraphicsDevice::QueueIndices& queueIndices = physicalDevice->GetQueueIndices();
 		
 		std::set<int32_t> uniqueQueues = { queueIndices.computeQueueIndex, queueIndices.graphicsQueueIndex, queueIndices.presentQueueIndex, queueIndices.transferQueueIndex };
+
 		float queuePriority = 1.f;
 
 		std::vector<VkDeviceQueueCreateInfo> deviceQueueInfos;
@@ -99,6 +100,12 @@ namespace Lamp
 			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueInfo.pQueuePriorities = &queuePriority;
 			queueInfo.queueCount = 1;
+
+			if (queue == 0)
+			{
+				queueInfo.queueCount++;
+			}
+
 			queueInfo.queueFamilyIndex = queue;
 		}
 
@@ -121,6 +128,7 @@ namespace Lamp
 		LP_VK_CHECK(vkCreateDevice(physicalDevice->GetHandle(), &createInfo, nullptr, &m_device));
 
 		vkGetDeviceQueue(m_device, queueIndices.graphicsQueueIndex, 0, &m_graphicsQueue);
+		vkGetDeviceQueue(m_device, queueIndices.graphicsQueueIndex, 1, &m_threadSafeGraphicsQueue);
 		vkGetDeviceQueue(m_device, queueIndices.computeQueueIndex, 0, &m_computeQueue);
 		vkGetDeviceQueue(m_device, queueIndices.transferQueueIndex, 0, &m_transferQueue);
 	
@@ -219,7 +227,7 @@ namespace Lamp
 
 	void GraphicsDevice::FlushThreadSafeCommandBuffer(VkCommandBuffer cmdBuffer)
 	{
-		FlushThreadSafeCommandBuffer(cmdBuffer, m_graphicsQueue);
+		FlushThreadSafeCommandBuffer(cmdBuffer, m_threadSafeGraphicsQueue);
 	}
 
 	void GraphicsDevice::FlushThreadSafeCommandBuffer(VkCommandBuffer cmdBuffer, VkQueue queue)
@@ -227,7 +235,7 @@ namespace Lamp
 		LP_CORE_ASSERT(cmdBuffer != VK_NULL_HANDLE, "Unable to flush null command buffer!");
 		LP_CORE_ASSERT(m_commandPoolMap.find(cmdBuffer) != m_commandPoolMap.end(), "Command buffer not found in map! Was this command buffer created from the device?");
 		
-		const std::lock_guard lock(m_commandBufferFlushMutex);
+		const std::scoped_lock<std::mutex> lock(m_commandBufferFlushMutex);
 		LP_VK_CHECK(vkEndCommandBuffer(cmdBuffer));
 
 		VkSubmitInfo submitInfo{};
@@ -241,6 +249,7 @@ namespace Lamp
 
 		VkFence fence;
 		LP_VK_CHECK(vkCreateFence(m_device, &fenceInfo, nullptr, &fence));
+		LP_VK_CHECK(vkQueueWaitIdle(queue));
 		LP_VK_CHECK(vkQueueSubmit(queue, 1, &submitInfo, fence));
 		LP_VK_CHECK(vkWaitForFences(m_device, 1, &fence, VK_TRUE, 1000000000));
 
