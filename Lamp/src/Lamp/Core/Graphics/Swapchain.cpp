@@ -131,6 +131,7 @@ namespace Lamp
 			presentInfo.waitSemaphoreCount = 1;
 			presentInfo.pImageIndices = &m_currentImage;
 
+			OPTICK_GPU_FLIP(&m_swapchain);
 			LP_VK_CHECK(vkQueuePresentKHR(GraphicsContext::GetDevice()->GetGraphicsQueue(), &presentInfo));
 		}
 

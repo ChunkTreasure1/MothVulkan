@@ -16,10 +16,10 @@ namespace Lamp
 		friend bool operator>(const SubMesh& lhs, const SubMesh& rhs);
 		friend bool operator<(const SubMesh& lhs, const SubMesh& rhs);
 
-		uint32_t materialIndex;
-		uint32_t indexCount;
-		uint32_t vertexStartOffset;
-		uint32_t indexStartOffset;
+		uint32_t materialIndex = 0;
+		uint32_t indexCount = 0;
+		uint32_t vertexStartOffset = 0;
+		uint32_t indexStartOffset = 0;
 
 	private:
 		size_t m_hash = 0;

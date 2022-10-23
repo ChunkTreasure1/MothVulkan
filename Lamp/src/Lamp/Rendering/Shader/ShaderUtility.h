@@ -147,5 +147,10 @@ namespace Lamp
 		{
 			return lhs ^ (rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2));
 		}
+
+		inline uint64_t GetAlignedSize(uint64_t size, uint64_t alignment)
+		{
+			return (size + alignment - 1) & ~(alignment - 1);
+		}
 	}
 }

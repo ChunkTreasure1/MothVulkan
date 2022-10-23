@@ -105,8 +105,16 @@ namespace Lamp
 			for (const auto& pass : m_renderGraph->GetRenderPasses())
 			{
 				Renderer::BeginPass(pass.renderPass, camera);
-				Renderer::DispatchRenderCommands();
+				if (pass.renderPass->computePipeline)
+				{
+					Renderer::ExecuteComputePass();
+				}
+				else [[likely]]
+				{
+					Renderer::DispatchRenderCommands();
+				}
 				Renderer::EndPass();
+
 			}
 
 			Renderer::End();

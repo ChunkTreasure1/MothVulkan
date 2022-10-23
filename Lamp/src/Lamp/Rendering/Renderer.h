@@ -31,6 +31,9 @@ namespace Lamp
 		Ref<Material> material;
 		SubMesh subMesh;
 		glm::mat4 transform;
+
+		uint32_t firstInstance = 0;
+		uint32_t batchId = 0;
 	};
 
 	struct IndirectBatch
@@ -67,6 +70,8 @@ namespace Lamp
 		static void Begin();
 		static void End();
 
+		static void ExecuteComputePass();
+
 		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
 		static void EndPass();
 
@@ -88,6 +93,8 @@ namespace Lamp
 		Renderer() = delete;
 		
 		static void CreateDefaultData();
+		static void CreateSamplers();
+
 		static void CreateDescriptorPools();
 		static void PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
@@ -103,7 +110,6 @@ namespace Lamp
 		struct RendererData
 		{
 			Ref<CommandBuffer> commandBuffer;
-			Ref<Framebuffer> currentFramebuffer;
 
 			Ref<ShaderStorageBufferSet> indirectDrawBuffer;
 			Ref<ShaderStorageBufferSet> indirectCountBuffer;
@@ -115,7 +121,12 @@ namespace Lamp
 			std::vector<IndirectBatch> indirectBatches;
 
 			Ref<Camera> passCamera;
-			Skybox skyboxData                                      ;
+			Ref<RenderPass> currentPass;
+			uint32_t passIndex = 0;
+
+			std::vector<Ref<Material>> frameUpdatedMaterials;
+			
+			Skybox skyboxData;
 
 			std::vector<VkDescriptorPool> descriptorPools;
 
@@ -127,6 +138,6 @@ namespace Lamp
 		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
 		inline static std::vector<FunctionQueue> s_frameDeletionQueues;
-		inline static FunctionQueue s_invalidationQueue;
+		inline static std::vector<FunctionQueue> s_invalidationQueues;
 	};
 }

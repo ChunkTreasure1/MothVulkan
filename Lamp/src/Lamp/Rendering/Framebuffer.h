@@ -47,6 +47,7 @@ namespace Lamp
 		
 		std::string debugName;
 		bool copyable = false;
+		bool storageCompatible = false;
 	};
 
 	struct FramebufferSpecification
@@ -56,6 +57,7 @@ namespace Lamp
 	
 		std::vector<FramebufferAttachment> attachments;
 		std::map<uint32_t, Ref<Image2D>> existingImages;
+		Ref<Image2D> existingDepth;
 	};
 
 	class Framebuffer

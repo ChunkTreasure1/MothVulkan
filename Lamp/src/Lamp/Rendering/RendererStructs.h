@@ -43,6 +43,16 @@ namespace Lamp
 		uint32_t batchId;
 	};
 
+	struct TargetData
+	{
+		glm::vec2 targetSize;
+	};
+
+	struct PassData
+	{
+		uint32_t passIndex;
+	};
+
 	struct GPUIndirectObject
 	{
 		VkDrawIndexedIndirectCommand command;

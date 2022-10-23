@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Lamp/Core/Base.h"
+#include "PipelineCommon.h"
 
+#include "Lamp/Core/Base.h"
 #include "Lamp/Rendering/Shader/Shader.h"
 #include "Lamp/Rendering/Texture/ImageCommon.h"
 
@@ -22,8 +23,13 @@ namespace Lamp
 		~RenderPipelineCompute();
 
 		void Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0);
+		
 		void InsertBarrier(VkCommandBuffer commandBuffer, uint32_t frameIndex = 0, VkPipelineStageFlags pipelineStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
-		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void InsertExecutionBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags pipelineStage, uint32_t frameIndex = 0);
+
+		void Dispatch(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex = 0);
+		void DispatchNoUpdate(VkCommandBuffer commandBuffer, uint32_t index, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t passIndex = 0);
+		void WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index = 0, uint32_t passIndex = 0);
 
 		void SetUniformBuffer(Ref<UniformBufferSet> uniformBuffer, uint32_t set, uint32_t binding);
 		void SetStorageBuffer(Ref<ShaderStorageBufferSet> storageBuffer, uint32_t set, uint32_t binding, VkAccessFlags dstAccessFlags = VK_ACCESS_SHADER_READ_BIT);
@@ -34,11 +40,15 @@ namespace Lamp
 
 		static Ref<RenderPipelineCompute> Create(Ref<Shader> computeShader, uint32_t count = 1);
 
+		inline const std::vector<FramebufferInput>& GetFramebufferInputs() const { return m_framebufferInputs; }
+
 	private:
+		friend class RenderPipelineAsset;
+
 		void CreatePipeline();
 		void CreateDescriptorPool();
 		void AllocateAndSetupDescriptorsAndBarriers();
-		void WriteAndBindDescriptors(VkCommandBuffer cmdBuffer, uint32_t index = 0);
+		void SetupPipelineFromShader();
 
 		void UpdateImage(Ref<Image2D> image, uint32_t dstSet, uint32_t dstBinding, uint32_t srcMip, ImageUsage usage, VkAccessFlags dstAccessFlags = VK_ACCESS_SHADER_READ_BIT, VkImageLayout targetLayout = VK_IMAGE_LAYOUT_UNDEFINED);
 		
@@ -54,6 +64,11 @@ namespace Lamp
 
 		std::vector<std::vector<VkBufferMemoryBarrier>> m_bufferBarriers;
 		std::vector<std::vector<VkImageMemoryBarrier>> m_imageBarriers;
+
+		std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>> m_imageBarrierMap; // set -> binding -> index
+		std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>> m_bufferBarrierMap; // set -> binding -> index
+
+		std::vector<FramebufferInput> m_framebufferInputs;
 
 		VkPipelineLayout m_pipelineLayout = nullptr;
 		VkPipelineCache m_pipelineCache = nullptr;

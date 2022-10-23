@@ -24,7 +24,7 @@ namespace Lamp
 		s_registry.clear();
 	}
 
-	std::filesystem::path MaterialRegistry::Get(const std::string& name)
+	const std::filesystem::path MaterialRegistry::Get(const std::string& name)
 	{
 		std::string lowName = Utility::ToLower(name);
 		auto it = s_registry.find(lowName);

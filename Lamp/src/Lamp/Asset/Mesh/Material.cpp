@@ -47,18 +47,20 @@ namespace Lamp
 		}
 	}
 
-	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex) const
+	void Material::Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex, uint32_t passIndex) const
 	{
 		LP_PROFILE_FUNCTION();
+
+		m_renderPipeline->Bind(commandBuffer);
 
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[frameIndex].size(), m_writeDescriptors[frameIndex].data(), 0, nullptr);
 
-		m_renderPipeline->Bind(commandBuffer);
+		// TODO: Switch to bind all sets at once
 
 		for (uint32_t i = 0; i < (uint32_t)m_frameDescriptorSets[frameIndex].size(); i++)
 		{
-			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex][i], m_descriptorSetBindings[frameIndex].at(i));
+			m_renderPipeline->BindDescriptorSet(commandBuffer, m_frameDescriptorSets[frameIndex].at(i), m_descriptorSetBindings[frameIndex].at(i), passIndex);
 		}
 	}
 
@@ -90,13 +92,18 @@ namespace Lamp
 		m_shaderResources.clear();
 		SetupMaterialFromPipeline();
 		AllocateAndSetupDescriptorSets();
+
+
+		for (auto& writeDescriptor : m_writeDescriptors)
+		{
+		}
 	}
 
 	void Material::UpdateInternalTexture(uint32_t set, uint32_t binding, uint32_t frameIndex, Ref<Image2D> image)
 	{
 		LP_PROFILE_FUNCTION();
 		auto& shaderResource = m_shaderResources.at(frameIndex);
-		
+
 		auto setIt = shaderResource.imageInfos.find(set);
 		if (setIt == shaderResource.imageInfos.end())
 		{
@@ -159,7 +166,7 @@ namespace Lamp
 
 					if (shaderResources.uniformBuffersInfos[set].find(binding) != shaderResources.uniformBuffersInfos[set].end())
 					{
-						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding);
+						writeDescriptor.pBufferInfo = &shaderResources.uniformBuffersInfos[set].at(binding).info;
 					}
 					else if (shaderResources.storageBuffersInfos[set].find(binding) != shaderResources.storageBuffersInfos[set].end())
 					{
@@ -196,8 +203,8 @@ namespace Lamp
 				{
 					Ref<UniformBuffer> ubo = UniformBufferRegistry::Get(set, binding)->Get(i);
 
-					info.buffer = ubo->GetHandle();
-					info.range = ubo->GetSize();
+					info.info.buffer = ubo->GetHandle();
+					info.info.range = ubo->GetSize();
 				}
 			}
 

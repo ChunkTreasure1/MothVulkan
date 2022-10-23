@@ -17,9 +17,9 @@ namespace Lamp
 		{
 			switch (clearMode)
 			{
-				case ClearMode::Clear: return VK_ATTACHMENT_LOAD_OP_CLEAR;
-				case ClearMode::Load: return VK_ATTACHMENT_LOAD_OP_LOAD;
-				case ClearMode::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			case ClearMode::Clear: return VK_ATTACHMENT_LOAD_OP_CLEAR;
+			case ClearMode::Load: return VK_ATTACHMENT_LOAD_OP_LOAD;
+			case ClearMode::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			}
 
 			LP_CORE_ASSERT(false, "Clear mode not supported!");
@@ -41,16 +41,20 @@ namespace Lamp
 		{
 			if (m_specification.existingImages.find(attachmentIndex) != m_specification.existingImages.end())
 			{
-				if (!Utility::IsDepthFormat(m_specification.existingImages[attachmentIndex]->GetFormat())) // TODO: should you be able to send in a depth image?
+				if (!Utility::IsDepthFormat(m_specification.existingImages[attachmentIndex]->GetFormat()))
 				{
 					m_colorAttachmentImages.emplace_back();
 				}
+				else
+				{
+					m_depthAttachmentImage = m_specification.existingDepth;
+				}
 			}
-			else if (Utility::IsDepthFormat(attachment.format))
+			else if (Utility::IsDepthFormat(attachment.format) && !m_depthAttachmentImage)
 			{
 				ImageSpecification spec{};
 				spec.format = attachment.format;
-				spec.usage = ImageUsage::Attachment;
+				spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
 				spec.copyable = attachment.copyable;
@@ -61,7 +65,7 @@ namespace Lamp
 			{
 				ImageSpecification spec{};
 				spec.format = attachment.format;
-				spec.usage = ImageUsage::Attachment;
+				spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 				spec.width = m_width;
 				spec.height = m_height;
 				spec.copyable = attachment.copyable;
@@ -95,23 +99,30 @@ namespace Lamp
 		}
 
 		uint32_t attachmentIndex = 0;
-		for (auto attachment : m_specification.attachments)
+		for (const auto& attachment : m_specification.attachments)
 		{
 			if (Utility::IsDepthFormat(attachment.format))
 			{
-				Ref<Image2D> image = m_depthAttachmentImage;
-				auto& imageSpec = const_cast<ImageSpecification&>(m_depthAttachmentImage->GetSpecification());
-				imageSpec.width = m_width;
-				imageSpec.height = m_height;
-				imageSpec.copyable = attachment.copyable;
+				if (m_specification.existingDepth)
+				{
+					m_depthAttachmentImage = m_specification.existingDepth;
+				}
+				else
+				{
+					Ref<Image2D> image = m_depthAttachmentImage;
+					auto& imageSpec = const_cast<ImageSpecification&>(m_depthAttachmentImage->GetSpecification());
+					imageSpec.width = m_width;
+					imageSpec.height = m_height;
+					imageSpec.copyable = attachment.copyable;
 
-				m_depthAttachmentImage->Invalidate();
-
+					m_depthAttachmentImage->Invalidate();
+				}
+				
 				m_depthFormat = Utility::LampToVulkanFormat(m_depthAttachmentImage->GetFormat());
 				m_depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
 				m_depthAttachmentInfo.imageView = m_depthAttachmentImage->GetView();
 				m_depthAttachmentInfo.imageLayout = m_depthAttachmentImage->GetFormat() == ImageFormat::DEPTH24STENCIL8 ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-				m_depthAttachmentInfo.loadOp = Utility::LampToVulkanLoadOp(attachment.clearMode);
+				m_depthAttachmentInfo.loadOp = m_specification.existingDepth ? VK_ATTACHMENT_LOAD_OP_LOAD : Utility::LampToVulkanLoadOp(attachment.clearMode);
 				m_depthAttachmentInfo.clearValue.depthStencil = { 1.0f, 0 };
 			}
 			else
@@ -131,7 +142,7 @@ namespace Lamp
 					{
 						ImageSpecification spec{};
 						spec.format = attachment.format;
-						spec.usage = ImageUsage::Attachment;
+						spec.usage = attachment.storageCompatible ? ImageUsage::AttachmentStorage : ImageUsage::Attachment;
 						spec.width = m_width;
 						spec.height = m_height;
 						spec.copyable = attachment.copyable;
@@ -286,7 +297,7 @@ namespace Lamp
 	{
 		uint32_t attachmentIndex = 0;
 
-		for (auto image : m_colorAttachmentImages)
+		for (const auto& image : m_colorAttachmentImages)
 		{
 			if (m_specification.existingImages.find(attachmentIndex) != m_specification.existingImages.end())
 			{
@@ -298,7 +309,7 @@ namespace Lamp
 			attachmentIndex++;
 		}
 
-		if (m_depthAttachmentImage)
+		if (m_depthAttachmentImage && !m_specification.existingDepth)
 		{
 			m_depthAttachmentImage->Release();
 		}

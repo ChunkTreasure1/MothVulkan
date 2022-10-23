@@ -1,0 +1,46 @@
+RenderPass:
+  name: gbuffer
+  exclusivePipeline: gbuffer
+  drawType: Opaque
+  priority: 0
+  resizeable: true
+  framebuffer:
+    width: 1280
+    height: 720
+    attachments:
+      - format: RGBA32F
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [0.100000001, 0.100000001, 0.100000001, 1]
+        debugName: ""
+        copyable: true
+      - format: RGBA
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [0.100000001, 0.100000001, 0.100000001, 0]
+        debugName: ""
+        copyable: true
+      - format: RGBA16F
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [0.100000001, 0.100000001, 0.100000001, 1]
+        debugName: ""
+        copyable: true
+      - format: DEPTH32F
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [1, 1, 1, 1]
+        debugName: ""
+        copyable: false

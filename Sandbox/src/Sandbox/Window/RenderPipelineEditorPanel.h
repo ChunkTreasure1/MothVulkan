@@ -5,7 +5,7 @@
 
 namespace Lamp
 {
-	class RenderPipeline;
+	class RenderPipelineAsset;
 }
 
 class RenderPipelineEditorPanel : public EditorWindow
@@ -24,7 +24,7 @@ private:
 	void SaveAs();
 	void Save();
 
-	Ref<Lamp::RenderPipeline> m_loadedRenderPipeline;
+	Ref<Lamp::RenderPipelineAsset> m_loadedRenderPipeline;
 	Ref<SelectiveAssetBrowserPanel> m_assetBrowser;
 
 	int32_t m_currentlySelectedShader = 0;

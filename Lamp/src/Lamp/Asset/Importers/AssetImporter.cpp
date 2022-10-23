@@ -6,6 +6,7 @@
 #include "Lamp/Asset/Mesh/MultiMaterial.h"
 #include "Lamp/Asset/Mesh/Material.h"
 #include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipelineRegistry.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
@@ -204,12 +205,16 @@ namespace Lamp
 				textures.emplace(textureBinding, texture);
 			}
 
-			Ref<RenderPipeline> renderPipeline = RenderPipelineRegistry::Get(renderPipelineString);
-			if (!renderPipeline || !renderPipeline->IsValid())
+			Ref<RenderPipelineAsset> renderPipelineAsset = RenderPipelineRegistry::Get(renderPipelineString);
+			Ref<RenderPipeline> renderPipeline;
+
+			if (!renderPipelineAsset || !renderPipelineAsset->IsValid() || renderPipelineAsset->GetPipelineType() != PipelineType::Graphics)
 			{
 				renderPipeline = Renderer::GetDefaultData().defaultPipeline;
 				LP_CORE_ERROR("Render pipeline {0} not found or invalid! Fallingback to default!", renderPipelineString);
 			}
+
+			renderPipeline = renderPipelineAsset->GetGraphicsPipeline();
 
 			Ref<Material> material = Material::Create(materialNameString, materialIndex, renderPipeline);
 			for (const auto& [binding, texture] : textures)

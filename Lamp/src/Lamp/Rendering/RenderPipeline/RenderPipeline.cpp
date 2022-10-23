@@ -398,15 +398,41 @@ namespace Lamp
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 	}
 
-	void RenderPipeline::BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set) const
+	void RenderPipeline::BindDescriptorSet(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet, uint32_t set, uint32_t passIndex) const
 	{
 		LP_PROFILE_FUNCTION();
+		
+		std::vector<uint32_t> resultOffsets;
+		const auto& resources = m_specification.shader->GetResources();
+		
+		if (resources.dynamicBufferOffsets.find(set) != resources.dynamicBufferOffsets.end())
+		{
+			const auto& offsets = resources.dynamicBufferOffsets.at(set);
+			for (const auto& offset : offsets)
+			{
+				resultOffsets.emplace_back(offset.offset * passIndex);
+			}
+		}
 
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, set, 1, &descriptorSet, (uint32_t)resultOffsets.size(), resultOffsets.data());
 	}
 
-	void RenderPipeline::BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t set) const
+	void RenderPipeline::BindDescriptorSets(VkCommandBuffer cmdBuffer, const std::vector<VkDescriptorSet>& descriptorSets, uint32_t firstSet, uint32_t passIndex) const
 	{
+		//std::vector<uint32_t> dynamicOffsets;
+
+		//for (const auto& [set, bindings] : resources.uniformBuffersInfos)
+		//{
+		//	for (const auto& [binding, info] : bindings)
+		//	{
+		//		if (info.isDynamic)
+		//		{
+		//			dynamicOffsets.emplace_back(info.info.range * passIndex);
+		//		}
+		//	}
+		//}
+
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, firstSet, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 	}
 
 	void RenderPipeline::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const

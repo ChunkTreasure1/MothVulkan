@@ -13,7 +13,7 @@ namespace Lamp
 		static void Initialize();
 		static void Shutdown();
 
-		static std::filesystem::path Get(const std::string& name);
+		static const std::filesystem::path Get(const std::string& name);
 		static void Register(const std::string& name, const std::filesystem::path& path);
 
 		inline static const std::unordered_map<std::string, std::filesystem::path>& GetMaterials() { return s_registry; }

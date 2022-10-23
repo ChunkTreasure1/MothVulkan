@@ -102,6 +102,9 @@ namespace Lamp
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		LP_VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[index], &beginInfo));
+	
+		OPTICK_GPU_CONTEXT(m_commandBuffers[index]);
+		OPTICK_GPU_EVENT("Test");
 	}
 
 	void CommandBuffer::End()

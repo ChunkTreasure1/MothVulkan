@@ -1,4 +1,4 @@
-#include "lppch.h"
+ #include "lppch.h"
 #include "Image2D.h"
 
 #include "Lamp/Log/Log.h"
@@ -7,6 +7,7 @@
 #include "Lamp/Core/Graphics/GraphicsDevice.h"
 
 #include "Lamp/Rendering/Renderer.h"
+#include "Lamp/Rendering/Texture/SamplerLibrary.h"
 
 #include "Lamp/Utility/ImageUtility.h"
 
@@ -44,7 +45,18 @@ namespace Lamp
 			}
 			else
 			{
-				usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+				usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			}
+		}
+		else if (m_specification.usage == ImageUsage::AttachmentStorage)
+		{
+			if (Utility::IsDepthFormat(m_specification.format))
+			{
+				usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			}
+			else
+			{
+				usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			}
 		}
 		else if (m_specification.usage == ImageUsage::Texture)
@@ -104,7 +116,7 @@ namespace Lamp
 
 				stagingBufferAllocation = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
 
-				void* mappedData = allocator.MapMemory<void>(stagingBufferAllocation);
+				auto* mappedData = allocator.MapMemory<void>(stagingBufferAllocation);
 				memcpy_s(mappedData, bufferSize, data, bufferSize);
 				allocator.UnmapMemory(stagingBufferAllocation);
 
@@ -145,25 +157,7 @@ namespace Lamp
 
 		LP_VK_CHECK(vkCreateImageView(device->GetHandle(), &imageViewInfo, nullptr, &m_imageViews[0]));
 
-		///////////////////////MOVE TO ANOTHER PLACE/////////////////////////////
-		VkSamplerCreateInfo samplerCreateInfo{};
-		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerCreateInfo.anisotropyEnable = m_specification.anisoLevel != AniostopyLevel::None ? VK_TRUE : VK_FALSE;
-		samplerCreateInfo.maxAnisotropy = (float)m_specification.anisoLevel; // TODO: Add capabilities checking!
-		samplerCreateInfo.magFilter = Utility::LampToVulkanFilter(m_specification.filter);
-		samplerCreateInfo.minFilter = Utility::LampToVulkanFilter(m_specification.filter);
-		samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerCreateInfo.addressModeU = Utility::LampToVulkanWrap(m_specification.wrap);
-		samplerCreateInfo.addressModeV = Utility::LampToVulkanWrap(m_specification.wrap);
-		samplerCreateInfo.addressModeW = Utility::LampToVulkanWrap(m_specification.wrap);
-		samplerCreateInfo.mipLodBias = 0.f;
-		samplerCreateInfo.minLod = 0.f;
-		samplerCreateInfo.maxLod = 100.f;
-		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		samplerCreateInfo.compareEnable = m_specification.comparable ? VK_TRUE : VK_FALSE;
-		samplerCreateInfo.compareOp = VK_COMPARE_OP_LESS;
-
-		LP_VK_CHECK(vkCreateSampler(device->GetHandle(), &samplerCreateInfo, nullptr, &m_sampler));
+		m_sampler = SamplerLibrary::Get(m_specification.filter, m_specification.filter, m_specification.filter, m_specification.wrap, m_specification.compareOp, m_specification.anisoLevel);
 	}
 
 	void Image2D::Release()
@@ -173,11 +167,9 @@ namespace Lamp
 			return;
 		}
 
-		Renderer::SubmitResourceFree([sampler = m_sampler, imageViews = m_imageViews, image = m_image, bufferAllocation = m_bufferAllocation]()
+		Renderer::SubmitResourceFree([imageViews = m_imageViews, image = m_image, bufferAllocation = m_bufferAllocation]()
 			{
 				auto device = GraphicsContext::GetDevice();
-
-				vkDestroySampler(device->GetHandle(), sampler, nullptr);
 
 				for (auto& imageView : imageViews)
 				{

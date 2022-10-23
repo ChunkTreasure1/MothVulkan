@@ -263,21 +263,43 @@ namespace Lamp
 				VkDescriptorSetLayoutBinding& layoutBinding = outSetLayoutBindings[set].emplace_back();
 				layoutBinding.binding = binding;
 				layoutBinding.descriptorCount = 1;
-				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				layoutBinding.descriptorType = set == 1 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				layoutBinding.stageFlags = stage;
 
-				VkDescriptorBufferInfo& bufferInfo = m_resources.uniformBuffersInfos[set][binding];
-				bufferInfo.offset = 0;
-				bufferInfo.range = size;
+				UniformBuffer& bufferInfo = m_resources.uniformBuffersInfos[set][binding];
+				bufferInfo.info.offset = 0;
+				bufferInfo.info.range = size;
+				bufferInfo.isDynamic = set == 1;
+
+				if (bufferInfo.isDynamic)
+				{
+					const uint64_t minUBOAlignment = GraphicsContext::GetDevice()->GetPhysicalDevice()->GetCapabilities().minUBOOffsetAlignment;
+					uint32_t dynamicAlignment = size;
+
+					if (minUBOAlignment > 0)
+					{
+						dynamicAlignment = (uint32_t)Utility::GetAlignedSize((uint64_t)dynamicAlignment, minUBOAlignment);
+					}
+
+					bufferInfo.info.range = dynamicAlignment;
+					m_resources.dynamicBufferOffsets[set].emplace_back(DynamicOffset{ dynamicAlignment, binding });
+				}
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptor.pNext = nullptr;
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
-				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				writeDescriptor.descriptorType = set == 1 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-				m_perStageUBOCount[stage].count++;
+				if (bufferInfo.isDynamic)
+				{
+					m_perStageDynamicUBOCount[stage].count++;
+				}
+				else
+				{
+					m_perStageUBOCount[stage].count++;
+				}
 			}
 			else
 			{
@@ -308,6 +330,21 @@ namespace Lamp
 				bufferInfo.info.offset = 0;
 				bufferInfo.info.range = size;
 				bufferInfo.writeable = !(bool)nonWritable;
+				bufferInfo.isDynamic = set == 4;
+
+				if (bufferInfo.isDynamic)
+				{
+					const uint64_t minSSBOAlignment = GraphicsContext::GetDevice()->GetPhysicalDevice()->GetCapabilities().minSSBOOffsetAlignment;
+					uint32_t dynamicAlignment = size;
+
+					if (minSSBOAlignment > 0)
+					{
+						dynamicAlignment = (uint32_t)Utility::GetAlignedSize((uint64_t)dynamicAlignment, minSSBOAlignment);
+					}
+
+					bufferInfo.info.range = dynamicAlignment;
+					m_resources.dynamicBufferOffsets[set].emplace_back(DynamicOffset{ dynamicAlignment, binding });
+				}
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
 				writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -316,7 +353,14 @@ namespace Lamp
 				writeDescriptor.descriptorCount = 1;
 				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-				m_perStageSSBOCount[stage].count++;
+				if (bufferInfo.isDynamic)
+				{
+					m_perStageDynamicSSBOCount[stage].count++;
+				}
+				else
+				{
+					m_perStageSSBOCount[stage].count++;
+				}
 			}
 			else
 			{
@@ -429,18 +473,28 @@ namespace Lamp
 		}
 
 		LP_CORE_INFO("		Uniform Buffers: {0}", m_perStageUBOCount[stage].count);
+		LP_CORE_INFO("		Dynamic Uniform Buffers: {0}", m_perStageDynamicUBOCount[stage].count);
 		LP_CORE_INFO("		Shader Storage Buffers: {0}", m_perStageSSBOCount[stage].count);
+		LP_CORE_INFO("		Dynamic Shader Storage Buffers: {0}", m_perStageDynamicSSBOCount[stage].count);
 		LP_CORE_INFO("		Sampled Images: {0}", m_perStageImageCount[stage].count);
 		LP_CORE_INFO("		Storage Images: {0}", m_perStageStorageImageCount[stage].count);
 	}
 
 	void Shader::SetupDescriptors(const std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>& setLayoutBindings)
 	{
-		uint32_t lastSet = 0;
+		int32_t lastSet = -1;
+
+		for (auto& [set, offsets] : m_resources.dynamicBufferOffsets)
+		{
+			std::sort(offsets.begin(), offsets.end(), [](const DynamicOffset& lhs, const DynamicOffset& rhs)
+				{
+					return lhs.binding < rhs.binding;
+				});
+		}
 
 		for (const auto& [set, bindings] : setLayoutBindings)
 		{
-			while (set > lastSet + 1)
+			while ((int32_t)set > lastSet + 1)
 			{
 				VkDescriptorSetLayoutCreateInfo layoutInfo{};
 				layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -472,12 +526,16 @@ namespace Lamp
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 
 		uint32_t uboCount = 0;
+		uint32_t dynamicUBOCount = 0;
 		uint32_t ssboCount = 0;
 		uint32_t storageImageCount = 0;
+		uint32_t dynamicSSBOCount = 0;
 		uint32_t imageCount = 0;
 
 		std::for_each(m_perStageUBOCount.begin(), m_perStageUBOCount.end(), [&](auto pair) { uboCount += pair.second.count; });
+		std::for_each(m_perStageDynamicUBOCount.begin(), m_perStageDynamicUBOCount.end(), [&](auto pair) { dynamicUBOCount += pair.second.count; });
 		std::for_each(m_perStageSSBOCount.begin(), m_perStageSSBOCount.end(), [&](auto pair) { ssboCount += pair.second.count; });
+		std::for_each(m_perStageDynamicSSBOCount.begin(), m_perStageDynamicSSBOCount.end(), [&](auto pair) { dynamicSSBOCount += pair.second.count; });
 		std::for_each(m_perStageStorageImageCount.begin(), m_perStageStorageImageCount.end(), [&](auto pair) { storageImageCount += pair.second.count; });
 		std::for_each(m_perStageImageCount.begin(), m_perStageImageCount.end(), [&](auto pair) { imageCount += pair.second.count; });
 
@@ -486,9 +544,19 @@ namespace Lamp
 			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, uboCount * framesInFlight);
 		}
 
+		if (dynamicUBOCount > 0)
+		{
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, dynamicUBOCount * framesInFlight);
+		}
+
 		if (ssboCount > 0)
 		{
 			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, ssboCount * framesInFlight);
+		}
+
+		if (dynamicSSBOCount > 0)
+		{
+			m_resources.poolSizes.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, dynamicSSBOCount * framesInFlight);
 		}
 
 		if (storageImageCount > 0)

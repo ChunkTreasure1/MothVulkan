@@ -21,6 +21,15 @@ namespace Lamp
 		}
 	}
 
+	UniformBufferSet::UniformBufferSet(uint32_t sizePerObject, uint32_t objectCount, uint32_t bufferCount)
+	{
+		m_uniformBuffers.reserve(bufferCount);
+		for (uint32_t i = 0; i < bufferCount; i++)
+		{
+			m_uniformBuffers.emplace_back(UniformBuffer::Create(sizePerObject, objectCount));
+		}
+	}
+
 	UniformBufferSet::~UniformBufferSet()
 	{
 		m_uniformBuffers.clear();
@@ -34,5 +43,9 @@ namespace Lamp
 	Ref<UniformBufferSet> UniformBufferSet::Create(uint32_t size, uint32_t bufferCount)
 	{
 		return CreateRef<UniformBufferSet>(size, bufferCount);
+	}
+	Ref<UniformBufferSet> UniformBufferSet::Create(uint32_t sizePerObject, uint32_t objectCount, uint32_t bufferCount)
+	{
+		return CreateRef<UniformBufferSet>(sizePerObject, objectCount, bufferCount);
 	}
 }

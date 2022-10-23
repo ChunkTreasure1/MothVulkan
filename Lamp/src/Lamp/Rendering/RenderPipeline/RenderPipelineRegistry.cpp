@@ -4,6 +4,7 @@
 #include "Lamp/Log/Log.h"
 
 #include "Lamp/Asset/AssetManager.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 
 #include "Lamp/Utility/FileSystem.h"
@@ -21,7 +22,7 @@ namespace Lamp
 		s_registry.clear();
 	}
 
-	Ref<RenderPipeline> RenderPipelineRegistry::Get(const std::string& name)
+	Ref<RenderPipelineAsset> RenderPipelineRegistry::Get(const std::string& name)
 	{
 		std::string lowName = Utility::ToLower(name);
 		auto it = s_registry.find(lowName);
@@ -34,12 +35,12 @@ namespace Lamp
 		return it->second;
 	}
 
-	std::map<std::string, Ref<RenderPipeline>> RenderPipelineRegistry::GetAllPipelines()
+	std::map<std::string, Ref<RenderPipelineAsset>> RenderPipelineRegistry::GetAllPipelines()
 	{
 		return s_registry;
 	}
 
-	void RenderPipelineRegistry::Register(const std::string& name, Ref<RenderPipeline> pipeline)
+	void RenderPipelineRegistry::Register(const std::string& name, Ref<RenderPipelineAsset> pipeline)
 	{
 		auto it = s_registry.find(name);
 		if (it != s_registry.end())
@@ -60,8 +61,8 @@ namespace Lamp
 			AssetType type = AssetManager::Get().GetAssetTypeFromPath(path.path());
 			if (type == AssetType::RenderPipeline)
 			{
-				Ref<RenderPipeline> pipeline = AssetManager::GetAsset<RenderPipeline>(path.path());
-				Register(pipeline->GetSpecification().name, pipeline);
+				Ref<RenderPipelineAsset> pipelineAsset = AssetManager::GetAsset<RenderPipelineAsset>(path.path());
+				Register(pipelineAsset->GetName(), pipelineAsset);
 			}
 		}
 	}

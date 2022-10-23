@@ -351,6 +351,7 @@ namespace Lamp
 					break;
 			}
 
+			LP_CORE_ASSERT(false, "Texture format not supported!");
 			return (VkFormat)0;
 		}
 
@@ -358,11 +359,12 @@ namespace Lamp
 		{
 			switch (filter)
 			{
-				case TextureFilter::None: LP_CORE_ASSERT(false, "Filter must be chosen!") return VK_FILTER_LINEAR;
+				case TextureFilter::None: LP_CORE_ASSERT(false, "Filter must be set!") break;
 				case TextureFilter::Linear: return VK_FILTER_LINEAR;
 				case TextureFilter::Nearest: return VK_FILTER_NEAREST;
 			}
 
+			LP_CORE_ASSERT(false, "Filter mode not supported!");
 			return VK_FILTER_LINEAR;
 		}
 		
@@ -374,7 +376,40 @@ namespace Lamp
 				case TextureWrap::Clamp: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 				case TextureWrap::Repeat: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			}
+
+			LP_CORE_ASSERT(false, "Wrap mode not supported!");
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;			
+		}
+
+		inline VkSamplerMipmapMode LampToVulkanMipMapMode(TextureFilter filter)
+		{
+			switch (filter)
+			{
+				case TextureFilter::None: LP_CORE_ASSERT(false, "Mip map mode must be set!"); break;
+				case TextureFilter::Linear: return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+				case TextureFilter::Nearest: return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			}
+
+			LP_CORE_ASSERT(false, "Mip map mode not supported!");
+			return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		}
+
+		inline VkCompareOp LampToVulkanCompareOp(CompareOperator compareOp)
+		{
+			switch (compareOp)
+			{
+				case CompareOperator::None: return VK_COMPARE_OP_NEVER;
+				case CompareOperator::Never: return VK_COMPARE_OP_NEVER;
+				case CompareOperator::Less: return VK_COMPARE_OP_LESS;
+				case CompareOperator::Equal: return VK_COMPARE_OP_EQUAL;
+				case CompareOperator::LessEqual: return VK_COMPARE_OP_LESS_OR_EQUAL;
+				case CompareOperator::Greater: return VK_COMPARE_OP_GREATER;
+				case CompareOperator::GreaterEqual: return VK_COMPARE_OP_GREATER_OR_EQUAL;
+				case CompareOperator::Always: return VK_COMPARE_OP_ALWAYS;
+			}
+
+			LP_CORE_ASSERT(false, "Compare operator not supported!");
+			return VK_COMPARE_OP_LESS;
 		}
 
 		inline uint32_t PerPixelSizeFromFormat(ImageFormat format)

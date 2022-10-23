@@ -69,7 +69,7 @@ namespace Lamp
 
 				RenderGraph::RenderPassContainer renderPassCont{};
 				renderPassCont.renderPass = renderPass;
-				renderPassCont.priority;
+				renderPassCont.priority = passPriority;
 			
 				renderGraph->m_renderPasses.emplace_back(renderPassCont);
 			}

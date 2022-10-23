@@ -1,0 +1,3 @@
+name: "Shading"
+paths:
+  - "Engine/Shaders/Deferred/Shading_cs.glsl"

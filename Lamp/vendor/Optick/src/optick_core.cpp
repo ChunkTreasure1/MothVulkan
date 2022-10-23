@@ -1104,7 +1104,7 @@ void Core::DumpFrames(uint32 mode)
 
 		// We can free some memory now to unlock space for callstack serialization
 		DumpProgress("Deallocating memory for SymbolEngine");
-		Memory::Free(symbolEngine);
+		Memory::Delete(symbolEngine);
 		symbolEngine = nullptr;
 
 		DumpProgress("Serializing callstacks");
@@ -1589,7 +1589,6 @@ bool Core::AttachFile(File::Type type, const char* name, const wchar_t* path)
 void Core::InitGPUProfiler(GPUProfiler* profiler)
 {
 	OPTICK_ASSERT(gpuProfiler == nullptr, "Can't reinitialize GPU profiler! Not supported yet!");
-	Memory::Delete<GPUProfiler>(gpuProfiler);
 	gpuProfiler = profiler;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1636,6 +1635,9 @@ void Core::Shutdown()
 {
 	std::lock_guard<std::recursive_mutex> lock(threadsLock);
 
+	Memory::Delete<GPUProfiler>(gpuProfiler);
+	gpuProfiler = nullptr;
+
 	for (ThreadList::iterator it = threads.begin(); it != threads.end(); ++it)
 	{
 		Memory::Delete(*it);
@@ -1647,6 +1649,9 @@ void Core::Shutdown()
 		Memory::Delete(*it);
 	}
 	fibers.clear();
+
+	Memory::Delete(symbolEngine);
+	symbolEngine = nullptr;
 
 	EventDescriptionBoard::Get().Shutdown();
 }

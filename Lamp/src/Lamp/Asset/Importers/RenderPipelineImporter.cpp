@@ -2,6 +2,7 @@
 #include "RenderPipelineImporter.h"
 
 #include "Lamp/Log/Log.h"
+#include "Lamp/Asset/RenderPipelineAsset.h"
 
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
 #include "Lamp/Rendering/Vertex.h"
@@ -18,6 +19,31 @@ namespace Lamp
 {
 	namespace Utility
 	{
+		inline PipelineType TypeFromString(const std::string& string)
+		{
+			if (string == "Graphics")
+			{
+				return PipelineType::Graphics;
+			}
+			else if (string == "Compute")
+			{
+				return PipelineType::Compute;
+			}
+
+			return PipelineType::Graphics;
+		}
+
+		inline std::string StringFromType(const PipelineType& type)
+		{
+			switch (type)
+			{
+			case PipelineType::Compute: return "Compute";
+			case PipelineType::Graphics: return "Graphics";
+			}
+
+			return "Null";
+		}
+
 		inline Topology TopologyFromString(const std::string& string)
 		{
 			if (string == "TriangleList")
@@ -147,6 +173,7 @@ namespace Lamp
 
 	bool RenderPipelineImporter::Load(const std::filesystem::path& path, Ref<Asset>& asset) const
 	{
+		asset = CreateRef<RenderPipelineAsset>();
 		if (!std::filesystem::exists(path)) [[unlikely]]
 		{
 			LP_CORE_ERROR("File {0} not found!", path.string().c_str());
@@ -202,7 +229,7 @@ namespace Lamp
 				return false;
 			}
 			pipelineSpec.renderPass = renderPassName;
-			pipelineSpec.framebuffer =  framebuffer;
+			pipelineSpec.framebuffer = framebuffer;
 
 			std::string topologyName;
 			LP_DESERIALIZE_PROPERTY(topology, topologyName, pipelineNode, std::string());
@@ -219,6 +246,10 @@ namespace Lamp
 			std::string depthModeName;
 			LP_DESERIALIZE_PROPERTY(depthMode, depthModeName, pipelineNode, std::string());
 			pipelineSpec.depthMode = Utility::DepthModeFromString(depthModeName);
+
+			std::string pipelineTypeName;
+			LP_DESERIALIZE_PROPERTY(pipelineType, pipelineTypeName, pipelineNode, std::string());
+			pipelineSpec.type = Utility::TypeFromString(pipelineTypeName);
 
 			LP_DESERIALIZE_PROPERTY(depthTest, pipelineSpec.depthTest, pipelineNode, true);
 			LP_DESERIALIZE_PROPERTY(depthWrite, pipelineSpec.depthWrite, pipelineNode, true);
@@ -304,7 +335,7 @@ namespace Lamp
 			}
 		}
 
-		Ref<RenderPipeline> renderPipeline = RenderPipeline::Create(pipelineSpec);
+		Ref<RenderPipelineAsset> renderPipeline = CreateRef<RenderPipelineAsset>(pipelineSpec);
 		if (!renderPipeline)
 		{
 			LP_CORE_ERROR("Unable to create pipeline {0}!", path.string().c_str());
@@ -337,6 +368,7 @@ namespace Lamp
 			LP_SERIALIZE_PROPERTY(depthWrite, pipeline->GetSpecification().depthWrite, out);
 			LP_SERIALIZE_PROPERTY(lineWidth, pipeline->GetSpecification().lineWidth, out);
 			LP_SERIALIZE_PROPERTY(tessellationControlPoints, pipeline->GetSpecification().tessellationControlPoints, out);
+			LP_SERIALIZE_PROPERTY(pipelineType, Utility::StringFromType(pipeline->GetSpecification().type), out);
 
 			// Vertex Layout
 			{

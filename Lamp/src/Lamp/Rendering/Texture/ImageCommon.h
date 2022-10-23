@@ -54,7 +54,8 @@ namespace Lamp
 		None = 0,
 		Texture,
 		Attachment,
-		Storage
+		Storage,
+		AttachmentStorage
 	};
 
 	enum class TextureWrap : uint32_t
@@ -78,6 +79,18 @@ namespace Lamp
 		Max
 	};
 
+	enum class CompareOperator : uint32_t
+	{
+		 None = 0, 
+		 Never,
+		 Less,
+		 Equal,
+		 LessEqual,
+		 Greater,
+		 GreaterEqual,
+		 Always
+	};
+
 	enum class ImageDimension : uint32_t
 	{
 		Dim1D,
@@ -98,10 +111,10 @@ namespace Lamp
 		TextureWrap wrap = TextureWrap::Repeat;
 		TextureFilter filter = TextureFilter::Linear;
 
+		CompareOperator compareOp = CompareOperator::None;
 		AniostopyLevel anisoLevel = AniostopyLevel::None;
 
 		bool copyable = false;
-		bool comparable = false;
 		bool isCubeMap = false;
 	};
 }

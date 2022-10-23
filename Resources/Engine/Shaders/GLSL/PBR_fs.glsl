@@ -16,7 +16,7 @@ layout(location = 0) in InData
 
 } v_input;
 
-layout(std140, set = 0, binding = 0) uniform CameraBuffer
+layout(std140, set = 1, binding = 0) uniform CameraBuffer
 {
     CameraData u_cameraData;
 };
@@ -154,6 +154,6 @@ void main()
     //lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
 
     const float gamma = 2.2;
-    o_color.xyz = pow(lightAccumulation, vec3(1.0/gamma));
+    o_color.xyz = pow(lightAccumulation, vec3(1.f / gamma));
     o_color.w = 1.f;
 }

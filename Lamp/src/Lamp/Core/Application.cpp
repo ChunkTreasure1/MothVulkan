@@ -54,8 +54,10 @@ namespace Lamp
 
 		ShaderRegistry::Initialize();
 		RenderPassRegistry::Initialize();
+		RenderPassRegistry::SetupPassDependencies();
+
 		RenderPipelineRegistry::Initialize();
-		RenderPassRegistry::SetupOverrides();
+		RenderPassRegistry::SetupOverridesAndExclusives();
 
 		Renderer::Initialize();
 		MaterialRegistry::Initialize();
@@ -67,6 +69,8 @@ namespace Lamp
 	{
 		Log::Shutdown();
 		vkDeviceWaitIdle(GraphicsContext::GetDevice()->GetHandle());
+
+		OPTICK_SHUTDOWN();
 
 		m_layerStack.Clear();
 		m_imguiImplementation = nullptr;

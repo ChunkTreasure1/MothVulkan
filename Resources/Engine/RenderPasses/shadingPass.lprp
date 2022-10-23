@@ -1,0 +1,28 @@
+RenderPass:
+  name: shadingPass
+  drawType: Opaque
+  computePipeline: Shading
+  priority: 1
+  resizeable: true
+  framebuffer:
+    width: 1280
+    height: 720
+    attachments:
+      - format: RGBA
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [0.100000001, 0.100000001, 0.100000001, 1]
+        debugName: ""
+        copyable: true
+      - format: DEPTH32F
+        filter: Linear
+        wrapMode: Repeat
+        blendMode: None
+        clearMode: Clear
+        borderColor: [1, 1, 1, 1]
+        clearColor: [1, 1, 1, 1]
+        debugName: ""
+        copyable: false

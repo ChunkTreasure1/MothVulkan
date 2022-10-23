@@ -27,7 +27,10 @@
 
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
+
 #include "Lamp/Rendering/Camera/Camera.h"
+
+#include "Lamp/Rendering/Texture/SamplerLibrary.h"
 #include "Lamp/Rendering/Texture/Texture2D.h"
 
 #include "Lamp/Rendering/Shader/ShaderRegistry.h"
@@ -54,15 +57,12 @@ namespace Lamp
 {
 	void Renderer::Initialize()
 	{
-		s_defaultData = CreateScope<DefaultData>();
-
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
-		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/GLSL/cull_cs.glsl" }), framesInFlight);
 
 		CreateDefaultData();
 		CreateDescriptorPools();
-	
+
 		s_rendererData->skyboxData.irradianceMap = s_defaultData->blackCubeImage;
 		s_rendererData->skyboxData.radianceMap = s_defaultData->blackCubeImage;
 	}
@@ -70,47 +70,88 @@ namespace Lamp
 	void Renderer::InitializeBuffers()
 	{
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
-		constexpr uint32_t MAX_OBJECT_COUNT = 200000;
+		constexpr uint32_t MAX_OBJECT_COUNT = 20000;
+		constexpr uint32_t PASS_COUNT = 3;
 
 		s_rendererData = CreateScope<RendererData>();
 		s_frameDeletionQueues.resize(framesInFlight);
+		s_invalidationQueues.resize(framesInFlight);
 
-		UniformBufferRegistry::Register(0, 0, UniformBufferSet::Create(sizeof(CameraData), framesInFlight));
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
+		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), PASS_COUNT, framesInFlight));
+		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), PASS_COUNT, framesInFlight));
+		UniformBufferRegistry::Register(1, 2, UniformBufferSet::Create(sizeof(PassData), PASS_COUNT, framesInFlight));
 
-		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
-		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
 
 		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
 		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
+		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
+
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+
+		s_defaultData = CreateScope<DefaultData>();
+
+		CreateSamplers();
+
+		// Textures
+		{
+			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+
+			ImageSpecification imageSpec{};
+			imageSpec.format = ImageFormat::RGBA;
+			imageSpec.width = 1;
+			imageSpec.height = 1;
+			imageSpec.usage = ImageUsage::Texture;
+			imageSpec.layers = 6;
+			imageSpec.isCubeMap = true;
+
+			s_defaultData->blackCubeImage = Image2D::Create(imageSpec, blackCubeTextureData);
+
+			uint32_t whiteTextureData = 0xffffffff;
+			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
+			s_defaultData->whiteTexture->handle = Asset::Null();
+		}
 	}
 
 	void Renderer::Shutdowm()
 	{
-		for (uint32_t i = 0; i < s_rendererData->descriptorPools.size(); i++)
+		for (auto& descriptorPool : s_rendererData->descriptorPools)
 		{
-			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[i], nullptr);
+			vkDestroyDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), descriptorPool, nullptr);
 		}
 
 		s_defaultData = nullptr;
 		s_rendererData = nullptr;
 
-		for (size_t i = 0; i < s_frameDeletionQueues.size(); i++)
+		for (auto& s_frameDeletionQueue : s_frameDeletionQueues)
 		{
-			s_frameDeletionQueues[i].Flush();
+			s_frameDeletionQueue.Flush();
 		}
+
+		SamplerLibrary::Shutdown();
 	}
 
 	void Renderer::Begin()
 	{
 		LP_PROFILE_FUNCTION();
 
-		uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
 
+		LP_PROFILE_GPU_EVENT("Rendering Begin");
+		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+		s_rendererData->frameUpdatedMaterials.clear();
+		s_rendererData->passIndex = 0;
+
 		s_frameDeletionQueues[currentFrame].Flush();
+		s_invalidationQueues[currentFrame].Flush();
 
 		SortRenderCommands();
 		PrepareForIndirectDraw(s_rendererData->renderCommands);
@@ -121,24 +162,56 @@ namespace Lamp
 	void Renderer::End()
 	{
 		LP_PROFILE_FUNCTION();
+		LP_PROFILE_GPU_EVENT("Rendering Begin");
 		s_rendererData->commandBuffer->End();
 		s_rendererData->renderCommands.clear();
+	}
 
-		s_invalidationQueue.Flush();
+	void Renderer::ExecuteComputePass()
+	{
+		UpdatePerPassBuffers();
+
+		const Ref<RenderPass> currentPass = s_rendererData->currentPass;
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+
+		currentPass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+
+		for (const auto& input : currentPass->computePipeline->GetFramebufferInputs())
+		{
+			currentPass->computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
+		}
+
+		const uint32_t width = currentPass->framebuffer->GetWidth();
+		const uint32_t height = currentPass->framebuffer->GetHeight();
+
+		const uint32_t threadCountXY = 32;
+
+		const uint32_t groupX = width / threadCountXY + 1;
+		const uint32_t groupY = height / threadCountXY + 1;
+
+		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		currentPass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
+
+		currentPass->computePipeline->InsertExecutionBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
 	{
 		LP_PROFILE_FUNCTION();
+		LP_PROFILE_GPU_EVENT(std::string("Begin " + renderPass->name).c_str());
 		s_rendererData->passCamera = camera;
+		s_rendererData->currentPass = renderPass;
 
-		CullRenderCommands();
 		UpdatePerPassBuffers();
-
 		// Begin RenderPass
+		if (!renderPass->computePipeline)
 		{
+			if (s_rendererData->passIndex == 0)
+			{
+				CullRenderCommands();
+			}
+
 			auto framebuffer = renderPass->framebuffer;
-			s_rendererData->currentFramebuffer = framebuffer;
 
 			framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
@@ -165,10 +238,17 @@ namespace Lamp
 	void Renderer::EndPass()
 	{
 		LP_PROFILE_FUNCTION();
-		vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-		s_rendererData->currentFramebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-		s_rendererData->currentFramebuffer = nullptr;
+		LP_PROFILE_GPU_EVENT(std::string("End " + s_rendererData->currentPass->name).c_str());
+
+		if (!s_rendererData->currentPass->computePipeline)
+		{
+			vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+		}
+
+		s_rendererData->currentPass = nullptr;
 		s_rendererData->passCamera = nullptr;
+		s_rendererData->passIndex++;
 	}
 
 	void Renderer::Submit(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -218,21 +298,35 @@ namespace Lamp
 		// Draw
 		{
 			std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
-
-			draws.front().material->UpdateInternalTexture(DEFAULT_IRRADIANCE_SET, DEFAULT_IRRADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.irradianceMap);
-			draws.front().material->UpdateInternalTexture(DEFAULT_RADIANCE_SET, DEFAULT_RADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.radianceMap);
-			draws.front().material->UpdateInternalTexture(DEFAULT_BRDF_SET, DEFAULT_BRDF_BINDING, currentFrame, s_defaultData->brdfLut);
-
-			draws.front().material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 			for (uint32_t i = 0; i < draws.size(); i++)
 			{
-				if (i > 0 && draws[i].material != draws[i - 1].material)
+				LP_PROFILE_GPU_EVENT("DrawIndirect");
+
+				{
+					LP_PROFILE_SCOPE("Pipeline check");
+
+					if (!s_rendererData->currentPass->excludedPipelineHashes.empty())
+					{
+						auto it = std::find(s_rendererData->currentPass->excludedPipelineHashes.begin(), s_rendererData->currentPass->excludedPipelineHashes.end(), draws[i].material->GetPipelineHash());
+						if (it != s_rendererData->currentPass->excludedPipelineHashes.end())
+						{
+							continue;
+						}
+					}
+
+					if (s_rendererData->currentPass->exclusivePipelineHash != 0 && draws[i].material->GetPipelineHash() != s_rendererData->currentPass->exclusivePipelineHash)
+					{
+						continue;
+					}
+				}
+
+				if (i == 0 || (i > 0 && draws[i].material != draws[i - 1].material))
 				{
 					draws[i].material->UpdateInternalTexture(DEFAULT_IRRADIANCE_SET, DEFAULT_IRRADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.irradianceMap);
 					draws[i].material->UpdateInternalTexture(DEFAULT_RADIANCE_SET, DEFAULT_RADIANCE_BINDING, currentFrame, s_rendererData->skyboxData.radianceMap);
 					draws[i].material->UpdateInternalTexture(DEFAULT_BRDF_SET, DEFAULT_BRDF_BINDING, currentFrame, s_defaultData->brdfLut);
 
-					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+					draws[i].material->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, s_rendererData->passIndex);
 				}
 
 				draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
@@ -258,7 +352,8 @@ namespace Lamp
 
 	void Renderer::SubmitInvalidation(std::function<void()>&& function)
 	{
-		s_invalidationQueue.Push(function);
+		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		s_invalidationQueues[currentFrame].Push(function);
 	}
 
 	Skybox Renderer::GenerateEnvironmentMap(AssetHandle handle)
@@ -384,7 +479,7 @@ namespace Lamp
 			irradiancePipeline->InsertBarrier(cmdBuffer, 0, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 			irradianceMap->GenerateMips(false, cmdBuffer);
-			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
+			irradianceMap->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 			device->FlushCommandBuffer(cmdBuffer);
 		}
@@ -416,22 +511,6 @@ namespace Lamp
 	{
 		// Default textures
 		{
-			uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
-
-			ImageSpecification imageSpec{};
-			imageSpec.format = ImageFormat::RGBA;
-			imageSpec.width = 1;
-			imageSpec.height = 1;
-			imageSpec.usage = ImageUsage::Texture;
-			imageSpec.layers = 6;
-			imageSpec.isCubeMap = true;
-
-			s_defaultData->blackCubeImage = Image2D::Create(imageSpec, blackCubeTextureData);
-
-			uint32_t whiteTextureData = 0xffffffff;
-			s_defaultData->whiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
-			s_defaultData->whiteTexture->handle = Asset::Null();
-
 			GenerateBRDFLut();
 		}
 
@@ -455,6 +534,25 @@ namespace Lamp
 		}
 
 		s_defaultData->defaultMaterial = AssetManager::GetAsset<MultiMaterial>("Engine/Materials/default.lpmat");
+	}
+
+	void Renderer::CreateSamplers()
+	{
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Linear, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Nearest, TextureWrap::Repeat, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Linear, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Linear, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+
+		SamplerLibrary::Add(TextureFilter::Nearest, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Nearest, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
+		SamplerLibrary::Add(TextureFilter::Linear, TextureFilter::Linear, TextureFilter::Nearest, TextureWrap::Clamp, CompareOperator::None, AniostopyLevel::None);
 	}
 
 	void Renderer::CreateDescriptorPools()
@@ -486,9 +584,9 @@ namespace Lamp
 		s_rendererData->descriptorPools.resize(framesInFlight);
 		auto device = GraphicsContext::GetDevice();
 
-		for (uint32_t i = 0; i < s_rendererData->descriptorPools.size(); ++i)
+		for (auto& descriptorPool : s_rendererData->descriptorPools)
 		{
-			LP_VK_CHECK(vkCreateDescriptorPool(device->GetHandle(), &poolInfo, nullptr, &s_rendererData->descriptorPools[i]));
+			LP_VK_CHECK(vkCreateDescriptorPool(device->GetHandle(), &poolInfo, nullptr, &descriptorPool));
 		}
 	}
 
@@ -532,11 +630,6 @@ namespace Lamp
 				newDraw.id = uint32_t(draws.size() - 1);
 			}
 		}
-
-		std::sort(draws.begin(), draws.end(), [](const IndirectBatch& lhs, const IndirectBatch& rhs)
-			{
-				return lhs.material < rhs.material;
-			});
 	}
 
 	void Renderer::UpdatePerPassBuffers()
@@ -547,8 +640,13 @@ namespace Lamp
 
 		// Update camera data
 		{
-			auto currentCameraBuffer = UniformBufferRegistry::Get(0, 0)->Get(currentFrame);
-			CameraData* cameraData = currentCameraBuffer->Map<CameraData>();
+			auto currentCameraBuffer = UniformBufferRegistry::Get(1, 0)->Get(currentFrame);
+			uint8_t* bytePtr = currentCameraBuffer->Map<uint8_t>();
+
+			const uint32_t ptrOffset = currentCameraBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			CameraData* cameraData = (CameraData*)bytePtr;
 
 			cameraData->proj = s_rendererData->passCamera->GetProjection();
 			cameraData->view = s_rendererData->passCamera->GetView();
@@ -556,6 +654,34 @@ namespace Lamp
 			cameraData->viewProj = cameraData->proj * cameraData->view;
 
 			currentCameraBuffer->Unmap();
+		}
+
+		// Update target data
+		{
+			auto currentTargetBuffer = UniformBufferRegistry::Get(1, 1)->Get(currentFrame);
+			uint8_t* bytePtr = currentTargetBuffer->Map<uint8_t>();
+
+			const uint32_t ptrOffset = currentTargetBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			TargetData* targetData = (TargetData*)bytePtr;
+			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
+
+			currentTargetBuffer->Unmap();
+		}
+
+		// Update pass data
+		{
+			auto currentPassBuffer = UniformBufferRegistry::Get(1, 2)->Get(currentFrame);
+			uint8_t* bytePtr = currentPassBuffer->Map<uint8_t>();
+
+			const uint32_t ptrOffset = currentPassBuffer->GetSize() * s_rendererData->passIndex;
+			bytePtr += ptrOffset;
+
+			PassData* passData = (PassData*)bytePtr;
+			passData->passIndex = s_rendererData->passIndex;
+
+			currentPassBuffer->Unmap();
 		}
 	}
 
@@ -568,7 +694,7 @@ namespace Lamp
 		// Update object data
 		{
 			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(4, 0)->Get(currentFrame);
-			ObjectData* objectData = currentObjectBuffer->Map<ObjectData>();
+			auto* objectData = currentObjectBuffer->Map<ObjectData>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -597,9 +723,9 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
-		{
-			return lhs.subMesh > rhs.subMesh;
-		});
+			{
+				return lhs.subMesh > rhs.subMesh;
+			});
 	}
 
 	void Renderer::UploadRenderCommands()
@@ -611,7 +737,7 @@ namespace Lamp
 
 		// Fill indirect commands
 		{
-			GPUIndirectObject* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
+			auto* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -625,9 +751,9 @@ namespace Lamp
 
 				// TODO: this is probably not performant
 				auto it = std::find_if(draws.begin(), draws.end(), [&cmd](const IndirectBatch& batch)
-				{
-					return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
-				});
+					{
+						return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
+					});
 
 				if (it != draws.end())
 				{
@@ -641,7 +767,7 @@ namespace Lamp
 		}
 
 		{
-			uint32_t* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
+			auto* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
@@ -656,7 +782,7 @@ namespace Lamp
 	{
 		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
 
-		uint32_t* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
+		auto* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
 
 		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
 
@@ -666,12 +792,6 @@ namespace Lamp
 		}
 
 		s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
-
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-
 		s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
 
 		// Set cull data
@@ -704,7 +824,7 @@ namespace Lamp
 		}
 
 		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
-		s_rendererData->indirectCullPipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
+		s_rendererData->indirectCullPipeline->DispatchNoUpdate(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
 		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 	}
 
