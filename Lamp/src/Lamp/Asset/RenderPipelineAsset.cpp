@@ -71,5 +71,6 @@ namespace Lamp
 
 		m_computePipeline = computePipeline;
 		m_computePipeline->m_framebufferInputs = spec.framebufferInputs;
+		m_computePipeline->m_renderPassName = spec.renderPass;
 	}
 }

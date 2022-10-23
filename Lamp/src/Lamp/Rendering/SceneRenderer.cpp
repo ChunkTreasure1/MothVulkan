@@ -9,6 +9,7 @@
 #include "Lamp/Rendering/RenderGraph.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 #include "Lamp/Rendering/Framebuffer.h"
+#include "Lamp/Rendering/DependencyGraph.h"
 
 #include "Lamp/Components/Components.h"
 #include "Lamp/Scene/Scene.h"
@@ -21,6 +22,7 @@ namespace Lamp
 		: m_scene(scene)
 	{
 		m_renderGraph = AssetManager::GetAsset<RenderGraph>(renderGraphPath);
+		m_dependencyGraph = DependencyGraph::Create(m_renderGraph);
 
 		auto& registry = m_scene->GetRegistry();
 	}
@@ -104,7 +106,7 @@ namespace Lamp
 
 			for (const auto& pass : m_renderGraph->GetRenderPasses())
 			{
-				Renderer::BeginPass(pass.renderPass, camera);
+				Renderer::BeginPass(pass.renderPass, camera, m_dependencyGraph);
 				if (pass.renderPass->computePipeline)
 				{
 					Renderer::ExecuteComputePass();

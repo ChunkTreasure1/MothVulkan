@@ -24,8 +24,10 @@ namespace Lamp
 			std::string renderPass;
 			uint32_t attachmentIndex;
 			uint32_t targetIndex;
-			bool depth = false;
+			bool isDepth = false;
 		};
+
+		void GenerateHash();
 
 		std::string name;
 		Ref<Framebuffer> framebuffer;
@@ -43,6 +45,7 @@ namespace Lamp
 		std::vector<std::string> excludedPipelineNames;
 		std::vector<size_t> excludedPipelineHashes;
 
+		size_t hash = 0;
 		DrawType drawType = DrawType::Opaque;
 		int32_t priority = 0;
 		bool resizeable = true;

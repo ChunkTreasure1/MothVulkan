@@ -25,6 +25,8 @@ namespace Lamp
 	class RenderPipelineCompute;
 	class RenderPipeline;
 
+	class DependencyGraph;
+
 	struct RenderCommand
 	{
 		Ref<Mesh> mesh;
@@ -72,7 +74,7 @@ namespace Lamp
 
 		static void ExecuteComputePass();
 
-		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
+		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph);
 		static void EndPass();
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);

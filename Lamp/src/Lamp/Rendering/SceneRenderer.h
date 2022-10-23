@@ -11,6 +11,7 @@ namespace Lamp
 	class Camera;
 	class RenderGraph;
 	class Framebuffer;
+	class DependencyGraph;
 	class SceneRenderer
 	{
 	public:
@@ -30,6 +31,7 @@ namespace Lamp
 		glm::uvec2 m_resizeSize = { 1, 1 };
 
 		Ref<RenderGraph> m_renderGraph;
+		Ref<DependencyGraph> m_dependencyGraph;
 		Ref<Scene> m_scene;
 	};
 }

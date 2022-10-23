@@ -220,6 +220,7 @@ void RenderPassEditorPanel::SaveAs()
 
 		Ref<Lamp::RenderPass> newPass = CreateRef<Lamp::RenderPass>(*m_loadedRenderPass);
 		m_loadedRenderPass = newPass;
+		newPass->GenerateHash();
 
 		m_loadedRenderPass->path = path;
 		Lamp::AssetManager::Get().SaveAsset(m_loadedRenderPass);

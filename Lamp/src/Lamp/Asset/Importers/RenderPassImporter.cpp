@@ -320,7 +320,7 @@ namespace Lamp
 			LP_DESERIALIZE_PROPERTY(renderPass, image.renderPass, imageNode, std::string());
 			LP_DESERIALIZE_PROPERTY(attachmentIndex, image.attachmentIndex, imageNode, 0);
 			LP_DESERIALIZE_PROPERTY(targetIndex, image.targetIndex, imageNode, 0);
-			LP_DESERIALIZE_PROPERTY(depth, image.depth, imageNode, false);
+			LP_DESERIALIZE_PROPERTY(depth, image.isDepth, imageNode, false);
 		}
 
 		if (!framebufferNode["attachments"])
@@ -388,6 +388,7 @@ namespace Lamp
 			renderPass->exclusivePipelineName = exclusivePipelineName;
 		}
 
+		renderPass->GenerateHash();
 		asset = renderPass;
 		asset->path = path;
 

@@ -9,32 +9,18 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 3408067414653871778
     Path: Engine\Shaders\GLSL\PBR_fs.glsl
-  - Handle: 13717396777666668695
-    Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
-  - Handle: 1249971563143443831
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
-  - Handle: 10618793917389587057
-    Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 1249971563143443831
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
-  - Handle: 7625587265189312090
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 2364318552008784800
-    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 13461233730205319078
     Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
+  - Handle: 2364318552008784800
+    Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
+  - Handle: 7625587265189312090
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
+  - Handle: 1249971563143443831
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
@@ -411,8 +397,6 @@ Assets:
     Path: Engine\Shaders\HLSL\test_vs.hlsl
   - Handle: 2611508895678979961
     Path: Engine\Shaders\Includes\Common.h
-  - Handle: 7030019644523348674
-    Path: Assets\Meshes\SponzaOld\Sponza.gltf
   - Handle: 9204748739402347148
     Path: Engine/Shaders\Definitions\shading.lpsdef
   - Handle: 7782723329872884724
@@ -427,8 +411,6 @@ Assets:
     Path: Engine\Shaders\Deferred\GBuffer_fs.glsl
   - Handle: 10665445663156247204
     Path: Engine\Shaders\Deferred\Shading_cs.glsl
-  - Handle: 17482122316240224461
-    Path: Engine\Shaders\Definitions\testHLSL.lpsdeff
   - Handle: 2750225147779213814
     Path: Engine/RenderPasses\shadingPass.lprp
   - Handle: 7997591308942961190

@@ -197,7 +197,7 @@ namespace Lamp
 					barrier.dstAccessMask = dstAccessFlags;
 					barrier.subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 
-					image->m_imageLayout = barrier.newLayout;
+					//image->m_imageLayout = barrier.newLayout;
 				}
 			}
 

@@ -41,6 +41,8 @@
 #include "Lamp/Rendering/RenderPass/RenderPassRegistry.h"
 #include "Lamp/Rendering/RenderPass/RenderPass.h"
 
+#include "Lamp/Rendering/DependencyGraph.h"
+
 #include "Lamp/Utility/Math.h"
 #include "Lamp/Utility/ImageUtility.h"
 
@@ -87,7 +89,7 @@ namespace Lamp
 
 		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
 		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
-		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/cull_cs.glsl" }), framesInFlight);
+		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/GLSL/cull_cs.glsl" }), framesInFlight);
 
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
@@ -195,7 +197,7 @@ namespace Lamp
 		currentPass->computePipeline->InsertExecutionBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
 	}
 
-	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
+	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph)
 	{
 		LP_PROFILE_FUNCTION();
 		LP_PROFILE_GPU_EVENT(std::string("Begin " + renderPass->name).c_str());
@@ -203,6 +205,8 @@ namespace Lamp
 		s_rendererData->currentPass = renderPass;
 
 		UpdatePerPassBuffers();
+		dependencyGraph->InsertBarriersForPass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), renderPass->hash);
+
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
 		{
@@ -213,7 +217,7 @@ namespace Lamp
 
 			auto framebuffer = renderPass->framebuffer;
 
-			framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			//framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
 			VkRenderingInfo renderingInfo{};
 			renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;

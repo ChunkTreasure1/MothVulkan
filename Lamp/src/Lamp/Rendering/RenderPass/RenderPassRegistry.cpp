@@ -94,12 +94,12 @@ namespace Lamp
 					Ref<RenderPass> renderPass = Get(image.renderPass);
 					if (renderPass)
 					{
-						Ref<Image2D> existingImage = image.depth ? renderPass->framebuffer->GetDepthAttachment() : renderPass->framebuffer->GetColorAttachment(image.attachmentIndex);
-						if (existingImage && !image.depth)
+						Ref<Image2D> existingImage = image.isDepth ? renderPass->framebuffer->GetDepthAttachment() : renderPass->framebuffer->GetColorAttachment(image.attachmentIndex);
+						if (existingImage && !image.isDepth)
 						{
 							spec.existingImages[image.targetIndex] = existingImage;
 						}
-						else if (image.depth)
+						else if (image.isDepth)
 						{
 							spec.existingDepth = existingImage;
 						}

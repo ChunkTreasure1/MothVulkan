@@ -41,6 +41,7 @@ namespace Lamp
 		static Ref<RenderPipelineCompute> Create(Ref<Shader> computeShader, uint32_t count = 1);
 
 		inline const std::vector<FramebufferInput>& GetFramebufferInputs() const { return m_framebufferInputs; }
+		inline const std::string& GetRenderPass() const { return m_renderPassName; }
 
 	private:
 		friend class RenderPipelineAsset;
@@ -69,6 +70,7 @@ namespace Lamp
 		std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>> m_bufferBarrierMap; // set -> binding -> index
 
 		std::vector<FramebufferInput> m_framebufferInputs;
+		std::string m_renderPassName;
 
 		VkPipelineLayout m_pipelineLayout = nullptr;
 		VkPipelineCache m_pipelineCache = nullptr;

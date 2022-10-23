@@ -1,4 +1,4 @@
- #include "lppch.h"
+#include "lppch.h"
 #include "Image2D.h"
 
 #include "Lamp/Log/Log.h"
