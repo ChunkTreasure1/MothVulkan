@@ -36,6 +36,7 @@ namespace Lamp
 
 	private:
 		friend class RenderPipelineCompute;
+		friend class ImageBarrier;
 
 		ImageSpecification m_specification;
 

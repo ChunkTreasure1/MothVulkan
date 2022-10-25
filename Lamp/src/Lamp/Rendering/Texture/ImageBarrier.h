@@ -11,7 +11,9 @@ namespace Lamp
 	{
 	public:
 		ImageBarrier(Ref<Image2D> image, VkImageLayout targetLayout);
+		
 		const VkImageMemoryBarrier& GetBarrier();
+		void UpdateLayout(VkImageLayout layout);
 
 		static Ref<ImageBarrier> Create(Ref<Image2D> image, VkImageLayout targetLayout);
 

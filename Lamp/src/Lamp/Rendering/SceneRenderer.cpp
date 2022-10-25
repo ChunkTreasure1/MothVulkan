@@ -115,7 +115,7 @@ namespace Lamp
 				{
 					Renderer::DispatchRenderCommands();
 				}
-				Renderer::EndPass();
+				Renderer::EndPass(m_dependencyGraph);
 
 			}
 

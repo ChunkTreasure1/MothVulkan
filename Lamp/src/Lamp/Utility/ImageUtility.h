@@ -43,6 +43,12 @@ namespace Lamp
 					outBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 					break;
 
+				case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL:
+					// Image is a depth/stencil attachment
+					// Make sure any writes to the depth/stencil buffer have been finished
+					outBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+					break;
+
 				case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
 					// Image is a transfer source
 					// Make sure any reads from the image have been finished
@@ -59,6 +65,18 @@ namespace Lamp
 					// Image is read by a shader
 					// Make sure any shader reads from the image have been finished
 					outBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					break;
+
+				case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+					// Image is read by a shader
+					// Make sure any shader reads from the image have been finished
+					outBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+					break;
+
+				case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL:
+					// Image is read by a shader
+					// Make sure any shader reads from the image have been finished
+					outBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 					break;
 
 				case VK_IMAGE_LAYOUT_GENERAL:
@@ -108,6 +126,14 @@ namespace Lamp
 					outBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 					break;
 
+				case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL:
+					outBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+					break;
+
+				case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+					outBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+					break;
+
 				case VK_IMAGE_LAYOUT_GENERAL:
 					outBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 					break;
@@ -141,7 +167,7 @@ namespace Lamp
 			else if (currentLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
 				sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-				destStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				destStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 			}
 			else if (currentLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
 			{
@@ -165,18 +191,28 @@ namespace Lamp
 			}
 			else if (currentLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
 			{
-				sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+				destStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else if (currentLayout == VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
+			{
+				sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 				destStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			}
 			else if (currentLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 			{
-				sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 				destStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			}
 			else if (currentLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL)
 			{
 				sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-				destStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				destStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else if (currentLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL && targetLayout == VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL)
+			{
+				sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+				destStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			}
 			else if (currentLayout == VK_IMAGE_LAYOUT_UNDEFINED && targetLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 			{
@@ -201,7 +237,10 @@ namespace Lamp
 			else if (currentLayout == VK_IMAGE_LAYOUT_UNDEFINED && targetLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
 				sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-				destStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				destStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			}
+			else if (currentLayout)
+			{
 			}
 			else
 			{

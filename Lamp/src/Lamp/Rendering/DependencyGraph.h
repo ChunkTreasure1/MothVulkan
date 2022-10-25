@@ -12,7 +12,8 @@ namespace Lamp
 	{
 	public:
 		DependencyGraph(Ref<RenderGraph> renderGraph);
-		void InsertBarriersForPass(VkCommandBuffer commandBuffer, size_t passHash);
+		void InsertBarriersPrePass(VkCommandBuffer commandBuffer, size_t passHash);
+		void InsertBarriersPostPass(VkCommandBuffer commandBuffer, size_t passHash);
 
 		static Ref<DependencyGraph> Create(Ref<RenderGraph> renderGraph);
 
@@ -20,6 +21,7 @@ namespace Lamp
 		void Invalidate();
 
 		Ref<RenderGraph> m_renderGraph;
-		std::unordered_map<size_t, std::vector<Ref<ImageBarrier>>> m_toDependencyImageBarriers; // Pass Hash -> Image barriers to run before pass
+		std::unordered_map<size_t, std::vector<Ref<ImageBarrier>>> m_preDependencyImageBarriers; // Pass Hash -> Image barriers to run before pass
+		std::unordered_map<size_t, std::vector<Ref<ImageBarrier>>> m_postDependencyImageBarriers; // Pass Hash -> Image barriers to after before pass
 	};
 }

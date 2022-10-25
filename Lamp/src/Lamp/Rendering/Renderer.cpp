@@ -205,7 +205,7 @@ namespace Lamp
 		s_rendererData->currentPass = renderPass;
 
 		UpdatePerPassBuffers();
-		dependencyGraph->InsertBarriersForPass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), renderPass->hash);
+		dependencyGraph->InsertBarriersPrePass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), renderPass->hash);
 
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
@@ -239,7 +239,7 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::EndPass()
+	void Renderer::EndPass(Ref<DependencyGraph> dependencyGraph)
 	{
 		LP_PROFILE_FUNCTION();
 		LP_PROFILE_GPU_EVENT(std::string("End " + s_rendererData->currentPass->name).c_str());
@@ -247,8 +247,10 @@ namespace Lamp
 		if (!s_rendererData->currentPass->computePipeline)
 		{
 			vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-			s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			//s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		}
+
+		dependencyGraph->InsertBarriersPostPass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->currentPass->hash);
 
 		s_rendererData->currentPass = nullptr;
 		s_rendererData->passCamera = nullptr;

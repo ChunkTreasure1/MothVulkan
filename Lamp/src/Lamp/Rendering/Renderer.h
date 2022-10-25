@@ -75,7 +75,7 @@ namespace Lamp
 		static void ExecuteComputePass();
 
 		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph);
-		static void EndPass();
+		static void EndPass(Ref<DependencyGraph> dependencyGraph);
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 		static void SubmitDirectionalLight(const glm::mat4& transform, const glm::vec3& color, const float intensity);

@@ -23,15 +23,15 @@ namespace Lamp
 		Invalidate();
 	}
 
-	void DependencyGraph::InsertBarriersForPass(VkCommandBuffer commandBuffer, size_t passHash)
+	void DependencyGraph::InsertBarriersPrePass(VkCommandBuffer commandBuffer, size_t passHash)
 	{
-		auto it = m_toDependencyImageBarriers.find(passHash);
-		if (it == m_toDependencyImageBarriers.end())
+		auto it = m_preDependencyImageBarriers.find(passHash);
+		if (it == m_preDependencyImageBarriers.end())
 		{
 			return;
 		}
 
-		const auto& barriers = m_toDependencyImageBarriers.at(passHash);
+		const auto& barriers = m_preDependencyImageBarriers.at(passHash);
 
 		for (const auto& imageBarrier : barriers)
 		{
@@ -40,6 +40,31 @@ namespace Lamp
 			{
 				const auto [sourceStage, dstStage] = Utility::GetStageFlagsFromLayouts(barrier.oldLayout, barrier.newLayout);
 				vkCmdPipelineBarrier(commandBuffer, sourceStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+				imageBarrier->UpdateLayout(barrier.newLayout);
+			}
+		}
+	}
+
+	void DependencyGraph::InsertBarriersPostPass(VkCommandBuffer commandBuffer, size_t passHash)
+	{
+		auto it = m_postDependencyImageBarriers.find(passHash);
+		if (it == m_postDependencyImageBarriers.end())
+		{
+			return;
+		}
+
+		const auto& barriers = m_postDependencyImageBarriers.at(passHash);
+
+		for (const auto& imageBarrier : barriers)
+		{
+			const auto& barrier = imageBarrier->GetBarrier();
+			if (barrier.oldLayout != barrier.newLayout)
+			{
+				const auto [sourceStage, dstStage] = Utility::GetStageFlagsFromLayouts(barrier.oldLayout, barrier.newLayout);
+				vkCmdPipelineBarrier(commandBuffer, sourceStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+				imageBarrier->UpdateLayout(barrier.newLayout);
 			}
 		}
 	}
@@ -51,34 +76,56 @@ namespace Lamp
 
 	void DependencyGraph::Invalidate()
 	{
-		for (const auto& pass : m_renderGraph->GetRenderPasses())
+		for (size_t index = 0; const auto & pass : m_renderGraph->GetRenderPasses())
 		{
-			// Dependency per pass
+			// Dependency per pass, also add shader read only to final pass
+			index++;
+
 			if (pass.renderPass->computePipeline)
 			{
-				for (size_t i = 0; i < pass.renderPass->framebuffer->GetSpecification().attachments.size(); i++)
+				for (uint32_t i = 0; i < (uint32_t)pass.renderPass->framebuffer->GetSpecification().attachments.size(); i++)
 				{
 					if (Utility::IsDepthFormat(pass.renderPass->framebuffer->GetSpecification().attachments.at(i).format))
 					{
-						m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_GENERAL));
+						m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_GENERAL));
+					
+						if (index == m_renderGraph->GetRenderPasses().size())
+						{
+							m_postDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL));
+						}
 					}
 					else
 					{
-						m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_GENERAL));
+						m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_GENERAL));
+
+						if (index == m_renderGraph->GetRenderPasses().size())
+						{
+							m_postDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+						}
 					}
 				}
 			}
 			else
 			{
-				for (size_t i = 0; i < pass.renderPass->framebuffer->GetSpecification().attachments.size(); i++)
+				for (uint32_t i = 0; i < (uint32_t)pass.renderPass->framebuffer->GetSpecification().attachments.size(); i++)
 				{
 					if (Utility::IsDepthFormat(pass.renderPass->framebuffer->GetSpecification().attachments.at(i).format))
 					{
-						m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL));
+						m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL));
+
+						if (index == m_renderGraph->GetRenderPasses().size())
+						{
+							m_postDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetDepthAttachment(), VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL));
+						}
 					}
 					else
 					{
-						m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+						m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+
+						if (index == m_renderGraph->GetRenderPasses().size())
+						{
+							m_postDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(pass.renderPass->framebuffer->GetColorAttachment(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+						}
 					}
 				}
 			}
@@ -97,7 +144,7 @@ namespace Lamp
 
 						for (const auto& input : pipeline->GetComputePipeline()->GetFramebufferInputs())
 						{
-							m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(input.framebuffer->GetColorAttachment(input.attachmentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+							m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(input.framebuffer->GetColorAttachment(input.attachmentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 						}
 
 						break;
@@ -112,7 +159,7 @@ namespace Lamp
 
 						for (const auto& input : pipeline->GetGraphicsPipeline()->GetSpecification().framebufferInputs)
 						{
-							m_toDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(input.framebuffer->GetColorAttachment(input.attachmentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+							m_preDependencyImageBarriers[pass.renderPass->hash].emplace_back(ImageBarrier::Create(input.framebuffer->GetColorAttachment(input.attachmentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 						}
 
 						break;

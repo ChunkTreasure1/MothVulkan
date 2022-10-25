@@ -30,6 +30,11 @@ namespace Lamp
 		return m_barrier;
 	}
 
+	void ImageBarrier::UpdateLayout(VkImageLayout layout)
+	{
+		m_image->m_imageLayout = layout;
+	}
+
 	Ref<ImageBarrier> ImageBarrier::Create(Ref<Image2D> image, VkImageLayout imageLayout)
 	{
 		return CreateRef<ImageBarrier>(image, imageLayout);
