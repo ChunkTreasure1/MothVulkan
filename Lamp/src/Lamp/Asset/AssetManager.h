@@ -126,7 +126,7 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset = CreateRef<Asset>();
+		Ref<Asset> asset = CreateRef<Asset>(); // #TODO: Fix this
 		Get().LoadAsset(path, asset);
 
 		return std::reinterpret_pointer_cast<T>(asset);
@@ -141,7 +141,7 @@ namespace Lamp
 			return nullptr;
 		}
 
-		Ref<Asset> asset = CreateRef<Asset>();
+		Ref<Asset> asset = CreateRef<T>();
 		asset->SetFlag(AssetFlag::Queued, true);
 		Get().QueueAssetInternal(path, asset);
 

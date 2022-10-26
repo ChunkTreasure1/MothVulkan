@@ -21,7 +21,7 @@ namespace Lamp
 		inline const Ref<Image2D> GetImage() const { return m_image; }
 
 		static AssetType GetStaticType() { return AssetType::Texture; }
-		AssetType GetType() { return GetStaticType(); }		
+		AssetType GetType() override { return GetStaticType(); }		
 		
 		static Ref<Texture2D> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
 

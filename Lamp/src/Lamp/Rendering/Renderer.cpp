@@ -851,6 +851,7 @@ namespace Lamp
 
 		auto device = GraphicsContext::GetDevice();
 		VkCommandBuffer cmdBuffer = device->GetCommandBuffer(true);
+		s_defaultData->brdfLut->TransitionToLayout(cmdBuffer, VK_IMAGE_LAYOUT_GENERAL);
 
 		brdfPipeline->Bind(cmdBuffer);
 		brdfPipeline->SetImage(s_defaultData->brdfLut, 0, 0, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

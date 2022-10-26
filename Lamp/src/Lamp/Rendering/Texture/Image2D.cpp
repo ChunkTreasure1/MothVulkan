@@ -27,6 +27,7 @@ namespace Lamp
 	void Image2D::Invalidate(const void* data)
 	{
 		Release();
+		m_imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		VulkanAllocator allocator{ "Image2D - Create" };
 		auto device = GraphicsContext::GetDevice();
