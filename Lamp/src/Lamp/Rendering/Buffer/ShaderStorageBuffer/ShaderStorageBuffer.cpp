@@ -85,6 +85,19 @@ namespace Lamp
 		}
 	}
 
+	const uint64_t ShaderStorageBuffer::GetOffsetSize() const
+	{
+		const uint64_t minSSBOAlignment = GraphicsContext::GetDevice()->GetPhysicalDevice()->GetCapabilities().minSSBOOffsetAlignment;
+		uint64_t dynamicAlignment = m_size;
+
+		if (minSSBOAlignment > 0)
+		{
+			dynamicAlignment = Utility::GetAlignedSize(dynamicAlignment, minSSBOAlignment);
+		}
+
+		return dynamicAlignment;
+	}
+
 	void ShaderStorageBuffer::Unmap()
 	{
 		VulkanAllocator allocator{};

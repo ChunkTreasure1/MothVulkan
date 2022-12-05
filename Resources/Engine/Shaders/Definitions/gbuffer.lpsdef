@@ -1,7 +1,7 @@
 name: "GBuffer"
 paths:
-  - "Engine/Shaders/Deferred/GBuffer_vs.glsl"
-  - "Engine/Shaders/Deferred/GBuffer_fs.glsl"
+  - "Engine/Shaders/GLSL/Deferred/GBuffer_vs.glsl"
+  - "Engine/Shaders/GLSL/Deferred/GBuffer_fs.glsl"
 inputTextures:
   - binding: 0
     name: "Albedo"

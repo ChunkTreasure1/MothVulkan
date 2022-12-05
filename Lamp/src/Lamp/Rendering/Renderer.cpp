@@ -80,12 +80,13 @@ namespace Lamp
 		s_invalidationQueues.resize(framesInFlight);
 
 		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
+
 		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), PASS_COUNT, framesInFlight));
 		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), PASS_COUNT, framesInFlight));
 		UniformBufferRegistry::Register(1, 2, UniformBufferSet::Create(sizeof(PassData), PASS_COUNT, framesInFlight));
 
-		ShaderStorageBufferRegistry::Register(4, 0, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
-		ShaderStorageBufferRegistry::Register(4, 1, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT * PASS_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(1, 3, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, PASS_COUNT, framesInFlight));
+		ShaderStorageBufferRegistry::Register(1, 4, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, PASS_COUNT, framesInFlight));
 
 		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
 		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
@@ -93,8 +94,8 @@ namespace Lamp
 
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 1), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(4, 0), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 3), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 4), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 
 		s_defaultData = CreateScope<DefaultData>();
 
@@ -699,7 +700,7 @@ namespace Lamp
 
 		// Update object data
 		{
-			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(4, 0)->Get(currentFrame);
+			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(1, 3)->Get(currentFrame);
 			auto* objectData = currentObjectBuffer->Map<ObjectData>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
@@ -773,14 +774,14 @@ namespace Lamp
 		}
 
 		{
-			auto* ids = ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Map<uint32_t>();
+			auto* ids = ShaderStorageBufferRegistry::Get(1, 4)->Get(currentFrame)->Map<uint32_t>();
 
 			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
 			{
 				ids[i] = 0;
 			}
 
-			ShaderStorageBufferRegistry::Get(4, 1)->Get(currentFrame)->Unmap();
+			ShaderStorageBufferRegistry::Get(1, 4)->Get(currentFrame)->Unmap();
 		}
 	}
 

@@ -17,6 +17,8 @@ namespace Lamp
 		inline const uint64_t GetSize() const { return m_size; }
 		inline const uint64_t GetTotalSize() const { return m_size; }
 
+		const uint64_t GetOffsetSize() const;
+
 		template<typename T>
 		T* Map();
 		void Unmap();

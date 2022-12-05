@@ -12,10 +12,9 @@ namespace Lamp
 {
 	// Descriptor sets:
 	// 0 - Per frame
-	// 1 - Per pass -- Uniform Buffers are dynamic
+	// 1 - All dynamics -- Uniform Buffers and Shader Buffers are dynamic
 	// 2 - Per object -- Unused for now
 	// 3 - Per material -- All textures for now
-	// 4 - Mesh data -- Shader Buffers are dynamic
 
 	enum class DescriptorSetType : uint32_t
 	{

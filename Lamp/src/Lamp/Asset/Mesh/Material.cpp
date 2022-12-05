@@ -1,3 +1,4 @@
+
 #include "lppch.h"
 #include "Material.h"
 
@@ -92,7 +93,6 @@ namespace Lamp
 		m_shaderResources.clear();
 		SetupMaterialFromPipeline();
 		AllocateAndSetupDescriptorSets();
-
 
 		for (auto& writeDescriptor : m_writeDescriptors)
 		{

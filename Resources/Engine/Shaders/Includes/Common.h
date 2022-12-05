@@ -46,3 +46,13 @@ struct CameraData
 
 	vec4 position;
 };
+
+struct PassData
+{
+	uint passIndex;
+};
+
+struct TargetData
+{
+	vec2 targetSize;
+};

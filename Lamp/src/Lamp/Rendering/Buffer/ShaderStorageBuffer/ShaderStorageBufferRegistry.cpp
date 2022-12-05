@@ -31,7 +31,7 @@ namespace Lamp
 		auto it = s_registry[set].find(binding);
 		if (it == s_registry[set].end())
 		{
-			LP_CORE_ERROR("Shader storage buffer not registered to that binding!");
+			LP_CORE_ERROR("Shader storage buffer not registered to set {0} binding {1}!", set, binding);
 			return nullptr;
 		}
 

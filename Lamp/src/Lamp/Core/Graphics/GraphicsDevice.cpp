@@ -91,7 +91,7 @@ namespace Lamp
 
 		std::set<int32_t> uniqueQueues = { queueIndices.computeQueueIndex, queueIndices.graphicsQueueIndex, queueIndices.presentQueueIndex, queueIndices.transferQueueIndex };
 
-		float queuePriority = 1.f;
+		float queuePriority[2] = { 1.f, 1.f };
 
 		std::vector<VkDeviceQueueCreateInfo> deviceQueueInfos;
 
@@ -99,7 +99,7 @@ namespace Lamp
 		{
 			VkDeviceQueueCreateInfo& queueInfo = deviceQueueInfos.emplace_back();
 			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueInfo.pQueuePriorities = &queuePriority;
+			queueInfo.pQueuePriorities = queuePriority;
 			queueInfo.queueCount = 1;
 
 			if (queue == 0)

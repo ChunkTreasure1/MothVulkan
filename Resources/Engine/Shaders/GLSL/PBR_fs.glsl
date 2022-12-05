@@ -1,6 +1,7 @@
 #version 460
 
-#include "Common.glslh"
+#include "Common.h"
+#include "Buffers.h"
 
 layout(location = 0) out vec4 o_color;
 
@@ -15,16 +16,6 @@ layout(location = 0) in InData
     vec3 localNormal;
 
 } v_input;
-
-layout(std140, set = 1, binding = 0) uniform CameraBuffer
-{
-    CameraData u_cameraData;
-};
-
-layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
-{
-    DirectionalLight u_directionalLight;
-};
 
 layout(set = 0, binding = 2) uniform samplerCube u_irradianceTexture;
 layout(set = 0, binding = 3) uniform samplerCube u_radianceTexture;

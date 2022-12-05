@@ -12,6 +12,8 @@
 
 #include "Lamp/Rendering/Shader/ShaderUtility.h"
 #include "Lamp/Rendering/RenderPipeline/RenderPipeline.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferRegistry.h"
+#include "Lamp/Rendering/Buffer/ShaderStorageBuffer/ShaderStorageBufferSet.h"
 
 #include "ShaderCompiler.h"
 
@@ -330,20 +332,16 @@ namespace Lamp
 				bufferInfo.info.offset = 0;
 				bufferInfo.info.range = size;
 				bufferInfo.writeable = !(bool)nonWritable;
-				bufferInfo.isDynamic = set == 4;
+				bufferInfo.isDynamic = set == 1;
 
 				if (bufferInfo.isDynamic)
 				{
-					const uint64_t minSSBOAlignment = GraphicsContext::GetDevice()->GetPhysicalDevice()->GetCapabilities().minSSBOOffsetAlignment;
-					uint32_t dynamicAlignment = size;
+					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 
-					if (minSSBOAlignment > 0)
-					{
-						dynamicAlignment = (uint32_t)Utility::GetAlignedSize((uint64_t)dynamicAlignment, minSSBOAlignment);
-					}
+					const uint64_t dynamicAlignment = ShaderStorageBufferRegistry::Get(set, binding)->Get(0)->GetOffsetSize();
 
 					bufferInfo.info.range = dynamicAlignment;
-					m_resources.dynamicBufferOffsets[set].emplace_back(DynamicOffset{ dynamicAlignment, binding });
+					m_resources.dynamicBufferOffsets[set].emplace_back(DynamicOffset{ (uint32_t)dynamicAlignment, binding });
 				}
 
 				VkWriteDescriptorSet& writeDescriptor = m_resources.writeDescriptors[set][binding];
@@ -351,7 +349,7 @@ namespace Lamp
 				writeDescriptor.pNext = nullptr;
 				writeDescriptor.dstBinding = binding;
 				writeDescriptor.descriptorCount = 1;
-				writeDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				writeDescriptor.descriptorType = set == 1 ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
 				if (bufferInfo.isDynamic)
 				{
