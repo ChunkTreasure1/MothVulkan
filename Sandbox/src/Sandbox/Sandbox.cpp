@@ -45,12 +45,12 @@ void Sandbox::OnAttach()
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
 	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
 
-	//// Sponza 
-	//{
-	//	auto entity = m_editorScene->CreateEntity();
-	//	auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
-	//	mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
-	//}
+	// Sponza 
+	{
+		//auto entity = m_editorScene->CreateEntity();
+		//auto& mesh = entity.AddComponent<Lamp::MeshComponent>();
+		//mesh.handle = Lamp::AssetManager::GetHandle<Lamp::Mesh>("Assets/Meshes/Sponza/Sponza2022.glb");
+	}
 
 	// Light
 	{

@@ -138,6 +138,8 @@ project "Shaders"
 
 		"../Resources/Engine/Shaders/**.hlsl",
 		"../Resources/Engine/Shaders/**.hlslh",
+	
+		"../Resources/Engine/Shaders/**.h"
 	}
 
 	filter "system:windows"

@@ -1,4 +1,4 @@
-﻿#version 460
+#version 460
 
 const float PI = 3.141592;
 const float TwoPI = 2 * PI;

@@ -19,6 +19,7 @@ public:
 Lamp::Application* Lamp::CreateApplication()
 {
 	Lamp::ApplicationInfo info{};
+	info.useVSync = false;
 
 	return new SandboxApp(info);
 }
