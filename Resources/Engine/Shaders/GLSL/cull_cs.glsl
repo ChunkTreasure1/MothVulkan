@@ -49,7 +49,7 @@ layout(std430, set = 0, binding = 2) writeonly buffer CountBuffer
 	uint counts[];
 } u_countBuffer;
 
-layout(std430, set = 0, binding = 3) writeonly buffer ObjectMapBuffer
+layout(std430, set = 1, binding = 4) writeonly buffer ObjectMapBuffer
 {
 	uint objectMap[];
 } u_objectMap;

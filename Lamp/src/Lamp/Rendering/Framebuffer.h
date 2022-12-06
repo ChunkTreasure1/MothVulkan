@@ -72,6 +72,8 @@ namespace Lamp
 		void Unbind(VkCommandBuffer cmdBuffer) const;
 		void Resize(uint32_t width, uint32_t height);
 
+		void Clear(VkCommandBuffer cmdBuffer);
+
 		void AddReference(RenderPipeline* renderPipeline);
 		void RemoveReference(RenderPipeline* renderPipeline);
 

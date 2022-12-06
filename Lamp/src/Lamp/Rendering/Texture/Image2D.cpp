@@ -228,11 +228,11 @@ namespace Lamp
 		barrier.srcAccessMask = 0;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier.oldLayout = m_imageLayout;
-		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-		barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+		barrier.subresourceRange.layerCount = 1;
 
 		const uint32_t mipLevels = GetMipCount();
 		m_specification.mips = mipLevels;
@@ -247,42 +247,52 @@ namespace Lamp
 		{
 			for (uint32_t layer = 0; layer < m_specification.layers; layer++)
 			{
-				VkImageBlit imageBlit{};
-				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.srcSubresource.layerCount = 1;
-				imageBlit.srcSubresource.mipLevel = i - 1;
-				imageBlit.srcSubresource.baseArrayLayer = layer;
+				// Transfer last mip
+				{
+					barrier.subresourceRange.baseMipLevel = i - 1;
+					barrier.subresourceRange.baseArrayLayer = layer;
+					barrier.subresourceRange.levelCount = 1;
+					barrier.subresourceRange.layerCount = 1;
 
-				imageBlit.srcOffsets[0] = { 0, 0, 0 };
-				imageBlit.srcOffsets[1] = { int32_t(m_specification.width >> (i - 1)), int32_t(m_specification.height >> (i - 1)), 1 };
+					barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+					barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+					barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+					barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.dstSubresource.layerCount = 1;
-				imageBlit.dstSubresource.mipLevel = i;
-				imageBlit.dstSubresource.baseArrayLayer = layer;
+					vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+				}
 
-				imageBlit.srcOffsets[0] = { 0, 0, 0 };
-				imageBlit.srcOffsets[1] = { int32_t(m_specification.width >> i), int32_t(m_specification.height >> i), 1 };
+				// Perform blit
+				{
+					VkImageBlit imageBlit{};
+					imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+					imageBlit.srcSubresource.layerCount = 1;
+					imageBlit.srcSubresource.mipLevel = i - 1;
+					imageBlit.srcSubresource.baseArrayLayer = layer;
 
-				barrier.subresourceRange.baseMipLevel = i;
-				barrier.subresourceRange.baseMipLevel = layer;
-				barrier.subresourceRange.levelCount = 1;
-				barrier.subresourceRange.layerCount = 1;
+					imageBlit.srcOffsets[0] = { 0, 0, 0 };
+					imageBlit.srcOffsets[1] = { int32_t(m_specification.width >> (i - 1)), int32_t(m_specification.height >> (i - 1)), 1 };
 
-				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-				barrier.srcAccessMask = 0;
-				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+					imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+					imageBlit.dstSubresource.layerCount = 1;
+					imageBlit.dstSubresource.mipLevel = i;
+					imageBlit.dstSubresource.baseArrayLayer = layer;
 
-				vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-				vkCmdBlitImage(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
+					imageBlit.dstOffsets[0] = { 0, 0, 0 };
+					imageBlit.dstOffsets[1] = { int32_t(m_specification.width >> i), int32_t(m_specification.height >> i), 1 };
 
-				barrier.srcAccessMask = 0;
-				barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+					vkCmdBlitImage(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
+				}
 
-				vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+				// Transfer last mip back
+				{
+					barrier.srcAccessMask = 0;
+					barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+					barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+					barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+					vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+				}
 			}
 		}
 
@@ -295,7 +305,7 @@ namespace Lamp
 
 		const VkImageLayout targetLayout = readOnly ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
 
-		Utility::TransitionImageLayout(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, targetLayout, subresourceRange);
+		Utility::TransitionImageLayout(cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, targetLayout, subresourceRange);
 
 		if (!commandBuffer)
 		{

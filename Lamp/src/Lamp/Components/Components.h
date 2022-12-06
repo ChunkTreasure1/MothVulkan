@@ -10,7 +10,6 @@ namespace Lamp
 {
 	SERIALIZE_COMPONENT(struct TagComponent
 	{
-		float t;
 		PROPERTY(Name = Tag) std::string tag;
 
 		CREATE_COMPONENT_GUID("{282FA5FB-6A77-47DB-8340-3D34F1A1FBBD}"_guid);
@@ -42,6 +41,14 @@ namespace Lamp
 
 		CREATE_COMPONENT_GUID("{F2E06040-9B60-4A0A-9F13-F8DC4C5A4D47}"_guid);
 	}, DirectionalLightComponent);
+
+	SERIALIZE_COMPONENT(struct PointLightComponent
+	{
+		PROPERTY(Name = Color, SpecialType = Color) glm::vec3 color;
+		PROPERTY(Name = Intensity) float intensity;
+
+		CREATE_COMPONENT_GUID("{99109351-BEB2-46BC-8D66-057F491D20B9}"_guid);
+	}, PointLightComponent);
 
 	SERIALIZE_COMPONENT(struct EnvironmentComponent
 	{

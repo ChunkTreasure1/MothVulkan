@@ -52,6 +52,14 @@ namespace Lamp
 		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, pipelineStage, 0, 0, nullptr,
 			(uint32_t)m_bufferBarriers[frameIndex].size(), m_bufferBarriers[frameIndex].data(),
 			(uint32_t)m_imageBarriers[frameIndex].size(), m_imageBarriers[frameIndex].data());
+
+		for (const auto& [set, bindings] : m_imageBarrierMap)
+		{
+			for (const auto& [binding, index] : bindings)
+			{
+				m_images[set][binding]->m_imageLayout = m_imageBarriers.at(frameIndex).at(index).newLayout;
+			}
+		}
 	}
 
 	void RenderPipelineCompute::InsertExecutionBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags pipelineStage, uint32_t frameIndex)
@@ -70,19 +78,20 @@ namespace Lamp
 	{
 		const auto& resources = m_shaderResources[index];
 
-		std::vector<uint32_t> dynamicOffsets;
-		for (const auto& [set, bindings] : resources.uniformBuffersInfos)
+		std::vector<uint32_t> resultOffsets;
+		for (uint32_t set = 0; set < (uint32_t)m_frameDescriptorSets.at(index).size(); set++)
 		{
-			for (const auto& [binding, info] : bindings)
+			if (resources.dynamicBufferOffsets.find(set) != resources.dynamicBufferOffsets.end())
 			{
-				if (info.isDynamic)
+				const auto& offsets = resources.dynamicBufferOffsets.at(set);
+				for (const auto& offset : offsets)
 				{
-					dynamicOffsets.emplace_back(info.info.range * passIndex);
+					resultOffsets.emplace_back(offset.offset * passIndex);
 				}
 			}
 		}
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)dynamicOffsets.size(), dynamicOffsets.data());
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)resultOffsets.size(), resultOffsets.data());
 		vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
 	}
 
@@ -196,8 +205,6 @@ namespace Lamp
 					barrier.newLayout = targetLayout == VK_IMAGE_LAYOUT_UNDEFINED ? image->GetLayout() : targetLayout;
 					barrier.dstAccessMask = dstAccessFlags;
 					barrier.subresourceRange.aspectMask = Utility::IsDepthFormat(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-
-					//image->m_imageLayout = barrier.newLayout;
 				}
 			}
 
@@ -413,21 +420,23 @@ namespace Lamp
 	{
 		auto device = GraphicsContext::GetDevice();
 		vkUpdateDescriptorSets(device->GetHandle(), (uint32_t)m_writeDescriptors[index].size(), m_writeDescriptors[index].data(), 0, nullptr);
-		
-		auto& resources = m_shaderResources[index];
 
-		std::vector<uint32_t> dynamicOffsets;
-		for (const auto& [set, bindings] : resources.uniformBuffersInfos)
+		const auto& resources = m_shaderResources[index];
+
+		std::vector<uint32_t> resultOffsets;
+
+		for (uint32_t set = 0; set < (uint32_t)m_frameDescriptorSets.at(index).size(); set++)
 		{
-			for (const auto& [binding, info] : bindings)
+			if (resources.dynamicBufferOffsets.find(set) != resources.dynamicBufferOffsets.end())
 			{
-				if (info.isDynamic)
+				const auto& offsets = resources.dynamicBufferOffsets.at(set);
+				for (const auto& offset : offsets)
 				{
-					dynamicOffsets.emplace_back(info.info.range * passIndex);
+					resultOffsets.emplace_back(offset.offset * passIndex);
 				}
 			}
 		}
-		
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)dynamicOffsets.size(), dynamicOffsets.data());
+
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipelineLayout, 0, (uint32_t)m_frameDescriptorSets[index].size(), m_frameDescriptorSets[index].data(), (uint32_t)resultOffsets.size(), resultOffsets.data());
 	}
 }

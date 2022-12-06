@@ -1,6 +1,8 @@
 #version 460
 
-#include "Common.h"
+//! #extension GL_KHR_vulkan_glsl : require
+
+#include "Common.h" //! #include "../../Includes/Common.h"
 
 layout(set = 2, binding = 6, rgba8) restrict writeonly uniform image2D o_output;
 
@@ -60,7 +62,7 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
     return ggx1 * ggx2;
 }
 
-vec3 FresnelSchlick(float HdotV, vec3 baseReflectivity)
+vec3 FresnelSchlick(vec3 baseReflectivity, float HdotV)
 {
     return baseReflectivity + (1.0 - baseReflectivity) * pow(1.0 - HdotV, 5.0);
 }
@@ -83,7 +85,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
 
     const float distribution = DistributionGGX(NdotH, m_pbrParameters.roughness);
     const float geometric = GeometrySmith(NdotV, NdotL, m_pbrParameters.roughness);
-    const vec3 fresnel = FresnelSchlick(HdotV, baseReflectivity);
+    const vec3 fresnel = FresnelSchlick(baseReflectivity, HdotV);
 
     vec3 specular = distribution * geometric * fresnel;
     specular /= 4.0 * NdotV * NdotL;
@@ -93,6 +95,25 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 dirToCamera, vec3 ba
 
     const vec3 result = (kD * m_pbrParameters.albedo.xyz / PI + specular) * NdotL * light.colorIntensity.w * light.colorIntensity.xyz;
     return result;
+}
+
+vec3 CalculateAmbiance(vec3 dirToCamera, vec3 baseReflectivity)
+{
+    const float NdotV = max(0.f, dot(m_pbrParameters.normal, dirToCamera));
+    const vec3 irradiance = textureLod(u_irradianceTexture, m_pbrParameters.normal, 0).rgb;
+
+    const vec3 F = FresnelSchlick(baseReflectivity, NdotV);
+    const vec3 kD = mix(vec3(1.f) - F, vec3(0.f), m_pbrParameters.metallic);
+    const vec3 diffuseIBL = kD * m_pbrParameters.albedo.xyz * irradiance;
+    
+    const uint radianceTextureLevels = textureQueryLevels(u_radianceTexture);
+    const vec3 R = 2.f * NdotV * m_pbrParameters.normal - dirToCamera;
+    const vec3 specularIrradiance = textureLod(u_radianceTexture, R, m_pbrParameters.roughness * radianceTextureLevels).rgb;
+
+    const vec2 brdf = textureLod(u_BRDFLut, vec2(NdotV, m_pbrParameters.roughness), 0.f).rg;
+    const vec3 specularIBL = (baseReflectivity * brdf.x + brdf.y) * specularIrradiance;
+
+    return (diffuseIBL + specularIBL);
 }
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
@@ -110,7 +131,6 @@ void main()
 
     if (albedo.w == 0.f)
     {
-        imageStore(o_output, outputLocation, vec4(0.1f, 0.1f, 0.1f, 1.f));
         return;
     }
 
@@ -126,7 +146,8 @@ void main()
 
     vec3 lightAccumulation = vec3(0.f);
     lightAccumulation += CalculateDirectionalLight(u_directionalLight, dirToCamera, baseReflectivity);
-    
+    lightAccumulation += CalculateAmbiance(dirToCamera, baseReflectivity);
+
     const float gamma = 2.2f;
     lightAccumulation = pow(lightAccumulation, vec3(1.f / gamma));
   

@@ -265,6 +265,50 @@ namespace Lamp
 		Invalidate();
 	}
 
+	void Framebuffer::Clear(VkCommandBuffer cmdBuffer)
+	{
+		for (uint32_t index = 0; const auto& att : m_colorAttachmentImages)
+		{
+			if (!m_specification.existingImages.contains(index))
+			{
+				const auto& spec = m_specification.attachments.at(index);
+
+				VkClearColorValue clearColor{};
+				clearColor.float32[0] = spec.clearColor.x;
+				clearColor.float32[1] = spec.clearColor.y;
+				clearColor.float32[2] = spec.clearColor.z;
+				clearColor.float32[3] = spec.clearColor.w;
+
+				VkImageSubresourceRange range{};
+				range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				range.baseArrayLayer = 0;
+				range.baseMipLevel = 0;
+				range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+				range.levelCount = VK_REMAINING_MIP_LEVELS;
+
+				vkCmdClearColorImage(cmdBuffer, att->GetHandle(), att->GetLayout(), &clearColor, 1, &range);
+			}
+
+			index++;
+		}
+
+		if (!m_specification.existingDepth && m_depthAttachmentImage)
+		{
+			VkClearDepthStencilValue clearColor{};
+			clearColor.depth = 1.f;
+			clearColor.stencil = 0;
+
+			VkImageSubresourceRange range{};
+			range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			range.baseArrayLayer = 0;
+			range.baseMipLevel = 0;
+			range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+			range.levelCount = VK_REMAINING_MIP_LEVELS;
+
+			vkCmdClearDepthStencilImage(cmdBuffer, m_depthAttachmentImage->GetHandle(), m_depthAttachmentImage->GetLayout(), &clearColor, 1, &range);
+		}
+	}
+
 	void Framebuffer::AddReference(RenderPipeline* renderPipeline)
 	{
 		if (auto it = std::find(m_renderPipelineReferences.begin(), m_renderPipelineReferences.end(), renderPipeline); it != m_renderPipelineReferences.end())

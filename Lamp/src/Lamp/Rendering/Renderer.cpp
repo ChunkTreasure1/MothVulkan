@@ -95,7 +95,7 @@ namespace Lamp
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(0, 3), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 4), 0, 3, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 4), 1, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
 
 		s_defaultData = CreateScope<DefaultData>();
 
@@ -176,13 +176,18 @@ namespace Lamp
 
 		const Ref<RenderPass> currentPass = s_rendererData->currentPass;
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
+		const VkCommandBuffer currentCommandBuffer = s_rendererData->commandBuffer->GetCurrentCommandBuffer();
 
-		currentPass->computePipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
+		currentPass->computePipeline->Bind(currentCommandBuffer, currentFrame);
 
 		for (const auto& input : currentPass->computePipeline->GetFramebufferInputs())
 		{
 			currentPass->computePipeline->SetImage(input.framebuffer->GetColorAttachment(input.attachmentIndex), input.set, input.binding);
 		}
+
+		currentPass->computePipeline->SetImage(s_rendererData->skyboxData.irradianceMap, 2, 3);
+		currentPass->computePipeline->SetImage(s_rendererData->skyboxData.radianceMap, 2, 4);
+		currentPass->computePipeline->SetImage(s_defaultData->brdfLut, 2, 5);
 
 		const uint32_t width = currentPass->framebuffer->GetWidth();
 		const uint32_t height = currentPass->framebuffer->GetHeight();
@@ -192,10 +197,12 @@ namespace Lamp
 		const uint32_t groupX = width / threadCountXY + 1;
 		const uint32_t groupY = height / threadCountXY + 1;
 
-		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
-		currentPass->computePipeline->Dispatch(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
+		currentPass->framebuffer->Clear(currentCommandBuffer);
 
-		currentPass->computePipeline->InsertExecutionBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
+		currentPass->computePipeline->SetImage(currentPass->framebuffer->GetColorAttachment(0), 2, 6, 0, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL);
+		currentPass->computePipeline->Dispatch(currentCommandBuffer, currentFrame, groupX, groupY, 1, s_rendererData->passIndex);
+
+		currentPass->computePipeline->InsertExecutionBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
 	}
 
 	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph)
@@ -211,14 +218,9 @@ namespace Lamp
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
 		{
-			if (s_rendererData->passIndex == 0)
-			{
-				CullRenderCommands();
-			}
+			CullRenderCommands();
 
 			auto framebuffer = renderPass->framebuffer;
-
-			//framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
 			VkRenderingInfo renderingInfo{};
 			renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -498,7 +500,6 @@ namespace Lamp
 
 		return skybox;
 	}
-
 
 	VkDescriptorSet Renderer::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
 	{
@@ -855,7 +856,7 @@ namespace Lamp
 		}
 
 		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
-		s_rendererData->indirectCullPipeline->DispatchNoUpdate(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1);
+		s_rendererData->indirectCullPipeline->DispatchNoUpdate(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1, s_rendererData->passIndex);
 		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 	}
 

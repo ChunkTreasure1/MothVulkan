@@ -11,10 +11,10 @@ Assets:
     Path: Assets/cube.fbx
   - Handle: 3408067414653871778
     Path: Engine\Shaders\GLSL\PBR_fs.glsl
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 7921486373975219315
     Path: Assets/Textures/peter_lambert.png
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
   - Handle: 13717396777666668695
     Path: Assets\Meshes\Sponza\sponzamat.lpmat
   - Handle: 2364318552008784800
