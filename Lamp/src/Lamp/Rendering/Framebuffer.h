@@ -27,6 +27,10 @@ namespace Lamp
 			: format(aFormat)
 		{}
 
+		FramebufferAttachment(ImageFormat aFormat, const glm::vec4& aClearColor)
+			: format(aFormat), clearColor(aClearColor)
+		{}
+
 		FramebufferAttachment(ImageFormat aFormat, TextureFilter aFilter, 
 			TextureWrap aWrap, TextureBlend aBlend, ClearMode aClearMode,
 			const glm::vec4& aBorderColor = { 1.f, 1.f, 1.f, 1.f }, 

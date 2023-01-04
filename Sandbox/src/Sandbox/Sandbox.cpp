@@ -43,7 +43,7 @@ void Sandbox::OnAttach()
 
 	m_editorCameraController = new Lamp::EditorCameraController(60.f, 0.1f, 1000.f);
 	m_editorScene = CreateRef<Lamp::Scene>("Scene");
-	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene, "Engine/RenderGraph/renderGraph.lprg");
+	m_sceneRenderer = CreateRef<Lamp::SceneRenderer>(m_editorScene);
 
 	// Sponza 
 	{

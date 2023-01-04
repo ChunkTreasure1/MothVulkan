@@ -18,18 +18,34 @@
 
 namespace Lamp
 {
-	SceneRenderer::SceneRenderer(Ref<Scene> scene, const std::filesystem::path& renderGraphPath)
+	SceneRenderer::SceneRenderer(Ref<Scene> scene)
 		: m_scene(scene)
 	{
-		m_renderGraph = AssetManager::GetAsset<RenderGraph>(renderGraphPath);
-		m_dependencyGraph = DependencyGraph::Create(m_renderGraph);
-
-		auto& registry = m_scene->GetRegistry();
+		CreateRenderPasses();
 	}
 
 	Ref<Framebuffer> SceneRenderer::GetFinalFramebuffer()
 	{
-		return m_renderGraph->GetRenderPasses().back().renderPass->framebuffer;
+		return m_mainRenderPass->framebuffer;
+	}
+
+	void SceneRenderer::CreateRenderPasses()
+	{
+		// Main
+		{
+			FramebufferSpecification spec{};
+			spec.attachments = 
+			{
+				{ ImageFormat::RGBA, { 0.1f, 0.1f, 0.1f, 1.f }  },
+				{ ImageFormat::DEPTH32F }
+			};
+
+			spec.width = 1280;
+			spec.height = 720;
+
+			m_mainRenderPass = CreateRef<RenderPass>();
+			m_mainRenderPass->framebuffer = Framebuffer::Create(spec);
+		}
 	}
 
 	void SceneRenderer::OnRender(Ref<Camera> camera)
@@ -39,13 +55,7 @@ namespace Lamp
 		if (m_shouldResize)
 		{
 			m_shouldResize = false;
-			for (auto& pass : m_renderGraph->GetRenderPasses())
-			{
-				if (pass.renderPass->resizeable)
-				{
-					pass.renderPass->framebuffer->Resize(m_resizeSize.x, m_resizeSize.y);
-				}
-			}
+			m_mainRenderPass->framebuffer->Resize(m_resizeSize.x, m_resizeSize.y);
 		}
 
 		auto& registry = m_scene->GetRegistry();
@@ -104,20 +114,9 @@ namespace Lamp
 
 			Renderer::Begin();
 
-			for (const auto& pass : m_renderGraph->GetRenderPasses())
-			{
-				Renderer::BeginPass(pass.renderPass, camera, m_dependencyGraph);
-				if (pass.renderPass->computePipeline)
-				{
-					Renderer::ExecuteComputePass();
-				}
-				else [[likely]]
-				{
-					Renderer::DispatchRenderCommands();
-				}
-				Renderer::EndPass(m_dependencyGraph);
-
-			}
+			Renderer::BeginPass(m_mainRenderPass, camera);
+			Renderer::DispatchRenderCommandsTest();
+			Renderer::EndPass();
 
 			Renderer::End();
 		}

@@ -74,14 +74,15 @@ namespace Lamp
 
 		static void ExecuteComputePass();
 
-		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph);
-		static void EndPass(Ref<DependencyGraph> dependencyGraph);
+		static void BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera);
+		static void EndPass();
 
 		static void Submit(Ref<Mesh> mesh, const glm::mat4& transform);
 		static void SubmitDirectionalLight(const glm::mat4& transform, const glm::vec3& color, const float intensity);
 		static void SubmitEnvironment(const Skybox& environment);
 
 		static void DispatchRenderCommands();
+		static void DispatchRenderCommandsTest();
 
 		static void SubmitResourceFree(std::function<void()>&& function);
 		static void SubmitInvalidation(std::function<void()>&& function);
@@ -96,16 +97,9 @@ namespace Lamp
 		
 		static void CreateDefaultData();
 		static void CreateSamplers();
-
 		static void CreateDescriptorPools();
-		static void PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands);
 
 		static void UpdatePerPassBuffers();
-		static void UpdatePerFrameBuffers();
-
-		static void SortRenderCommands();
-		static void UploadRenderCommands();
-		static void CullRenderCommands();
 
 		static void GenerateBRDFLut();
 

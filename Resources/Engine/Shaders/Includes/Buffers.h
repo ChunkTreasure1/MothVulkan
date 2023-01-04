@@ -9,15 +9,15 @@ layout(std140, set = 1, binding = 2) uniform PassBuffer
 };
 
 
-layout(std430, set = 1, binding = 4) readonly buffer ObjectMapBuffer
-{
-	uint u_objectMap[];
-};
-
-layout(std430, set = 0, binding = 3) readonly buffer ObjectBuffer
-{
-    ObjectData u_objectBuffer[];
-};
+//layout(std430, set = 0, binding = 4) readonly buffer ObjectMapBuffer
+//{
+//	uint u_objectMap[];
+//};
+//
+//layout(std430, set = 0, binding = 3) readonly buffer ObjectBuffer
+//{
+//    ObjectData u_objectBuffer[];
+//};
 
 layout(std140, set = 0, binding = 1) uniform DirectionalLightBuffer
 {

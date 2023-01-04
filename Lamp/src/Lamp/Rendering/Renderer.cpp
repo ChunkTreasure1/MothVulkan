@@ -85,18 +85,6 @@ namespace Lamp
 		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), PASS_COUNT, framesInFlight));
 		UniformBufferRegistry::Register(1, 2, UniformBufferSet::Create(sizeof(PassData), PASS_COUNT, framesInFlight));
 
-		ShaderStorageBufferRegistry::Register(0, 3, ShaderStorageBufferSet::Create(sizeof(ObjectData) * MAX_OBJECT_COUNT, framesInFlight));
-		ShaderStorageBufferRegistry::Register(1, 4, ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, PASS_COUNT, framesInFlight));
-
-		s_rendererData->indirectDrawBuffer = ShaderStorageBufferSet::Create(sizeof(GPUIndirectObject) * MAX_OBJECT_COUNT, framesInFlight, true);
-		s_rendererData->indirectCountBuffer = ShaderStorageBufferSet::Create(sizeof(uint32_t) * MAX_OBJECT_COUNT, framesInFlight, true);
-		s_rendererData->indirectCullPipeline = RenderPipelineCompute::Create(Shader::Create("ComputeCull", { "Engine/Shaders/GLSL/cull_cs.glsl" }), framesInFlight);
-
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectDrawBuffer, 0, 1, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(s_rendererData->indirectCountBuffer, 0, 2, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(0, 3), 0, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		s_rendererData->indirectCullPipeline->SetStorageBuffer(ShaderStorageBufferRegistry::Get(1, 4), 1, 4, VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-
 		s_defaultData = CreateScope<DefaultData>();
 
 		CreateSamplers();
@@ -149,17 +137,9 @@ namespace Lamp
 		s_rendererData->commandBuffer->Begin();
 
 		LP_PROFILE_GPU_EVENT("Rendering Begin");
-		s_rendererData->indirectCullPipeline->WriteAndBindDescriptors(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
-		s_rendererData->frameUpdatedMaterials.clear();
-		s_rendererData->passIndex = 0;
 
 		s_frameDeletionQueues[currentFrame].Flush();
 		s_invalidationQueues[currentFrame].Flush();
-
-		SortRenderCommands();
-		PrepareForIndirectDraw(s_rendererData->renderCommands);
-		UploadRenderCommands();
-		UpdatePerFrameBuffers();
 	}
 
 	void Renderer::End()
@@ -172,8 +152,6 @@ namespace Lamp
 
 	void Renderer::ExecuteComputePass()
 	{
-		UpdatePerPassBuffers();
-
 		const Ref<RenderPass> currentPass = s_rendererData->currentPass;
 		const uint32_t currentFrame = Application::Get().GetWindow()->GetSwapchain().GetCurrentFrame();
 		const VkCommandBuffer currentCommandBuffer = s_rendererData->commandBuffer->GetCurrentCommandBuffer();
@@ -205,22 +183,18 @@ namespace Lamp
 		currentPass->computePipeline->InsertExecutionBarrier(currentCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, currentFrame);
 	}
 
-	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera, Ref<DependencyGraph> dependencyGraph)
+	void Renderer::BeginPass(Ref<RenderPass> renderPass, Ref<Camera> camera)
 	{
 		LP_PROFILE_FUNCTION();
 		LP_PROFILE_GPU_EVENT(std::string("Begin " + renderPass->name).c_str());
 		s_rendererData->passCamera = camera;
 		s_rendererData->currentPass = renderPass;
 
-		UpdatePerPassBuffers();
-		dependencyGraph->InsertBarriersPrePass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), renderPass->hash);
-
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
 		{
-			CullRenderCommands();
-
 			auto framebuffer = renderPass->framebuffer;
+			framebuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
 			VkRenderingInfo renderingInfo{};
 			renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -242,7 +216,7 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::EndPass(Ref<DependencyGraph> dependencyGraph)
+	void Renderer::EndPass()
 	{
 		LP_PROFILE_FUNCTION();
 		LP_PROFILE_GPU_EVENT(std::string("End " + s_rendererData->currentPass->name).c_str());
@@ -252,7 +226,7 @@ namespace Lamp
 			vkCmdEndRendering(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 		}
 
-		dependencyGraph->InsertBarriersPostPass(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), s_rendererData->currentPass->hash);
+		s_rendererData->currentPass->framebuffer->Unbind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 
 		s_rendererData->currentPass = nullptr;
 		s_rendererData->passCamera = nullptr;
@@ -352,6 +326,23 @@ namespace Lamp
 
 				vkCmdDrawIndexedIndirectCount(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentIndirectBuffer->GetHandle(), drawOffset, currentCountBuffer->GetHandle(), countOffset, draws[i].count, drawStride);
 			}
+		}
+	}
+
+	void Renderer::DispatchRenderCommandsTest()
+	{
+		const auto currentCommandBuffer = s_rendererData->commandBuffer->GetCurrentCommandBuffer();
+		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
+
+		for (const auto& cmd : s_rendererData->renderCommands)
+		{
+			cmd.mesh->GetVertexBuffer()->Bind(currentCommandBuffer);
+			cmd.mesh->GetIndexBuffer()->Bind(currentCommandBuffer);
+			cmd.material->Bind(currentCommandBuffer, currentFrame);
+
+			const glm::mat4 mat{ 1.f };
+			cmd.material->SetPushConstant(currentCommandBuffer, 0, sizeof(glm::mat4), &mat);
+			vkCmdDrawIndexed(currentCommandBuffer, cmd.subMesh.indexCount, 1, cmd.subMesh.indexStartOffset, cmd.subMesh.vertexStartOffset, 0);
 		}
 	}
 
@@ -599,48 +590,6 @@ namespace Lamp
 		}
 	}
 
-	void Renderer::PrepareForIndirectDraw(std::vector<RenderCommand>& renderCommands)
-	{
-		LP_PROFILE_FUNCTION();
-
-		if (renderCommands.empty())
-		{
-			return;
-		}
-
-		s_rendererData->indirectBatches.clear();
-		auto& draws = s_rendererData->indirectBatches;
-
-		IndirectBatch& firstDraw = draws.emplace_back();
-		firstDraw.mesh = renderCommands[0].mesh;
-		firstDraw.material = renderCommands[0].material;
-		firstDraw.subMesh = renderCommands[0].subMesh;
-		firstDraw.first = 0;
-		firstDraw.count = 1;
-
-		for (uint32_t i = 1; i < renderCommands.size(); i++)
-		{
-			bool sameMesh = (renderCommands[i].mesh == draws.back().mesh);
-			bool sameSubMesh = (renderCommands[i].subMesh == draws.back().subMesh);
-			bool sameMaterial = (renderCommands[i].material == draws.back().material);
-
-			if (sameMesh && sameMaterial && sameSubMesh)
-			{
-				draws.back().count++;
-			}
-			else
-			{
-				IndirectBatch& newDraw = draws.emplace_back();
-				newDraw.mesh = renderCommands[i].mesh;
-				newDraw.material = renderCommands[i].material;
-				newDraw.subMesh = renderCommands[i].subMesh;
-				newDraw.first = i;
-				newDraw.count = 1;
-				newDraw.id = uint32_t(draws.size() - 1);
-			}
-		}
-	}
-
 	void Renderer::UpdatePerPassBuffers()
 	{
 		LP_PROFILE_FUNCTION();
@@ -692,172 +641,6 @@ namespace Lamp
 
 			currentPassBuffer->Unmap();
 		}
-	}
-
-	void Renderer::UpdatePerFrameBuffers()
-	{
-		LP_PROFILE_FUNCTION();
-
-		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
-
-		// Update object data
-		{
-			auto currentObjectBuffer = ShaderStorageBufferRegistry::Get(0, 3)->Get(currentFrame);
-			auto* objectData = currentObjectBuffer->Map<ObjectData>();
-
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
-			{
-				const BoundingSphere& boundingSphere = s_rendererData->renderCommands[i].mesh->GetBoundingSphere();
-
-				const glm::mat4 transform = s_rendererData->renderCommands[i].transform;
-				const glm::vec3 globalScale = { glm::length(transform[0]), glm::length(transform[1]), glm::length(transform[2]) };
-				const glm::vec3 globalCenter = transform * glm::vec4(boundingSphere.center, 1.f);
-				const float maxScale = std::max(globalScale.x, std::max(globalScale.y, globalScale.z));
-
-				objectData[i].transform = transform;
-				objectData[i].sphereBounds = glm::vec4(globalCenter, boundingSphere.radius * maxScale * 0.5f);
-			}
-
-			currentObjectBuffer->Unmap();
-		}
-
-		// Update directional light
-		{
-			auto currentBuffer = UniformBufferRegistry::Get(0, 1)->Get(currentFrame);
-			currentBuffer->SetData(&s_rendererData->directionalLight, sizeof(DirectionalLightData));
-		}
-	}
-
-	void Renderer::SortRenderCommands()
-	{
-		LP_PROFILE_FUNCTION();
-		std::sort(s_rendererData->renderCommands.begin(), s_rendererData->renderCommands.end(), [](const RenderCommand& lhs, const RenderCommand& rhs)
-			{
-				if (lhs.material < rhs.material)
-				{
-					return true;
-				}
-				else if (lhs.material > rhs.material)
-				{
-					return false;
-				}
-
-				if (lhs.subMesh < rhs.subMesh)
-				{
-					return true;
-				}
-				else if (lhs.subMesh > rhs.subMesh)
-				{
-					return false;
-				}
-
-				return false;
-			});
-	}
-
-	void Renderer::UploadRenderCommands()
-	{
-		LP_PROFILE_FUNCTION();
-
-		if (s_rendererData->renderCommands.empty())
-		{
-			return;
-		}
-
-		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
-		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
-
-		// Fill indirect commands
-		{
-			auto* drawCommands = s_rendererData->indirectDrawBuffer->Get(currentFrame)->Map<GPUIndirectObject>();
-
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
-			{
-				auto& cmd = s_rendererData->renderCommands[i];
-
-				drawCommands[i].command.indexCount = cmd.subMesh.indexCount;
-				drawCommands[i].command.firstIndex = cmd.subMesh.indexStartOffset;
-				drawCommands[i].command.vertexOffset = cmd.subMesh.vertexStartOffset;
-				drawCommands[i].command.instanceCount = 1;
-				drawCommands[i].objectId = i;
-
-				// TODO: this is probably not performant
-				auto it = std::find_if(draws.begin(), draws.end(), [&cmd](const IndirectBatch& batch)
-					{
-						return batch.mesh == cmd.mesh && batch.material == cmd.material && batch.subMesh == cmd.subMesh;
-					});
-
-				if (it != draws.end())
-				{
-					drawCommands[i].batchId = it->id;
-					drawCommands[i].command.firstInstance = it->first;
-				}
-
-			}
-
-			s_rendererData->indirectDrawBuffer->Get(currentFrame)->Unmap();
-		}
-
-		{
-			auto* ids = ShaderStorageBufferRegistry::Get(1, 4)->Get(currentFrame)->Map<uint32_t>();
-
-			for (uint32_t i = 0; i < s_rendererData->renderCommands.size(); i++)
-			{
-				ids[i] = 0;
-			}
-
-			ShaderStorageBufferRegistry::Get(1, 4)->Get(currentFrame)->Unmap();
-		}
-	}
-
-	void Renderer::CullRenderCommands()
-	{
-		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
-
-		auto* drawCount = s_rendererData->indirectCountBuffer->Get(currentFrame)->Map<uint32_t>();
-
-		std::vector<IndirectBatch>& draws = s_rendererData->indirectBatches;
-
-		for (uint32_t i = 0; i < draws.size(); i++)
-		{
-			drawCount[i] = 0;
-		}
-
-		s_rendererData->indirectCountBuffer->Get(currentFrame)->Unmap();
-		s_rendererData->indirectCullPipeline->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame);
-
-		// Set cull data
-		{
-			glm::mat4 projection = s_rendererData->passCamera->GetProjection();
-			glm::mat4 projectionTrans = glm::transpose(projection);
-
-			glm::vec4 frustumX = Math::NormalizePlane(projectionTrans[3] + projectionTrans[0]);
-			glm::vec4 frustumY = Math::NormalizePlane(projectionTrans[3] + projectionTrans[1]);
-
-			CullData cullData{};
-			cullData.view = s_rendererData->passCamera->GetView();
-			cullData.P00 = projection[0][0];
-			cullData.P11 = projection[1][1];
-			cullData.zNear = s_rendererData->passCamera->GetNearPlane();
-			cullData.zFar = s_rendererData->passCamera->GetFarPlane();
-
-			cullData.frustum[0] = frustumX.x;
-			cullData.frustum[1] = frustumX.z;
-			cullData.frustum[2] = frustumY.y;
-			cullData.frustum[3] = frustumY.z;
-
-			cullData.drawCount = (uint32_t)s_rendererData->renderCommands.size();
-
-			cullData.cullingEnabled = true;
-			cullData.lodEnabled = true;
-			cullData.distCull = 0;
-
-			s_rendererData->indirectCullPipeline->SetPushConstant(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), sizeof(CullData), &cullData);
-		}
-
-		const uint32_t dispatchCount = (uint32_t)(s_rendererData->renderCommands.size() / 256) + 1;
-		s_rendererData->indirectCullPipeline->DispatchNoUpdate(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, dispatchCount, 1, 1, s_rendererData->passIndex);
-		s_rendererData->indirectCullPipeline->InsertBarrier(s_rendererData->commandBuffer->GetCurrentCommandBuffer(), currentFrame, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 	}
 
 	void Renderer::GenerateBRDFLut()

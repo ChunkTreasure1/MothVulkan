@@ -198,6 +198,23 @@ namespace Lamp
 
 	void Framebuffer::Bind(VkCommandBuffer cmdBuffer) const
 	{
+		VkExtent2D extent{};
+		extent.width = GetWidth();
+		extent.height = GetHeight();
+
+		VkViewport viewport{};
+		viewport.x = 0.f;
+		viewport.y = (float)extent.height;
+
+		viewport.width = (float)extent.width;
+		viewport.height = -(float)extent.height;
+		viewport.minDepth = 0.f;
+		viewport.maxDepth = 1.f;
+
+		VkRect2D scissor = { { 0, 0 }, extent };
+		vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
 		for (auto& attachment : m_colorAttachmentImages)
 		{
 			const VkImageLayout oldLayout = m_firstBind ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

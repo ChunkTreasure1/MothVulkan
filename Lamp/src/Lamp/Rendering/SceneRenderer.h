@@ -9,13 +9,13 @@ namespace Lamp
 {
 	class Scene;
 	class Camera;
-	class RenderGraph;
 	class Framebuffer;
-	class DependencyGraph;
+	class RenderPass;
+
 	class SceneRenderer
 	{
 	public:
-		SceneRenderer(Ref<Scene> scene, const std::filesystem::path& renderGraphPath);
+		SceneRenderer(Ref<Scene> scene);
 
 		void OnRender(Ref<Camera> camera);
 		void OnUpdate(float deltaTime);
@@ -26,12 +26,13 @@ namespace Lamp
 		Ref<Framebuffer> GetFinalFramebuffer();
 
 	private:
+		void CreateRenderPasses();
 
 		bool m_shouldResize = false;
 		glm::uvec2 m_resizeSize = { 1, 1 };
 
-		Ref<RenderGraph> m_renderGraph;
-		Ref<DependencyGraph> m_dependencyGraph;
 		Ref<Scene> m_scene;
+
+		Ref<RenderPass> m_mainRenderPass;
 	};
 }
