@@ -190,6 +190,8 @@ namespace Lamp
 		s_rendererData->passCamera = camera;
 		s_rendererData->currentPass = renderPass;
 
+		UpdatePerPassBuffers();
+
 		// Begin RenderPass
 		if (!renderPass->computePipeline)
 		{
@@ -599,12 +601,7 @@ namespace Lamp
 		// Update camera data
 		{
 			auto currentCameraBuffer = UniformBufferRegistry::Get(1, 0)->Get(currentFrame);
-			uint8_t* bytePtr = currentCameraBuffer->Map<uint8_t>();
-
-			const uint32_t ptrOffset = currentCameraBuffer->GetSize() * s_rendererData->passIndex;
-			bytePtr += ptrOffset;
-
-			CameraData* cameraData = (CameraData*)bytePtr;
+			CameraData* cameraData = currentCameraBuffer->Map<CameraData>();
 
 			cameraData->proj = s_rendererData->passCamera->GetProjection();
 			cameraData->view = s_rendererData->passCamera->GetView();
@@ -617,12 +614,7 @@ namespace Lamp
 		// Update target data
 		{
 			auto currentTargetBuffer = UniformBufferRegistry::Get(1, 1)->Get(currentFrame);
-			uint8_t* bytePtr = currentTargetBuffer->Map<uint8_t>();
-
-			const uint32_t ptrOffset = currentTargetBuffer->GetSize() * s_rendererData->passIndex;
-			bytePtr += ptrOffset;
-
-			TargetData* targetData = (TargetData*)bytePtr;
+			TargetData* targetData = currentTargetBuffer->Map<TargetData>();
 			targetData->targetSize = { s_rendererData->currentPass->framebuffer->GetWidth(), s_rendererData->currentPass->framebuffer->GetHeight() };
 
 			currentTargetBuffer->Unmap();
@@ -631,12 +623,7 @@ namespace Lamp
 		// Update pass data
 		{
 			auto currentPassBuffer = UniformBufferRegistry::Get(1, 2)->Get(currentFrame);
-			uint8_t* bytePtr = currentPassBuffer->Map<uint8_t>();
-
-			const uint32_t ptrOffset = currentPassBuffer->GetSize() * s_rendererData->passIndex;
-			bytePtr += ptrOffset;
-
-			PassData* passData = (PassData*)bytePtr;
+			PassData* passData = currentPassBuffer->Map<PassData>();
 			passData->passIndex = s_rendererData->passIndex;
 
 			currentPassBuffer->Unmap();
