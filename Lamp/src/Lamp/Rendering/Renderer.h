@@ -24,6 +24,11 @@ namespace Lamp
 	class Material;
 	class RenderPipelineCompute;
 	class RenderPipeline;
+	
+	class CombinedIndexBuffer;
+	class CombinedVertexBuffer;
+	class TextureTable;
+	class MaterialTable;
 
 	class DependencyGraph;
 
@@ -64,6 +69,23 @@ namespace Lamp
 		struct Capabilities
 		{};
 
+		struct BindlessData
+		{
+			inline static constexpr uint32_t MAX_TRIANGLES = 10000000;
+			inline static constexpr uint32_t MAX_VERTICES = MAX_TRIANGLES * 3;
+			inline static constexpr uint32_t MAX_INDICES = MAX_TRIANGLES * 3;
+
+			Ref<CombinedVertexBuffer> combinedVertexBuffer;
+			Ref<CombinedIndexBuffer> combinedIndexBuffer;
+
+			Ref<TextureTable> textureTable;
+			Ref<MaterialTable> materialTable;
+
+			VkDescriptorPool descriptorPool = nullptr;
+			VkDescriptorSetLayout descriptorSetLayout = nullptr;
+			VkDescriptorSet descriptorSet = nullptr;
+		};
+
 		static void Initialize();
 		static void InitializeBuffers();
 
@@ -87,6 +109,8 @@ namespace Lamp
 		static void SubmitResourceFree(std::function<void()>&& function);
 		static void SubmitInvalidation(std::function<void()>&& function);
 
+		inline static BindlessData& GetBindlessData() { return s_rendererData->bindlessData; }
+
 		static Skybox GenerateEnvironmentMap(AssetHandle handle);
 
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
@@ -98,8 +122,10 @@ namespace Lamp
 		static void CreateDefaultData();
 		static void CreateSamplers();
 		static void CreateDescriptorPools();
+		static void CreateBindlessData();
 
 		static void UpdatePerPassBuffers();
+		static void UpdatePerFrameBuffers();
 
 		static void GenerateBRDFLut();
 
@@ -123,6 +149,7 @@ namespace Lamp
 			std::vector<Ref<Material>> frameUpdatedMaterials;
 			
 			Skybox skyboxData;
+			BindlessData bindlessData;
 
 			std::vector<VkDescriptorPool> descriptorPools;
 
@@ -130,7 +157,7 @@ namespace Lamp
 			DirectionalLightData directionalLight;
 			///////////////////////
 		};
-
+		
 		inline static Scope<DefaultData> s_defaultData;
 		inline static Scope<RendererData> s_rendererData;
 		inline static std::vector<FunctionQueue> s_frameDeletionQueues;

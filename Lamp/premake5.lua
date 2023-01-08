@@ -77,8 +77,6 @@ project "Lamp"
 	defines
 	{
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE",
-		"GLM_FORCE_LEFT_HANDED",
-		"GLM_FORCE_SSE2",
 		"NOMINMAX"
 	}
 

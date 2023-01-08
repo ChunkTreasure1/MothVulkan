@@ -8,10 +8,12 @@ namespace Lamp
 	class MultiMaterial : public Asset
 	{
 	public:
-		MultiMaterial() = default;
+		MultiMaterial();
 
 		inline const std::unordered_map<uint32_t, Ref<Material>>& GetMaterials() const { return m_materials; }
 		inline const std::string& GetName() const { return m_name; }
+
+		void Construct();
 
 		static AssetType GetStaticType() { return AssetType::Material; }
 		AssetType GetType() override { return GetStaticType(); }

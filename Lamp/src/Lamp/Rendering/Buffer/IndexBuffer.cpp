@@ -18,6 +18,12 @@ namespace Lamp
 		SetData(indices, sizeof(uint32_t) * count);
 	}
 
+	IndexBuffer::IndexBuffer(uint32_t count)
+		: m_count(count)
+	{
+		SetData(nullptr, sizeof(uint32_t) * m_count);
+	}
+
 	IndexBuffer::~IndexBuffer()
 	{
 		if (m_buffer)

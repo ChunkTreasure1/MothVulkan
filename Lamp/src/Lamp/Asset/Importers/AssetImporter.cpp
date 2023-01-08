@@ -15,6 +15,8 @@
 #include "Lamp/Rendering/Shader/Shader.h"
 #include "Lamp/Rendering/Renderer.h"
 
+#include "Lamp/Rendering/Texture/TextureTable.h"
+
 #include "Lamp/Utility/SerializationMacros.h"
 
 #include <yaml-cpp/yaml.h>
@@ -31,15 +33,18 @@ namespace Lamp
 			asset->SetFlag(AssetFlag::Missing, true);
 			return false;
 		}
-		auto mesh = TextureImporter::ImportTexture(path);
 
-		if (!mesh) [[unlikely]]
+		auto texture = TextureImporter::ImportTexture(path);
+
+		if (!texture) [[unlikely]]
 		{
 			asset->SetFlag(AssetFlag::Invalid, true);
 			return false;
 		}
 
-		asset = mesh;
+		Renderer::GetBindlessData().textureTable->AddTexture(texture);
+
+		asset = texture;
 		asset->path = path;
 		return true;
 	}
@@ -232,6 +237,8 @@ namespace Lamp
 		multiMaterial->m_name = nameString;
 		multiMaterial->m_materials = materials;
 		multiMaterial->path = path;
+
+		multiMaterial->Construct();
 
 		return true;
 	}

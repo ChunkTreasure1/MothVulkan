@@ -53,6 +53,13 @@ namespace Lamp
 		uint32_t passIndex;
 	};
 
+	struct MaterialData
+	{
+		uint32_t albedo;
+		uint32_t materialNormal;
+	};
+
+	///// Data Structs /////
 	struct GPUIndirectObject
 	{
 		VkDrawIndexedIndirectCommand command;

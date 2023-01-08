@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Lamp/Log/Log.h"
+
 const char* VKResultToString(int32_t result);
 
 #define BIT(X) (1 << (X))

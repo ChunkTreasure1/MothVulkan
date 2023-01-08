@@ -1,16 +1,26 @@
 #include "lppch.h"
 #include "Mesh.h"
 
-#include "Lamp/Rendering/Buffer/VertexBuffer.h"
-#include "Lamp/Rendering/Buffer/IndexBuffer.h"
+#include "Lamp/Rendering/Renderer.h"
+
+#include "Lamp/Rendering/Buffer/CombinedIndexBuffer.h"
+#include "Lamp/Rendering/Buffer/CombinedVertexBuffer.h"
 
 namespace Lamp
 {
 	void Mesh::Construct()
 	{
-		m_vertexBuffer = VertexBuffer::Create(m_vertices, sizeof(Vertex) * (uint32_t)m_vertices.size());
-		m_indexBuffer = IndexBuffer::Create(m_indices, (uint32_t)m_indices.size());
-	
+		auto& bindlessData = Renderer::GetBindlessData();
+
+		const uint64_t vertexLocation = bindlessData.combinedVertexBuffer->AppendToBuffer(m_vertices.data(), m_vertices.size());
+		const uint64_t indexLocation = bindlessData.combinedIndexBuffer->AppendToBuffer(m_indices.data(), m_indices.size());
+
+		for (auto& s : m_subMeshes)
+		{
+			s.indexStartOffset += indexLocation;
+			s.vertexStartOffset += vertexLocation;
+		}
+
 		glm::vec3 minAABB = glm::vec3(std::numeric_limits<float>::max());
 		glm::vec3 maxAABB = glm::vec3(std::numeric_limits<float>::min());
 		

@@ -37,6 +37,7 @@ namespace Lamp
 	private:
 		friend class RenderPipelineCompute;
 		friend class ImageBarrier;
+		friend class DDSTextureImporter; // Wierd
 
 		ImageSpecification m_specification;
 

@@ -28,6 +28,11 @@
 #include "Lamp/Rendering/Buffer/IndexBuffer.h"
 #include "Lamp/Rendering/Buffer/VertexBuffer.h"
 
+#include "Lamp/Rendering/Buffer/CombinedIndexBuffer.h"
+#include "Lamp/Rendering/Buffer/CombinedVertexBuffer.h"
+#include "Lamp/Rendering/Texture/TextureTable.h"
+#include "Lamp/Rendering/MaterialTable.h"
+
 #include "Lamp/Rendering/Camera/Camera.h"
 
 #include "Lamp/Rendering/Texture/SamplerLibrary.h"
@@ -62,6 +67,7 @@ namespace Lamp
 		const uint32_t framesInFlight = Application::Get().GetWindow()->GetSwapchain().GetFramesInFlight();
 		s_rendererData->commandBuffer = CommandBuffer::Create(framesInFlight, false);
 
+		CreateBindlessData();
 		CreateDefaultData();
 		CreateDescriptorPools();
 
@@ -79,11 +85,12 @@ namespace Lamp
 		s_frameDeletionQueues.resize(framesInFlight);
 		s_invalidationQueues.resize(framesInFlight);
 
-		UniformBufferRegistry::Register(0, 1, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
-
 		UniformBufferRegistry::Register(1, 0, UniformBufferSet::Create(sizeof(CameraData), PASS_COUNT, framesInFlight));
 		UniformBufferRegistry::Register(1, 1, UniformBufferSet::Create(sizeof(TargetData), PASS_COUNT, framesInFlight));
 		UniformBufferRegistry::Register(1, 2, UniformBufferSet::Create(sizeof(PassData), PASS_COUNT, framesInFlight));
+		UniformBufferRegistry::Register(1, 3, UniformBufferSet::Create(sizeof(DirectionalLightData), framesInFlight));
+
+		ShaderStorageBufferRegistry::Register(0, 1, ShaderStorageBufferSet::Create(sizeof(MaterialData) * 128, framesInFlight));
 
 		s_defaultData = CreateScope<DefaultData>();
 
@@ -135,6 +142,14 @@ namespace Lamp
 		LP_VK_CHECK(vkResetDescriptorPool(GraphicsContext::GetDevice()->GetHandle(), s_rendererData->descriptorPools[currentFrame], 0));
 
 		s_rendererData->commandBuffer->Begin();
+
+		UpdatePerFrameBuffers();
+
+		{
+			auto& data = GetBindlessData();
+			data.combinedVertexBuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+			data.combinedIndexBuffer->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+		}
 
 		LP_PROFILE_GPU_EVENT("Rendering Begin");
 
@@ -315,8 +330,8 @@ namespace Lamp
 
 				if (i == 0 || (i > 0 && draws[i].mesh != draws[i - 1].mesh))
 				{
-					draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
-					draws[i].mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+					//draws[i].mesh->GetVertexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
+					//draws[i].mesh->GetIndexBuffer()->Bind(s_rendererData->commandBuffer->GetCurrentCommandBuffer());
 				}
 
 				const VkDeviceSize drawOffset = draws[i].first * sizeof(GPUIndirectObject);
@@ -338,12 +353,19 @@ namespace Lamp
 
 		for (const auto& cmd : s_rendererData->renderCommands)
 		{
-			cmd.mesh->GetVertexBuffer()->Bind(currentCommandBuffer);
-			cmd.mesh->GetIndexBuffer()->Bind(currentCommandBuffer);
 			cmd.material->Bind(currentCommandBuffer, currentFrame);
 
-			const glm::mat4 mat{ 1.f };
-			cmd.material->SetPushConstant(currentCommandBuffer, 0, sizeof(glm::mat4), &mat);
+			struct PushConstants
+			{
+				glm::mat4 transform;
+				uint32_t materialId;
+
+			} pushConsts;
+
+			pushConsts.transform = cmd.transform;
+			pushConsts.materialId = GetBindlessData().materialTable->GetMaterialId(cmd.material);
+
+			cmd.material->SetPushConstant(currentCommandBuffer, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConsts);
 			vkCmdDrawIndexed(currentCommandBuffer, cmd.subMesh.indexCount, 1, cmd.subMesh.indexStartOffset, cmd.subMesh.vertexStartOffset, 0);
 		}
 	}
@@ -592,6 +614,16 @@ namespace Lamp
 		}
 	}
 
+	void Renderer::CreateBindlessData()
+	{
+		auto& data = GetBindlessData();
+
+		data.combinedVertexBuffer = CombinedVertexBuffer::Create(sizeof(Vertex), BindlessData::MAX_VERTICES);
+		data.combinedIndexBuffer = CombinedIndexBuffer::Create(BindlessData::MAX_INDICES);
+		data.textureTable = TextureTable::Create(16384, 0);
+		data.materialTable = MaterialTable::Create();
+	}
+
 	void Renderer::UpdatePerPassBuffers()
 	{
 		LP_PROFILE_FUNCTION();
@@ -628,6 +660,26 @@ namespace Lamp
 
 			currentPassBuffer->Unmap();
 		}
+	}
+
+	void Renderer::UpdatePerFrameBuffers()
+	{
+		const uint32_t currentFrame = s_rendererData->commandBuffer->GetCurrentIndex();
+		const auto& currentMaterialBuffer = ShaderStorageBufferRegistry::Get(0, 11)->Get(currentFrame);
+		auto& bindlessData = GetBindlessData();
+
+		const auto& materialTable = bindlessData.materialTable->GetTable();
+
+		MaterialData* data = currentMaterialBuffer->Map<MaterialData>();
+
+		for (const auto& [material, id] : materialTable)
+		{
+			MaterialData& d = data[id];
+			d.albedo = bindlessData.textureTable->GetBindingFromTexture(material->GetTextures().at(0));
+			d.materialNormal = bindlessData.textureTable->GetBindingFromTexture(material->GetTextures().at(1));
+		}
+
+		currentMaterialBuffer->Unmap();
 	}
 
 	void Renderer::GenerateBRDFLut()

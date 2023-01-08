@@ -31,9 +31,6 @@ namespace Lamp
 		inline const size_t GetIndexCount() const { return m_indices.size(); }
 		inline const BoundingSphere& GetBoundingSphere() const { return m_boundingSphere; }
 		
-		inline const Ref<VertexBuffer>& GetVertexBuffer() const { return m_vertexBuffer; }
-		inline const Ref<IndexBuffer>& GetIndexBuffer() const { return m_indexBuffer; }
-
 		static AssetType GetStaticType() { return AssetType::Mesh; }
 		AssetType GetType() override { return GetStaticType(); }
 
@@ -49,9 +46,6 @@ namespace Lamp
 
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
-
-		Ref<VertexBuffer> m_vertexBuffer;
-		Ref<IndexBuffer> m_indexBuffer;
 
 		BoundingSphere m_boundingSphere;
 	};

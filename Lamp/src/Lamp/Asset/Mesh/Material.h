@@ -19,7 +19,7 @@ namespace Lamp
 		~Material();
 
 		void Bind(VkCommandBuffer commandBuffer, uint32_t frameIndex, uint32_t passIndex = 0) const;
-		void SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const;
+		void SetPushConstant(VkCommandBuffer cmdBuffer, VkShaderStageFlags stages, uint32_t offset, uint32_t size, const void* data) const;
 		void SetTexture(uint32_t binding, Ref<Texture2D> texture);
 		void Invalidate();
 

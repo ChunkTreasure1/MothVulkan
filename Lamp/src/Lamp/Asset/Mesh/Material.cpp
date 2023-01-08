@@ -65,10 +65,10 @@ namespace Lamp
 		}
 	}
 
-	void Material::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	void Material::SetPushConstant(VkCommandBuffer cmdBuffer, VkShaderStageFlags stages, uint32_t offset, uint32_t size, const void* data) const
 	{
 		LP_PROFILE_FUNCTION();
-		m_renderPipeline->SetPushConstant(cmdBuffer, offset, size, data);
+		m_renderPipeline->SetPushConstant(cmdBuffer, stages, offset, size, data);
 	}
 
 	void Material::SetTexture(uint32_t binding, Ref<Texture2D> texture)

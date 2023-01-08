@@ -89,6 +89,7 @@ namespace Lamp
 
 		VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
 		dynamicRendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+		dynamicRendering.pNext = nullptr;
 		dynamicRendering.dynamicRendering = VK_TRUE;
 
 		VkPhysicalDeviceVulkan11Features vulkan11Features{};
@@ -101,6 +102,11 @@ namespace Lamp
 		vk12Features.pNext = &vulkan11Features;
 		vk12Features.drawIndirectCount = VK_TRUE;
 		vk12Features.samplerFilterMinmax = VK_TRUE;
+		vk12Features.runtimeDescriptorArray = VK_TRUE;
+		vk12Features.descriptorBindingPartiallyBound = VK_TRUE;
+		vk12Features.descriptorIndexing = VK_TRUE;
+		vk12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
+		vk12Features.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
 
 		VkPhysicalDeviceFeatures2 enabledFeatures{};
 		enabledFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;

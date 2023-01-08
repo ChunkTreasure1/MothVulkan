@@ -1,106 +1,106 @@
 Assets:
-  - Handle: 5385815312255244790
-    Path: Assets\Meshes\Sponza\Textures\curtain_fabric_red_m.dds
-  - Handle: 6029536644885733927
-    Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_m.dds
-  - Handle: 5947017135472988585
-    Path: Engine\Shaders\GLSL\Deferred\GBuffer_fs.glsl
-  - Handle: 3408067414653871778
-    Path: Engine\Shaders\GLSL\PBR_fs.glsl
-  - Handle: 11533325920728509549
-    Path: Assets/cube.fbx
   - Handle: 10618793917389587057
     Path: Engine/RenderPipelines\copyToSwapchain.lprpdef
-  - Handle: 1249971563143443831
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
+  - Handle: 5385815312255244790
+    Path: Assets\Meshes\Sponza\Textures\curtain_fabric_red_m.dds
+  - Handle: 5947017135472988585
+    Path: Engine\Shaders\GLSL\Deferred\GBuffer_fs.glsl
+  - Handle: 6029536644885733927
+    Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_m.dds
+  - Handle: 11533325920728509549
+    Path: Assets/cube.fbx
+  - Handle: 3408067414653871778
+    Path: Engine\Shaders\GLSL\PBR_fs.glsl
+  - Handle: 13461233730205319078
+    Path: Engine/Shaders\Definitions\pbr.lpsdef
+  - Handle: 7921486373975219315
+    Path: Assets/Textures/peter_lambert.png
+  - Handle: 13717396777666668695
+    Path: Assets\Meshes\Sponza\sponzamat.lpmat
   - Handle: 2364318552008784800
     Path: Engine\Shaders\Cache\BRDFGeneration_cs.glsl.compute.cached
   - Handle: 7625587265189312090
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_c.dds
-  - Handle: 13717396777666668695
-    Path: Assets\Meshes\Sponza\sponzamat.lpmat
-  - Handle: 7921486373975219315
-    Path: Assets/Textures/peter_lambert.png
-  - Handle: 13461233730205319078
-    Path: Engine/Shaders\Definitions\pbr.lpsdef
+  - Handle: 1249971563143443831
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_m.dds
   - Handle: 10912000280717110820
     Path: Engine/RenderPasses\forward.lprp
   - Handle: 6530009144517997364
     Path: Assets\Meshes\Sponza\Textures\wood_door_01_m.dds
   - Handle: 6171269730112167638
     Path: Assets/SM_Particle_Chest.fbx
+  - Handle: 4056126216708790799
+    Path: Engine/RenderGraph/renderGraph.lprg
   - Handle: 14860646877363534706
     Path: Assets\Meshes\Sponza\Textures\window_frame_01_materialNormal.dds
   - Handle: 3769801563815325081
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_blue_m.dds
-  - Handle: 4056126216708790799
-    Path: Engine/RenderGraph/renderGraph.lprg
-  - Handle: 9845721996608143630
-    Path: Assets\Meshes\Sponza\Textures\dirt_decal_01_c.dds
-  - Handle: 9097420759997753401
-    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_m.dds
+  - Handle: 15894168365099429476
+    Path: Assets/Meshes/Sponza/Sponza2022.glb
   - Handle: 4103065852066774411
     Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_m.dds
   - Handle: 7799603426115170852
     Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_n.dds
-  - Handle: 15894168365099429476
-    Path: Assets/Meshes/Sponza/Sponza2022.glb
+  - Handle: 9845721996608143630
+    Path: Assets\Meshes\Sponza\Textures\dirt_decal_01_c.dds
+  - Handle: 9097420759997753401
+    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_m.dds
   - Handle: 444175265639903240
     Path: Assets/LampSkull.glb
-  - Handle: 8309224794366092948
-    Path: Engine/RenderPipelines\pbrPipeline.lprpdef
   - Handle: 8193205504869265655
     Path: Editor/Textures/Icons/icon_stop.dds
+  - Handle: 8309224794366092948
+    Path: Engine/RenderPipelines\pbrPipeline.lprpdef
+  - Handle: 17524321649877736539
+    Path: Assets\Meshes\Sponza\Textures\stone_trims_01_n.dds
+  - Handle: 104636927086174237
+    Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_m.dds
   - Handle: 16663391296907981347
     Path: Engine\Shaders\Cache\PBR_vs.glsl.vertex.cached
   - Handle: 10847345471036476924
     Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_n.dds
-  - Handle: 104636927086174237
-    Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_m.dds
-  - Handle: 17524321649877736539
-    Path: Assets\Meshes\Sponza\Textures\stone_trims_01_n.dds
-  - Handle: 6792430985733487355
-    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_c.dds
   - Handle: 10526662306552513238
     Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_c.dds
+  - Handle: 6792430985733487355
+    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_c.dds
   - Handle: 6544430595485840483
     Path: Assets\Meshes\Sponza\Textures\ornament_01_n.dds
   - Handle: 3111270070065897487
     Path: Assets\Meshes\Sponza\Textures\arch_stone_wall_01_Normal.dds
-  - Handle: 6377004731874760236
-    Path: Editor/Textures/Icons/icon_directory.dds
   - Handle: 2473489394814697106
     Path: Editor/Textures/Icons/icon_reload.dds
+  - Handle: 6377004731874760236
+    Path: Editor/Textures/Icons/icon_directory.dds
   - Handle: 8791231563255988072
     Path: Editor/Textures/Icons/icon_back.dds
-  - Handle: 14207400355556303372
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_n.dds
-  - Handle: 2373456098771728804
-    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_m.dds
   - Handle: 16277546926481524236
     Path: Editor/Textures/Icons/icon_search.dds
-  - Handle: 14666817517284768212
-    Path: Assets\Meshes\Sponza\Textures\brickwall_02_n.dds
+  - Handle: 2373456098771728804
+    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_m.dds
+  - Handle: 14207400355556303372
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_n.dds
   - Handle: 4566814669381579120
     Path: Editor/Textures/Icons/icon_settings.dds
+  - Handle: 14666817517284768212
+    Path: Assets\Meshes\Sponza\Textures\brickwall_02_n.dds
   - Handle: 2658475523617608575
     Path: Editor/Textures/Icons/icon_play.dds
-  - Handle: 11590495622663019701
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_c.dds
   - Handle: 3310614585011826507
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_m.dds
   - Handle: 9181451804674598263
     Path: Editor/Textures/Icons/icon_file.dds
+  - Handle: 11590495622663019701
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_c.dds
+  - Handle: 3150999409561481984
+    Path: Assets\AssetRegistry.lpreg
+  - Handle: 16514476788343765964
+    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_01_n.dds
+  - Handle: 4617138853713086901
+    Path: Assets\Meshes\Sponza\Textures\column_1stfloor_n.dds
   - Handle: 14729280689045571241
     Path: Engine\Shaders\GLSL\Deferred\Shading_cs.glsl
   - Handle: 7417824356246717196
     Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_c.dds
-  - Handle: 4617138853713086901
-    Path: Assets\Meshes\Sponza\Textures\column_1stfloor_n.dds
-  - Handle: 16514476788343765964
-    Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_01_n.dds
-  - Handle: 3150999409561481984
-    Path: Assets\AssetRegistry.lpreg
   - Handle: 17404678916996796885
     Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_materialNormal.dds
   - Handle: 2627664088067154109
@@ -117,24 +117,24 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\brickwall_02_c.dds
   - Handle: 7574484793110111777
     Path: Assets\Meshes\Sponza\Textures\brickwall_02_m.dds
-  - Handle: 2731383522558782822
-    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_m.dds
-  - Handle: 1840453752084482727
-    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_n.dds
-  - Handle: 3763836502500103802
-    Path: Assets\Meshes\Sponza\Textures\column_1stfloor_c.dds
   - Handle: 12705515675753564767
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_01_c.dds
+  - Handle: 3763836502500103802
+    Path: Assets\Meshes\Sponza\Textures\column_1stfloor_c.dds
+  - Handle: 1840453752084482727
+    Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_03_n.dds
+  - Handle: 2731383522558782822
+    Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_m.dds
   - Handle: 11202840811589362289
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_01_m.dds
   - Handle: 13937461456470298624
     Path: Assets\Meshes\Sponza\Textures\column_1stfloor_m.dds
   - Handle: 3342959149669462403
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_01_c.dds
-  - Handle: 1128520537286674042
-    Path: Assets\Meshes\Sponza\Textures\brickwall_02_materialNormal.dds
   - Handle: 16671047376712667881
     Path: Assets\Meshes\Sponza\Textures\ceiling_plaster_02_n.dds
+  - Handle: 1128520537286674042
+    Path: Assets\Meshes\Sponza\Textures\brickwall_02_materialNormal.dds
   - Handle: 5331706042518227231
     Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_c.dds
   - Handle: 14408095999862862277
@@ -143,28 +143,28 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_c.dds
   - Handle: 12086196813431276457
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_red_n.dds
-  - Handle: 1206742991733818978
-    Path: Assets\Meshes\Sponza\Textures\metal_door_01_materialNormal.dds
   - Handle: 5391479155059063435
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_n.dds
+  - Handle: 1206742991733818978
+    Path: Assets\Meshes\Sponza\Textures\metal_door_01_materialNormal.dds
   - Handle: 9599497850813721204
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_blue_c.dds
-  - Handle: 17696389535103733824
-    Path: Assets\Meshes\Sponza\Textures\wood_tile_01_materialNormal.dds
   - Handle: 4762824936534106037
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_green_n.dds
+  - Handle: 17696389535103733824
+    Path: Assets\Meshes\Sponza\Textures\wood_tile_01_materialNormal.dds
   - Handle: 13039600660259845043
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_green_c.dds
   - Handle: 10762440822239429296
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_blue_n.dds
   - Handle: 4791358632634292309
     Path: Assets\Meshes\Sponza\Textures\curtain_fabric_green_m.dds
-  - Handle: 7193826710365456083
-    Path: Engine\Shaders\Cache\test_vs.hlsl.vertex.cached
-  - Handle: 10690136229953754714
-    Path: Engine\Shaders\GLSL\Environment\EnvironmentFiltering_cs.glsl
   - Handle: 10358237291686603670
     Path: Assets\Meshes\Sponza\Textures\door_stoneframe_02_n.dds
+  - Handle: 10690136229953754714
+    Path: Engine\Shaders\GLSL\Environment\EnvironmentFiltering_cs.glsl
+  - Handle: 7193826710365456083
+    Path: Engine\Shaders\Cache\test_vs.hlsl.vertex.cached
   - Handle: 13648423932771400095
     Path: Assets\Meshes\Sponza\Textures\floor_tiles_01_c.dds
   - Handle: 13260052921681829215
@@ -183,10 +183,10 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\metal_door_01_m.dds
   - Handle: 17656124517668747473
     Path: Assets\Meshes\Sponza\Textures\metal_door_01_n.dds
-  - Handle: 1519389465131169152
-    Path: Engine\Shaders\Deferred\GBuffer_vs.glsl
   - Handle: 12363893699666129652
     Path: Assets\Meshes\Sponza\Textures\ornament_01_c.dds
+  - Handle: 1519389465131169152
+    Path: Engine\Shaders\Deferred\GBuffer_vs.glsl
   - Handle: 15188386597739211637
     Path: Assets\Meshes\Sponza\Textures\ornament_01_m.dds
   - Handle: 5701117690511550777
@@ -203,10 +203,10 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\stones_2ndfloor_01_n.dds
   - Handle: 12562275450317383540
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_c.dds
-  - Handle: 4343160822256523224
-    Path: Assets\Meshes\Chest\SM_Particle_Chest.fbx
   - Handle: 1630721548965055897
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_m.dds
+  - Handle: 4343160822256523224
+    Path: Assets\Meshes\Chest\SM_Particle_Chest.fbx
   - Handle: 12215716018415664801
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_n.dds
   - Handle: 10775042495677737548
@@ -247,12 +247,12 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\column_1stfloor_materialNormal.dds
   - Handle: 11566361249794305466
     Path: Assets\Meshes\Sponza\Textures\column_brickwall_01_materialNormal.dds
-  - Handle: 14855701553004542038
-    Path: Assets\Scenes\Test\Entities\Entity_1.ent
-  - Handle: 18105833981138012669
-    Path: Engine\Shaders\Cache\EnvironmentFiltering_cs.glsl.compute.cached
   - Handle: 16605861160291563046
     Path: Assets\Meshes\Sponza\Textures\column_head_1stfloor_materialNormal.dds
+  - Handle: 18105833981138012669
+    Path: Engine\Shaders\Cache\EnvironmentFiltering_cs.glsl.compute.cached
+  - Handle: 14855701553004542038
+    Path: Assets\Scenes\Test\Entities\Entity_1.ent
   - Handle: 3434824630969020684
     Path: Assets\Meshes\Sponza\Textures\column_head_2ndfloor_02_materialNormal.dds
   - Handle: 8585311606290656843
@@ -271,20 +271,20 @@ Assets:
     Path: Assets\Meshes\Sponza\Textures\stones_2ndfloor_01_materialNormal.dds
   - Handle: 16705355829975429953
     Path: Assets\Meshes\Sponza\Textures\stone_01_tile_materialNormal.dds
-  - Handle: 14977105164640407251
-    Path: Assets\Meshes\Sponza\Textures\stone_trims_01_materialNormal.dds
   - Handle: 13731376584961346642
     Path: Editor/Textures/Icons/icon_locked.dds
-  - Handle: 18199131934693891348
-    Path: Engine\Fonts\Futura\futura-light.ttf
+  - Handle: 14977105164640407251
+    Path: Assets\Meshes\Sponza\Textures\stone_trims_01_materialNormal.dds
   - Handle: 15689025092329343871
     Path: Assets\Meshes\Sponza\Textures\stone_trims_02_materialNormal.dds
+  - Handle: 18199131934693891348
+    Path: Engine\Fonts\Futura\futura-light.ttf
   - Handle: 4285905638287371977
     Path: Assets\Meshes\Sponza\Textures\wood_door_01_materialNormal.dds
-  - Handle: 15749245590283680238
-    Path: Engine\Shaders\BRDFGeneration_cs.glsl
   - Handle: 4598058952105464720
     Path: Engine/Shaders\Definitions\environmentFiltering.lpsdef
+  - Handle: 15749245590283680238
+    Path: Engine\Shaders\BRDFGeneration_cs.glsl
   - Handle: 1122308003897149090
     Path: Engine/Shaders\Definitions\environmentGenerateIrradiance.lpsdef
   - Handle: 9332746634905161471
@@ -293,10 +293,10 @@ Assets:
     Path: Assets\Textures\HDRIs\brightForest.hdr
   - Handle: 17224684258346697250
     Path: Engine/Shaders\Definitions\brdfGeneration.lpsdef
-  - Handle: 7829466757563940291
-    Path: C:\Programming\MothVulkan\AssetData\Engine\RenderPipelines\pbrPipeline.lprpdef
   - Handle: 353052802716970346
     Path: Engine/Shaders\Definitions\testHLSL.lpsdef
+  - Handle: 7829466757563940291
+    Path: C:\Programming\MothVulkan\AssetData\Engine\RenderPipelines\pbrPipeline.lprpdef
   - Handle: 4258206864201889639
     Path: Editor/Textures/Icons/icon_unlocked.dds
   - Handle: 4945839815267153824
@@ -329,32 +329,32 @@ Assets:
     Path: Engine\Shaders\Environment\EquirectangularConversion_cs.glsl
   - Handle: 684302056822652433
     Path: Engine\Shaders\PBR_fs.glsl
-  - Handle: 15648062446886290528
-    Path: Engine/RenderPasses\gbuffer.lprp
   - Handle: 5658993734941985290
     Path: Engine\Shaders\PBR_vs.glsl
+  - Handle: 15648062446886290528
+    Path: Engine/RenderPasses\gbuffer.lprp
   - Handle: 12036731231661063437
     Path: Engine\Shaders\Structures.glslh
   - Handle: 3457867246250363315
     Path: Editor/Textures/Icons/AssetIcons/icon_material.dds
-  - Handle: 16656432080503198613
-    Path: Engine/Shaders\Definitions\gbuffer.lpsdef
   - Handle: 13225411876011874001
     Path: Editor/Textures/Icons/AssetIcons/icon_mesh.dds
-  - Handle: 12602749111285238698
-    Path: Editor/Textures/Icons/AssetIcons/icon_meshSource.dds
+  - Handle: 16656432080503198613
+    Path: Engine/Shaders\Definitions\gbuffer.lpsdef
   - Handle: 17608772527691948593
     Path: Engine\Shaders\Includes\Buffers.h
+  - Handle: 12602749111285238698
+    Path: Editor/Textures/Icons/AssetIcons/icon_meshSource.dds
   - Handle: 7684327436814241643
     Path: Engine/Shaders\Definitions\default.lpsdef
   - Handle: 2592691897210727710
     Path: Engine\Shaders\Cache\Default_fs.glsl.fragment.cached
   - Handle: 3707774219062751949
     Path: Engine\Shaders\Cache\Default_vs.glsl.vertex.cached
-  - Handle: 5911375088574771334
-    Path: Assets\Meshes\Cube\cube.fbx
   - Handle: 557521438286527886
     Path: Engine\Shaders\Default\Default_fs.glsl
+  - Handle: 5911375088574771334
+    Path: Assets\Meshes\Cube\cube.fbx
   - Handle: 4932343772043428791
     Path: Engine\Shaders\Default\Default_vs.glsl
   - Handle: 8885563818061827797
@@ -417,9 +417,11 @@ Assets:
     Path: Engine\Shaders\Deferred\GBuffer_fs.glsl
   - Handle: 10665445663156247204
     Path: Engine\Shaders\Deferred\Shading_cs.glsl
-  - Handle: 7997591308942961190
-    Path: Engine/RenderPipelines\shading.lprpdef
   - Handle: 2750225147779213814
     Path: Engine/RenderPasses\shadingPass.lprp
+  - Handle: 7997591308942961190
+    Path: Engine/RenderPipelines\shading.lprpdef
   - Handle: 10374874201620715156
     Path: Engine\Shaders\GLSL\Deferred\GBuffer_vs.glsl
+  - Handle: 14671579065131769365
+    Path: Engine\Shaders\Includes\Bindless.h

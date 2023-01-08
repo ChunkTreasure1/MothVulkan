@@ -378,23 +378,6 @@ namespace Lamp
 	{
 		LP_PROFILE_FUNCTION();
 
-		VkExtent2D extent{};
-		extent.width = m_specification.framebuffer->GetWidth();
-		extent.height = m_specification.framebuffer->GetHeight();
-
-		VkViewport viewport{};
-		viewport.x = 0.f;
-		viewport.y = (float)extent.height;
-
-		viewport.width = (float)extent.width;
-		viewport.height = -(float)extent.height;
-		viewport.minDepth = 0.f;
-		viewport.maxDepth = 1.f;
-
-		VkRect2D scissor = { { 0, 0 }, extent };
-		vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
-
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 	}
 
@@ -435,9 +418,9 @@ namespace Lamp
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, firstSet, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 	}
 
-	void RenderPipeline::SetPushConstant(VkCommandBuffer cmdBuffer, uint32_t offset, uint32_t size, const void* data) const
+	void RenderPipeline::SetPushConstant(VkCommandBuffer cmdBuffer, VkShaderStageFlags stages, uint32_t offset, uint32_t size, const void* data) const
 	{
-		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, offset, size, data);
+		vkCmdPushConstants(cmdBuffer, m_pipelineLayout, stages, offset, size, data);
 	}
 
 	void RenderPipeline::AddReference(Material* material)

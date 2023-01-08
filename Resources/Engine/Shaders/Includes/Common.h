@@ -56,3 +56,9 @@ struct TargetData
 {
 	vec2 targetSize;
 };
+
+struct Material
+{
+	uint albedo;
+	uint materialNormal;
+};
